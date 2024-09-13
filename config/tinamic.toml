@@ -1,0 +1,55 @@
+# Tinamic配置文件
+[project]
+    Title = "Tinamic"
+    Author = "Zwishing"
+
+[app]
+
+
+[server]
+    port = 3000
+    name = "Tinamic"
+    temp = ""
+
+[database]
+    [database.postgresql]
+        #DbConnection = "postgresql://postgres:admin@localhost/postgres"
+        host="1.92.113.25"
+        port=5432
+        database="tinamic"
+        user="postgres"
+        password="admin321"
+        poolMaxConnLifeTime="1h" # Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+        poolMaxConns=4
+        timeout=10
+        sslmode="disable" #
+
+    [database.mongodb]
+        host="127.0.0.1"
+        port=27017
+        database="mongodb"
+        user="postgres"
+        password="admin"
+        collection=""
+
+    [database.redis]
+        host="1.92.113.25"
+        port=6379
+        database=0
+        user=""
+        password="123456"
+        poolMaxConns=10 # socket 连接最大数
+
+[storage]
+    [storage.minio]
+        endpoint="39.101.164.253:9000"
+        bucket="vector"
+        accessKey="ugNa8yDGzk4gESCATs06"
+        secretKey="ruiC05DkvnxxNZrMba5kUbgux8oJLreYuulXhryw"
+        buckets = ["vector","raster"]
+
+[message]
+    [message.nsq]
+        host="1.92.113.25"
+        port=4161
+
