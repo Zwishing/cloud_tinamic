@@ -13,8 +13,8 @@ import (
 // Injectors from wire.go:
 
 func InitUserService() *UserServiceImpl {
-	pgPool := repo.NewPgPool()
-	userRepo := repo.NewUserRepoImpl(pgPool)
+	db := repo.NewDB()
+	userRepo := repo.NewUserRepoImpl(db)
 	userServiceImpl := NewUserServiceImpl(userRepo)
 	return userServiceImpl
 }

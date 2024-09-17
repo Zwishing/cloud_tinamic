@@ -3,14 +3,78 @@
 package base
 
 import (
+	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	thrift "github.com/cloudwego/kitex/pkg/protocol/bthrift/apache"
 	"strings"
 )
 
+type Code int64
+
+const (
+	Code_SUCCESS         Code = 0
+	Code_INVALID_REQUEST Code = 1
+	Code_NOT_FOUND       Code = 2
+	Code_SERVER_ERROR    Code = 3
+	Code_UNAUTHORIZED    Code = 4
+	Code_FAIL            Code = 5
+)
+
+func (p Code) String() string {
+	switch p {
+	case Code_SUCCESS:
+		return "SUCCESS"
+	case Code_INVALID_REQUEST:
+		return "INVALID_REQUEST"
+	case Code_NOT_FOUND:
+		return "NOT_FOUND"
+	case Code_SERVER_ERROR:
+		return "SERVER_ERROR"
+	case Code_UNAUTHORIZED:
+		return "UNAUTHORIZED"
+	case Code_FAIL:
+		return "FAIL"
+	}
+	return "<UNSET>"
+}
+
+func CodeFromString(s string) (Code, error) {
+	switch s {
+	case "SUCCESS":
+		return Code_SUCCESS, nil
+	case "INVALID_REQUEST":
+		return Code_INVALID_REQUEST, nil
+	case "NOT_FOUND":
+		return Code_NOT_FOUND, nil
+	case "SERVER_ERROR":
+		return Code_SERVER_ERROR, nil
+	case "UNAUTHORIZED":
+		return Code_UNAUTHORIZED, nil
+	case "FAIL":
+		return Code_FAIL, nil
+	}
+	return Code(0), fmt.Errorf("not a valid Code string")
+}
+
+func CodePtr(v Code) *Code { return &v }
+func (p *Code) Scan(value interface{}) (err error) {
+	var result sql.NullInt64
+	err = result.Scan(value)
+	*p = Code(result.Int64)
+	return
+}
+
+func (p *Code) Value() (driver.Value, error) {
+	if p == nil {
+		return nil, nil
+	}
+	return int64(*p), nil
+}
+
 type BaseResp struct {
-	Code int64  `thrift:"code,1" frugal:"1,default,i64" json:"code"`
-	Msg  string `thrift:"msg,2" frugal:"2,default,string" json:"msg"`
+	Code Code   `thrift:"code,1,required" frugal:"1,required,Code" json:"code"`
+	Msg  string `thrift:"msg,2,required" frugal:"2,required,string" json:"msg"`
 }
 
 func NewBaseResp() *BaseResp {
@@ -20,14 +84,14 @@ func NewBaseResp() *BaseResp {
 func (p *BaseResp) InitDefault() {
 }
 
-func (p *BaseResp) GetCode() (v int64) {
+func (p *BaseResp) GetCode() (v Code) {
 	return p.Code
 }
 
 func (p *BaseResp) GetMsg() (v string) {
 	return p.Msg
 }
-func (p *BaseResp) SetCode(val int64) {
+func (p *BaseResp) SetCode(val Code) {
 	p.Code = val
 }
 func (p *BaseResp) SetMsg(val string) {
@@ -43,6 +107,8 @@ func (p *BaseResp) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
+	var issetCode bool = false
+	var issetMsg bool = false
 
 	if _, err = iprot.ReadStructBegin(); err != nil {
 		goto ReadStructBeginError
@@ -59,10 +125,11 @@ func (p *BaseResp) Read(iprot thrift.TProtocol) (err error) {
 
 		switch fieldId {
 		case 1:
-			if fieldTypeId == thrift.I64 {
+			if fieldTypeId == thrift.I32 {
 				if err = p.ReadField1(iprot); err != nil {
 					goto ReadFieldError
 				}
+				issetCode = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -71,6 +138,7 @@ func (p *BaseResp) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
+				issetMsg = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -87,6 +155,15 @@ func (p *BaseResp) Read(iprot thrift.TProtocol) (err error) {
 		goto ReadStructEndError
 	}
 
+	if !issetCode {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetMsg {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
 	return nil
 ReadStructBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
@@ -101,15 +178,17 @@ ReadFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
 ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_BaseResp[fieldId]))
 }
 
 func (p *BaseResp) ReadField1(iprot thrift.TProtocol) error {
 
-	var _field int64
-	if v, err := iprot.ReadI64(); err != nil {
+	var _field Code
+	if v, err := iprot.ReadI32(); err != nil {
 		return err
 	} else {
-		_field = v
+		_field = Code(v)
 	}
 	p.Code = _field
 	return nil
@@ -159,10 +238,10 @@ WriteStructEndError:
 }
 
 func (p *BaseResp) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("code", thrift.I64, 1); err != nil {
+	if err = oprot.WriteFieldBegin("code", thrift.I32, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteI64(p.Code); err != nil {
+	if err := oprot.WriteI32(int32(p.Code)); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -215,7 +294,7 @@ func (p *BaseResp) DeepEqual(ano *BaseResp) bool {
 	return true
 }
 
-func (p *BaseResp) Field1DeepEqual(src int64) bool {
+func (p *BaseResp) Field1DeepEqual(src Code) bool {
 
 	if p.Code != src {
 		return false

@@ -1,19 +1,20 @@
-namespace rs geo.storage
+namespace rs data.storage
+namespace go data.storage
 
 include "base.thrift"
 
-struct VectorStoreRequest {
-    1: string schema,
-    2: string table,
-    3: string name,
-    4: string url,
-    5: string ext,
+struct StoreRequest {
+    1: required string schema,
+    2: required string table,
+    3: required string name,
+    4: required string url,
+    5: required string ext,
 }
 
-struct VectorStoreResponse {
-    1: base.BaseResp base,
+struct StoreResponse {
+    1: required base.BaseResp base,
 }
 
-service VectorStoreService {
-    VectorStoreResponse Storage(1:VectorStoreRequest req),
+service StoreService {
+    StoreResponse VectorStorage(1:StoreRequest req),
 }

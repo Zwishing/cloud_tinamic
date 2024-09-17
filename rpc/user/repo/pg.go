@@ -1,27 +1,31 @@
 package repo
 
 import (
-	"cloud_tinamic/config"
-	"cloud_tinamic/pkg/pg"
+	conf "cloud_tinamic/config"
 	"fmt"
 	"github.com/cloudwego/kitex/pkg/klog"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"sync"
 )
 
 var (
-	db *pg.PgPool //定义一个连接池
+	DB     *gorm.DB
+	dbOnce sync.Once
 )
 
-func NewPgPool() *pg.PgPool {
-	cfg := conf.GetConfigInstance()
-	constr := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
-		cfg.GetString("database.postgresql.user"),
-		cfg.GetString("database.postgresql.password"),
-		cfg.GetString("database.postgresql.host"),
-		cfg.GetInt32("database.postgresql.port"),
-		cfg.GetString("database.postgresql.database"),
-		cfg.GetString("database.postgresql.sslmode"))
-	dbConfig := pg.NewPgConfig(pg.WithConnString(constr))
-	db = pg.NewPgPool(dbConfig.Config)
-	klog.Infof("success connect db @ %s", cfg.GetString("database.postgresql.host"))
-	return db
+func NewDB() *gorm.DB {
+	dbOnce.Do(func() {
+		cfg := conf.GetConfigInstance()
+		constr := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
+			cfg.GetString("database.postgresql.user"),
+			cfg.GetString("database.postgresql.password"),
+			cfg.GetString("database.postgresql.host"),
+			cfg.GetInt32("database.postgresql.port"),
+			cfg.GetString("database.postgresql.database"),
+			cfg.GetString("database.postgresql.sslmode"))
+		DB, _ = gorm.Open(postgres.Open(constr), &gorm.Config{})
+		klog.Infof("success connect db @ %s", cfg.GetString("database.postgresql.host"))
+	})
+	return DB
 }

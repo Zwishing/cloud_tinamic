@@ -1,0 +1,5 @@
+[database]
+host = "1.92.113.25"
+user = "postgres"
+password = "admin321"
+dbname = "postgres"

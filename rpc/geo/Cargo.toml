@@ -1,5 +1,5 @@
 [package]
-name = "rgeo"
+name = "geo_storage"
 version = "0.1.0"
 edition.workspace = true
 
@@ -14,6 +14,22 @@ pilota.workspace = true
 
 anyhow.workspace = true
 tokio = { workspace = true, features = ["full"] }
+
+gdal = "0.17.0"
+gdal-sys = "0.10.0"
+wkb-raster = "0.2.1"
+serde = { version = "1.0.197", features = ["derive"] }
+log = "0.4.21"
+bytes = "1.6.0"
+regex = "1.10.4"
+thiserror = "1.0.58"
+libc = "0.2.153"
+lazy_static = "1.4.0"
+deadpool-postgres = "0.13.2"
+config = "0.14.0"
+tempfile = "3.10.1"
+tracing = "0.1.40"
+
 
 [profile.release]
 opt-level = 3

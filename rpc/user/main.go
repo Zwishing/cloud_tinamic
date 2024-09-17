@@ -17,6 +17,6 @@ func main() {
 	err := svr.Run()
 
 	if err != nil {
-		klog.Error("user server run failed error: %v", err)
+		klog.Fatal("user server run failed error: %v", err)
 	}
 }

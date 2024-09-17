@@ -1,13 +1,18 @@
+
 use std::net::SocketAddr;
 
-use rgeo::S;
+use geo_storage::{S,LogLayer};
+
+use volo::net::Address;
+use volo_gen::data::storage::StoreServiceServer;
 
 #[volo::main]
 async fn main() {
-    let addr: SocketAddr = "[::]:8080".parse().unwrap();
-    let addr = volo::net::Address::from(addr);
+    let addr: SocketAddr = "0.0.0.0:8089".parse().unwrap();
+    let addr = Address::from(addr);
 
-    volo_gen::geo::storage::VectorStoreServiceServer::new(S)
+    StoreServiceServer::new(S)
+        .layer_front(LogLayer)
         .run(addr)
         .await
         .unwrap();

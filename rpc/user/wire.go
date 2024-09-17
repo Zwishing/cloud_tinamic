@@ -11,7 +11,7 @@ import (
 
 func InitUserService() *UserServiceImpl {
 	wire.Build(
-		repo.NewPgPool,
+		repo.NewDB,
 		repo.NewUserRepoImpl,
 		NewUserServiceImpl,
 	)
