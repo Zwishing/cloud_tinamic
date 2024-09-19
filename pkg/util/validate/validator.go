@@ -1,10 +1,11 @@
 package validate
 
 import (
-	"github.com/go-playground/validator/v10"
-	"github.com/pkg/errors"
+	"fmt"
 	"reflect"
 	"sync"
+
+	"github.com/go-playground/validator/v10"
 )
 
 var (
@@ -19,23 +20,20 @@ func GetValidatorInstance() *validator.Validate {
 	return validate
 }
 
-// ValidateRequestBody
+// ValidateRequestBody validates the given struct or struct pointer
 func ValidateRequestBody(s any) error {
 	v := reflect.ValueOf(s)
 
-	// 检查参数是否是指针，如果是则获取指针指向的值
+	// If s is a pointer, get the value it points to
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-	// 检查参数是否是结构体
+
+	// Ensure s is a struct
 	if v.Kind() != reflect.Struct {
-		return errors.New("ProcessStruct: argument must be a struct or a struct pointer")
+		return fmt.Errorf("ValidateRequestBody: argument must be a struct or a struct pointer")
 	}
 
-	vdt := GetValidatorInstance()
-	err := vdt.Struct(s)
-	if err != nil {
-		return err
-	}
-	return nil
+	// Get the validator instance and validate the struct
+	return GetValidatorInstance().Struct(s)
 }

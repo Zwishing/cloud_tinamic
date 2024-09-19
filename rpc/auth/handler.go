@@ -20,16 +20,20 @@ func NewAuthServiceImpl(repo repo.AuthRepo) *AuthServiceImpl {
 
 // Auth implements the AuthServiceImpl interface.
 func (s *AuthServiceImpl) Auth(ctx context.Context, req *auth.AuthResquest) (resp *auth.AuthResponse, err error) {
-	allow := s.AuthRepo.Auth(req.Sub, req.Obj, req.Act)
-	if allow {
+	resp = &auth.AuthResponse{
+		Base:  &base.BaseResp{},
+		Allow: s.AuthRepo.Auth(req.Sub, req.Obj, req.Act),
+	}
+
+	if resp.Allow {
 		resp.Base.Msg = "通过认证"
 		resp.Base.Code = base.Code_SUCCESS
 	} else {
 		resp.Base.Msg = "无权限访问"
 		resp.Base.Code = base.Code_UNAUTHORIZED
 	}
-	resp.Allow = allow
-	return
+
+	return resp, nil
 }
 
 // AddPolicy implements the AuthServiceImpl interface.

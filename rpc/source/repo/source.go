@@ -37,8 +37,13 @@ func (s *SourceRepoImpl) GetItemById(uuid string) ([]*model.Storage, error) {
 		Where("parent_id = ?", uuid).
 		Find(&items).Error
 	if err != nil {
-		klog.Fatalf("failed to query storages: %v", err)
-		return nil, err
+		// Changed from Fatalf to Errorf to avoid program termination
+		klog.Errorf("failed to query storages: %v", err)
+		return nil, fmt.Errorf("database query error: %w", err)
+	}
+	// Added a check for empty result
+	if len(items) == 0 {
+		klog.Infof("no items found for parent_id: %s", uuid)
 	}
 	return items, nil
 }
@@ -49,24 +54,25 @@ func (db *SourceRepoImpl) GetItemByPath(sourceType source.SourceType, path strin
 }
 
 func (db *SourceRepoImpl) AddItem(sourceType source.SourceType, dest string, item *source.Item) (bool, error) {
+	// Parse the modified time outside of the transaction
+	modifiedTime, err := time.Parse(time.RFC3339, item.ModifiedTime)
+	if err != nil {
+		klog.Errorf("Failed to parse time string '%s': %v", item.ModifiedTime, err)
+		// Continue with zero time if parsing fails
+		modifiedTime = time.Time{}
+	}
+
 	// Open a transaction
-	err := db.DB.Transaction(func(tx *gorm.DB) error {
-		// Insert into base_info table
-		if err := tx.Create(&model.BaseInfo{
+	err = db.DB.Transaction(func(tx *gorm.DB) error {
+		// Prepare base_info data
+		baseInfo := model.BaseInfo{
 			SourceId:       item.Key,
 			Name:           item.Name,
 			SourceCategory: int64(sourceType),
-		}).Error; err != nil {
-			klog.Errorf("Failed to insert into base_info for uuid %s: %v", item.Key, err)
-			return fmt.Errorf("failed to insert into base_info for uuid %s: %w", item.Key, err)
-		}
-		modifiedTime, err := time.Parse(time.RFC3339, item.ModifiedTime)
-		if err != nil {
-			klog.Errorf("Failed to parse time string '%s': %v", item.ModifiedTime, err)
 		}
 
-		// Insert into storage table
-		if err := tx.Create(&model.Storage{
+		// Prepare storage data
+		storage := model.Storage{
 			SourceId:        item.Key,
 			ParentId:        dest,
 			Name:            item.Name,
@@ -75,8 +81,15 @@ func (db *SourceRepoImpl) AddItem(sourceType source.SourceType, dest string, ite
 			Size:            item.Size,
 			ModifiedTime:    modifiedTime,
 			Path:            item.Path,
-		}).Error; err != nil {
-			klog.Errorf("Failed to insert into storage for uuid %s: %v", item.Key, err)
+		}
+
+		// Insert into base_info table
+		if err := tx.Create(&baseInfo).Error; err != nil {
+			return fmt.Errorf("failed to insert into base_info for uuid %s: %w", item.Key, err)
+		}
+
+		// Insert into storage table
+		if err := tx.Create(&storage).Error; err != nil {
 			return fmt.Errorf("failed to insert into storage for uuid %s: %w", item.Key, err)
 		}
 
@@ -110,18 +123,19 @@ func (db *SourceRepoImpl) PresignedUploadUrl(sourceType source.SourceType, path 
 }
 
 func (db *SourceRepoImpl) DeleteItem(sourceType source.SourceType, uuid string) (bool, error) {
-	// 使用 GORM 的事务处理
+	// Use GORM's transaction processing
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
-		// 从 base_info 表中删除
-		if err := tx.Where("source_id = ?", uuid).Delete(&model.BaseInfo{}).Error; err != nil {
-			klog.Errorf("Failed to delete from base_info table for uuid %s: %v", uuid, err)
-			return err
+		// Delete from both base_info and storage tables in a single query
+		result := tx.Where("source_id = ?", uuid).Delete(&model.BaseInfo{}, &model.Storage{})
+		if result.Error != nil {
+			klog.Errorf("Failed to delete records for uuid %s: %v", uuid, result.Error)
+			return result.Error
 		}
 
-		// 从 storage 表中删除
-		if err := tx.Where("source_id = ?", uuid).Delete(&model.Storage{}).Error; err != nil {
-			klog.Errorf("Failed to delete from storage table for uuid %s: %v", uuid, err)
-			return err
+		// Check if any records were affected
+		if result.RowsAffected == 0 {
+			klog.Warnf("No records found for deletion with uuid %s", uuid)
+			return fmt.Errorf("no records found for deletion")
 		}
 
 		return nil

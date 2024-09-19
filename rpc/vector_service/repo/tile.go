@@ -26,19 +26,16 @@ func makeTile(vars map[string]string) (Tile, error) {
 	x, _ := strconv.Atoi(vars["x"])
 	y, _ := strconv.Atoi(vars["y"])
 	zoom, _ := strconv.Atoi(vars["z"])
-	ext := vars["ext"]
-	tile := Tile{Zoom: zoom, X: x, Y: y, Ext: ext}
-	// No tile numbers outside the tile grid implied
-	// by the zoom?
+	tile := Tile{Zoom: zoom, X: x, Y: y, Ext: vars["ext"]}
+
 	if !tile.IsValid() {
-		invalidTileError := tileAppError{
+		return tile, tileAppError{
 			HTTPCode: 400,
 			SrcErr:   fmt.Errorf("invalid tile address %s", tile.String()),
 		}
-		return tile, invalidTileError
 	}
-	e := tile.CalculateBounds()
-	return tile, e
+
+	return tile, tile.CalculateBounds()
 }
 
 func (tile *Tile) width() float64 {
@@ -50,35 +47,33 @@ func (tile *Tile) width() float64 {
 // zoom level, and that the zoom level is
 // not crazy large
 func (tile *Tile) IsValid() bool {
-	if tile.Zoom > 32 || tile.Zoom < 0 {
+	if tile.Zoom < 0 || tile.Zoom > 32 {
 		return false
 	}
-	worldTileSize := int(1) << uint(tile.Zoom)
-	if tile.X < 0 || tile.X >= worldTileSize ||
-		tile.Y < 0 || tile.Y >= worldTileSize {
-		return false
-	}
-	return true
+	worldTileSize := 1 << uint(tile.Zoom)
+	return tile.X >= 0 && tile.X < worldTileSize &&
+		tile.Y >= 0 && tile.Y < worldTileSize
 }
 
 // CalculateBounds calculates the cartesian bounds that
 // correspond to this tile
-func (tile *Tile) CalculateBounds() (e error) {
-	serverBounds, e := getServerBounds()
-	if e != nil {
-		return e
+func (tile *Tile) CalculateBounds() error {
+	serverBounds, err := getServerBounds()
+	if err != nil {
+		return err
 	}
 
-	worldWidthInTiles := float64(int(1) << uint(tile.Zoom))
-	tileWidth := math.Abs(serverBounds.Xmax-serverBounds.Xmin) / worldWidthInTiles
+	worldWidthInTiles := float64(1 << uint(tile.Zoom))
+	tileWidth := (serverBounds.Xmax - serverBounds.Xmin) / worldWidthInTiles
 
 	// Calculate geographic bounds from tile coordinates
 	// XYZ tile coordinates are in "image space" so origin is
 	// top-left, not bottom right
 	xmin := serverBounds.Xmin + (tileWidth * float64(tile.X))
-	xmax := serverBounds.Xmin + (tileWidth * float64(tile.X+1))
-	ymin := serverBounds.Ymax - (tileWidth * float64(tile.Y+1))
+	xmax := xmin + tileWidth
 	ymax := serverBounds.Ymax - (tileWidth * float64(tile.Y))
+	ymin := ymax - tileWidth
+
 	tile.Bounds = Bounds{serverBounds.SRID, xmin, ymin, xmax, ymax}
 
 	return nil

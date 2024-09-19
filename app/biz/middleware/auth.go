@@ -10,67 +10,86 @@ import (
 	"fmt"
 	"github.com/cloudwego/kitex/client"
 	"github.com/gofiber/fiber/v2"
+	"strings"
+	"sync"
 )
 
 var (
 	authClient authservice.Client
+	once       sync.Once
 )
 
-func init() {
-	// 创建 Kitex 客户端
-	var err error
-	authClient, err = authservice.NewClient("base.auth.authservice", client.WithHostPorts("0.0.0.0:8811"))
-	if err != nil {
-		logger.Log.Fatal().Msgf("创建客户端失败: %v", err)
-	}
+// initAuthClient initializes the Kitex client for authentication
+func initAuthClient() {
+	once.Do(func() {
+		var err error
+		authClient, err = authservice.NewClient("base.auth.authservice", client.WithHostPorts("0.0.0.0:8811"))
+		if err != nil {
+			logger.Log.Fatal().Msgf("Failed to create auth client: %v", err)
+		}
+	})
 }
 
+// Protected middleware for JWT authentication
 func Protected() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		// 从请求头中获取 Authorization 字段
 		authHeader := ctx.Get("Authorization")
 		if authHeader == "" {
-			return response.Fail(ctx, "缺少 Authorization")
+			return response.Fail(ctx, "Missing Authorization header")
 		}
 
-		// 检查 Bearer token
-		tokenString := authHeader[len("Bearer "):]
-		claims, err := jwt.ValidateToken(tokenString)
+		tokenParts := strings.SplitN(authHeader, " ", 2)
+		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+			return response.Fail(ctx, "Invalid Authorization header format")
+		}
+
+		claims, err := jwt.ValidateToken(tokenParts[1])
 		if err != nil {
-			return response.Fail(ctx, "Authorization 验证失败")
+			return response.Fail(ctx, "Invalid or expired token")
 		}
 
 		ctx.Locals("userId", claims["userId"])
-
 		return ctx.Next()
 	}
 }
 
-func jwtError(c *fiber.Ctx, err error) error {
+// JWTErrorHandler handles JWT-related errors
+func JWTErrorHandler(c *fiber.Ctx, err error) error {
+	status := fiber.StatusUnauthorized
+	message := "Invalid or expired JWT"
+
 	if err.Error() == "Missing or malformed JWT" {
-		return c.Status(fiber.StatusBadRequest).
-			JSON(fiber.Map{"status": "error", "message": "Missing or malformed JWT", "data": nil})
+		status = fiber.StatusBadRequest
+		message = "Missing or malformed JWT"
 	}
-	return c.Status(fiber.StatusUnauthorized).
-		JSON(fiber.Map{"status": "error", "message": "Invalid or expired JWT", "data": nil})
+
+	return c.Status(status).JSON(fiber.Map{
+		"status":  "error",
+		"message": message,
+		"data":    nil,
+	})
 }
 
-// AuthRoutePermission 验证路由权限
+// AuthRoutePermission middleware for route-based authorization
 func AuthRoutePermission() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		sub := ctx.Locals("userId").(string)
-		obj := ctx.Path()
-		act := ctx.Method()
+		initAuthClient() // Ensure auth client is initialized
+
+		sub, ok := ctx.Locals("userId").(string)
+		if !ok {
+			return response.Fail(ctx, "User ID not found in context")
+		}
+
 		resp, err := authClient.Auth(context.Background(), &auth.AuthResquest{
 			Sub: sub,
-			Obj: obj,
-			Act: act,
+			Obj: ctx.Path(),
+			Act: ctx.Method(),
 		})
 		if err != nil {
-			return err
+			return response.Fail(ctx, fmt.Sprintf("Authorization error: %v", err))
 		}
 		if !resp.Allow {
-			return fmt.Errorf("access denied")
+			return response.Fail(ctx, "Access denied")
 		}
 
 		return ctx.Next()

@@ -21,7 +21,7 @@ func NewPgPool() *pg.PgPool {
 		cfg.GetString("database.postgresql.database"),
 		cfg.GetString("database.postgresql.sslmode"))
 	dbConfig := pg.NewPgConfig(pg.WithConnString(constr))
-	db = pg.NewPgPool(dbConfig.Config)
+	db,_ = pg.NewPgPool(dbConfig.Config)
 	klog.Infof("success connect db @ %s", cfg.GetString("database.postgresql.host"))
 	return db
 }

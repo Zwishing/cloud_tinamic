@@ -10,7 +10,7 @@ import (
 type UserRepo interface {
 	QueryUserByAccount(account string, category user.UserCategory) (*model.User, error)
 	QueryUserById(userId string) (*model.User, error)
-	AddUser(account *user.Account, user *user.User) bool
+	AddUser(account *user.Account, user *user.User) (bool, error)
 }
 
 type UserRepoImpl struct {
@@ -24,13 +24,13 @@ func NewUserRepoImpl(DB *gorm.DB) UserRepo {
 func (u *UserRepoImpl) QueryUserByAccount(account string, category user.UserCategory) (*model.User, error) {
 	var usr model.User
 	err := u.DB.Table("user_info.user").
-		Where("user_info.user.user_id = (?)",
-			u.DB.Table("user_info.account").
-				Select("user_info.account.user_id").
-				Where("user_info.account.user_account = ? AND user_info.account.category = ?", account, category).
-				Limit(1),
-		).First(&usr).Error
+		Joins("JOIN user_info.account ON user_info.user.user_id = user_info.account.user_id").
+		Where("user_info.account.user_account = ? AND user_info.account.category = ?", account, category).
+		First(&usr).Error
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		klog.Errorf("failed to query user by account: %s, category: %d, error: %v", account, category, err)
 		return nil, err
 	}
@@ -45,6 +45,9 @@ func (u *UserRepoImpl) QueryUserById(userId string) (*model.User, error) {
 		First(&usr).Error
 
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil // Return nil, nil if user not found
+		}
 		klog.Errorf("failed to query user by ID %s: %v", userId, err)
 		return nil, err
 	}
@@ -52,7 +55,7 @@ func (u *UserRepoImpl) QueryUserById(userId string) (*model.User, error) {
 	return &usr, nil
 }
 
-func (u *UserRepoImpl) AddUser(account *user.Account, user *user.User) bool {
+func (u *UserRepoImpl) AddUser(account *user.Account, user *user.User) (bool, error) {
 	err := u.DB.Transaction(func(tx *gorm.DB) error {
 		// Create user
 		usr := model.User{
@@ -63,7 +66,7 @@ func (u *UserRepoImpl) AddUser(account *user.Account, user *user.User) bool {
 			Salt:        user.Salt,
 			Password:    user.Password,
 		}
-		if err := tx.Create(&usr).Error; err != nil {
+		if err := tx.Table("user_info.user").Create(&usr).Error; err != nil {
 			klog.Errorf("failed to create user: %v", err)
 			return err
 		}
@@ -74,8 +77,8 @@ func (u *UserRepoImpl) AddUser(account *user.Account, user *user.User) bool {
 			UserAccount: account.Username,
 			Category:    int64(account.UserCategory),
 		}
-		if err := tx.Create(&a).Error; err != nil {
-			klog.Errorf("failed to create profile: %v", err)
+		if err := tx.Table("user_info.account").Create(&a).Error; err != nil {
+			klog.Errorf("failed to create account: %v", err)
 			return err
 		}
 
@@ -84,7 +87,7 @@ func (u *UserRepoImpl) AddUser(account *user.Account, user *user.User) bool {
 
 	if err != nil {
 		klog.Errorf("transaction failed: %v", err)
-		return false
+		return false, err
 	}
-	return true
+	return true, nil
 }

@@ -11,5 +11,5 @@ func registerUser(api fiber.Router) {
 
 	//user.Post("/register", handler.Register)
 	user.Post("/login", handler.Login)
-	user.Get("/currentUser", middleware.Protected(), middleware.AuthRoutePermission(), handler.CurrentUser)
+	user.Get("/currentUser", middleware.Protected(), handler.CurrentUser)
 }

@@ -1,9 +1,9 @@
 use crate::db::POOL;
 
 pub async fn store_postgis(sql: &str) -> Result<(), anyhow::Error> {
-    let pool = POOL.lock().await;
-    
-    let client = pool.get()
+    let client = POOL.lock()
+        .await
+        .get()
         .await
         .map_err(|e| anyhow::anyhow!("Failed to get a client: {:?}", e))?;
 

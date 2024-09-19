@@ -15,3 +15,5 @@ type RegisterRequest struct {
 	Password    string `json:"password" validate:"required"`
 	Category    string `json:"category" validate:"required,oneof= username email phone"`
 }
+
+

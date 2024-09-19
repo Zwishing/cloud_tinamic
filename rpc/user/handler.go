@@ -39,7 +39,7 @@ func (s *UserServiceImpl) Register(ctx context.Context, req *user.RegisterReques
 	usr.SetPassword(CreateHashPassword(req.Password, salt))
 	usr.SetSalt(salt)
 
-	success := s.UserRepo.AddUser(account, usr)
+	success,_ := s.UserRepo.AddUser(account, usr)
 
 	if !success {
 		resp.Base.Code = base.Code_FAIL

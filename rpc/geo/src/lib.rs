@@ -6,40 +6,31 @@ mod programs;
 
 use volo_gen::data::storage::{StoreService,StoreRequest,StoreResponse};
 use volo_gen::base::{BaseResp,Code};
-use crate::handler::{store_vector};
+use crate::handler::store_vector;
 pub struct S;
 
 impl StoreService for S {
     async fn vector_storage(
         &self,
-        _req: StoreRequest,
+        req: StoreRequest,
     ) -> Result<
         StoreResponse,
         volo_thrift::ServerError,
     > {
-        let url = _req.url.as_str();
-        let schema = _req.schema.as_str();
-        let table = _req.table.as_str();
-        let ext = _req.ext.as_str();
-        
-        // 添加调用的前缀
-        let url = util::add_prefix_from_ext(url,ext);
+        let url = util::add_prefix_from_ext(&req.url, &req.ext);
 
-        let mut resp = StoreResponse::default();
-        let mut base = BaseResp::default();
-        match store_vector(url.as_str(), schema, table).await {
-            Ok(_)=>{
-                base.code = Code::SUCCESS;
-                base.msg = String::from("存储成功").parse().unwrap();
+        let base = match store_vector(&url, &req.schema, &req.table).await {
+            Ok(_) => BaseResp {
+                code: Code::SUCCESS,
+                msg: format!("success to store vector to postgis in {}.{}", req.schema, req.table),
             },
-            Err(e)=>{
-                base.code = Code::FAIL;
-                base.msg = e.to_string().parse().unwrap();
-            }
-        }
-        
-        resp.base = base;
-        Ok(resp)
+            Err(e) => BaseResp {
+                code: Code::FAIL,
+                msg: e.to_string(),
+            },
+        };
+
+        Ok(StoreResponse { base })
     }
 }
 

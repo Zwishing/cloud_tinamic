@@ -9,27 +9,26 @@ import (
 
 const DefaultSalt = "66e38420-2cd8-8001-91cf-501e513d3bbc"
 
+// RandomSalt generates a cryptographically secure random salt
+// It returns the DefaultSalt if there's an error generating random bytes
 func RandomSalt() string {
 	saltBytes := make([]byte, 16)
-	_, err := io.ReadFull(rand.Reader, saltBytes)
-	if err != nil {
+	if _, err := io.ReadFull(rand.Reader, saltBytes); err != nil {
 		return DefaultSalt
 	}
-	salt := base64.StdEncoding.EncodeToString(saltBytes)
-	return salt
+	return base64.StdEncoding.EncodeToString(saltBytes)
 }
 
-func CreateHashPassword(password string, salt string) string {
-	// 加盐处理
-	toHash := password + salt
+// CreateHashPassword creates a salted hash of the password
+// It uses SHA-256 for hashing and returns the result as a base64 encoded string
+func CreateHashPassword(password, salt string) string {
 	h := sha256.New()
-	h.Write([]byte(toHash))
-	hashPassword := base64.StdEncoding.EncodeToString(h.Sum(nil))
-	return hashPassword
+	h.Write([]byte(password + salt))
+	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
-// ValidatePassword 验证密码是否正确
+// ValidatePassword checks if the provided password matches the stored hash
+// It returns true if the password is correct, false otherwise
 func ValidatePassword(password, salt, hashPassword string) bool {
-	computedHash := CreateHashPassword(password, salt)
-	return hashPassword == computedHash
+	return CreateHashPassword(password, salt) == hashPassword
 }

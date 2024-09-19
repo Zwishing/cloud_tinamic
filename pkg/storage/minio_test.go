@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
-	"tinamic/conf"
+	conf "cloud_tinamic/config"
 )
 
 var (

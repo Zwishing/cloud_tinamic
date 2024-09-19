@@ -28,7 +28,7 @@ func NewMinio() *storage.Storage {
 		var err error
 		m, err = storage.NewStorage(minioConfig)
 		if err != nil {
-			klog.Fatal("", err)
+			klog.Fatal("Failed Connect to Minio ", err)
 		}
 		klog.Infof("Connected to minio @ '%s' bucket '%s'", minioConfig.Endpoint, minioConfig.Bucket)
 	})

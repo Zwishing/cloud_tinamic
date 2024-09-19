@@ -9,18 +9,37 @@ import (
 )
 
 var (
-	userClinet   userservice.Client
+	userClient   userservice.Client
 	geoClient    storeservice.Client
 	sourceClient sourceservice.Client
 )
 
 func init() {
-	// 创建 Kitex 客户端
 	var err error
-	userClinet, err = userservice.NewClient("base.user.userservice", client.WithHostPorts("0.0.0.0:8810"))
-	geoClient, err = storeservice.NewClient("geo.data.storeservice", client.WithHostPorts("0.0.0.0:8089"))
-	sourceClient, err = sourceservice.NewClient("data.source.sourceservice", client.WithHostPorts("0.0.0.0:8813"))
-	if err != nil {
-		logger.Log.Fatal().Err(err).Msg("创建客户端失败")
+
+	// Create Kitex clients
+	clients := []struct {
+		name   string
+		port   string
+		client interface{}
+	}{
+		{"base.user.userservice", "0.0.0.0:8810", &userClient},
+		{"geo.data.storeservice", "0.0.0.0:8089", &geoClient},
+		{"data.source.sourceservice", "0.0.0.0:8813", &sourceClient},
+	}
+
+	for _, c := range clients {
+		switch clientPtr := c.client.(type) {
+		case *userservice.Client:
+			*clientPtr, err = userservice.NewClient(c.name, client.WithHostPorts(c.port))
+		case *storeservice.Client:
+			*clientPtr, err = storeservice.NewClient(c.name, client.WithHostPorts(c.port))
+		case *sourceservice.Client:
+			*clientPtr, err = sourceservice.NewClient(c.name, client.WithHostPorts(c.port))
+		}
+
+		if err != nil {
+			logger.Log.Fatal().Err(err).Msgf("Failed to create client for %s", c.name)
+		}
 	}
 }

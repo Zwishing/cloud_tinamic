@@ -5,6 +5,7 @@ import (
 	"cloud_tinamic/app/logger"
 	conf "cloud_tinamic/config"
 	"fmt"
+
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -27,34 +28,35 @@ import (
 // @BasePath /api/v1
 func main() {
 	app := InitApp()
-	app.Use(cors.New())
 
-	// 使用自定义日志库
+	// Apply middleware
+	app.Use(cors.New())
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
 		Logger: &logger.Log,
 	}))
 
+	// Set up API routes
 	api := app.Group("/v1")
 	router.RegisterAPI(api)
 
-	//设置端口监听
-	if err := app.Listen(fmt.Sprintf(":%d", conf.GetConfigInstance().GetInt("server.port"))); err != nil {
-		logger.Log.Fatal().Err(err).Msg("Fiber app error")
+	// Start server
+	port := conf.GetConfigInstance().GetInt("server.port")
+	if err := app.Listen(fmt.Sprintf(":%d", port)); err != nil {
+		logger.Log.Fatal().Err(err).Msg("Failed to run Cloud-Tinamic App")
 	}
-
 }
 
 type App struct {
 	*fiber.App
 	Hasher hashing.Driver
-	//Session *session.Session
 }
 
 func InitApp() *App {
-	app := &App{
-		App: fiber.New(),
-		//Hasher: hashing.New(config.Conf.GetHasherConfig()),
-		//Session: session.New(CONFIGFILE.GetSessionConfig()),
+	return &App{
+		App: fiber.New(fiber.Config{
+			// Add any custom Fiber configurations here
+		}),
+		// Initialize Hasher if needed
+		// Hasher: hashing.New(config.Conf.GetHasherConfig()),
 	}
-	return app
 }

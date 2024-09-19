@@ -21,11 +21,16 @@ func NewDB() *gorm.DB {
 			cfg.GetString("database.postgresql.user"),
 			cfg.GetString("database.postgresql.password"),
 			cfg.GetString("database.postgresql.host"),
-			cfg.GetInt32("database.postgresql.port"),
+			cfg.GetInt("database.postgresql.port"),
 			cfg.GetString("database.postgresql.database"),
 			cfg.GetString("database.postgresql.sslmode"))
-		DB, _ = gorm.Open(postgres.Open(constr), &gorm.Config{})
-		klog.Infof("success connect db @ %s", cfg.GetString("database.postgresql.host"))
+		var err error
+		DB, err = gorm.Open(postgres.Open(constr), &gorm.Config{})
+		if err != nil {
+			klog.Errorf("failed to connect to database: %v", err)
+			return
+		}
+		klog.Infof("successfully connected to db @ %s", cfg.GetString("database.postgresql.host"))
 	})
 	return DB
 }

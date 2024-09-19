@@ -10,6 +10,7 @@ func registerSource(api fiber.Router) {
 	source := api.Group("/source/:sourceType")
 
 	source.Get("/items", middleware.Protected(), middleware.AuthRoutePermission(), handler.GetItems)
-	source.Get("/upload", middleware.Protected(), middleware.AuthRoutePermission(), handler.PresignedUpload)
+	source.Get("/presigned-upload", middleware.Protected(), middleware.AuthRoutePermission(), handler.PresignedUpload)
 	source.Post("/publish", middleware.Protected(), middleware.AuthRoutePermission(), handler.Publish)
+	source.Post("/add",middleware.Protected(),middleware.AuthRoutePermission(),handler.AddItem)
 }
