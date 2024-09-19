@@ -113,14 +113,16 @@ func Register(ctx *fiber.Ctx) error {
 // @Failure 500 {object} response.ErrorResponse "Internal server error"
 // @Router /v1/user/current [get]
 func CurrentUser(ctx *fiber.Ctx) error {
-	// userId := ctx.Locals("userId").(string)
-	// resp, err := userClinet.Info(context.Background(), &user.InfoRequest{
-	// 	UserId: userId,
-	// })
-	// if err != nil {
-		
-	// 	// return response.Fail(ctx, err.Error())
-	// }
-	// return response.Success(ctx, resp.User)
-	return response.Success(ctx, fiber.Map{})
+	userId := ctx.Query("userId", "")
+	if userId == ""{
+		userId = ctx.Locals("userId").(string)
+	}
+	
+	resp, err := userClient.Info(context.Background(), &user.InfoRequest{
+		UserId: userId,
+	})
+	if err != nil {
+		return response.Fail(ctx, "Failed to fetch user information")
+	}
+	return response.Success(ctx, resp.User)
 }

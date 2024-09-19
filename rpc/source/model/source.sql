@@ -47,4 +47,3 @@ COMMENT ON COLUMN data_source.storage.path IS '数据源的minio的存储路径'
 CREATE INDEX storage_id_index ON data_source.storage(id);
 CREATE INDEX storage_uuid_index ON data_source.storage(source_id);
 CREATE INDEX storage_parent_uuid_index ON data_source.storage(parent_id);
-

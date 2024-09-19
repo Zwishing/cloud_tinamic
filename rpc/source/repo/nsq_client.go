@@ -57,11 +57,11 @@ type NsqConsumer struct {
 }
 
 // NewNsqConsumer creates a new NSQ consumer
-func NewNsqConsumer(config *NsqConfig, handler nsq.Handler) (*NsqConsumer, error) {
+func NewNsqConsumer(config *NsqConfig, handler nsq.Handler) *NsqConsumer {
 	consumer, err := nsq.NewConsumer(config.Topic, config.Channel, nsq.NewConfig())
 	if err != nil {
 		klog.Errorf("Failed to create NSQ consumer for topic %s, channel %s: %v", config.Topic, config.Channel, err)
-		return nil, err
+		return nil
 	}
 
 	consumer.AddHandler(handler)
@@ -69,12 +69,12 @@ func NewNsqConsumer(config *NsqConfig, handler nsq.Handler) (*NsqConsumer, error
 	if err := consumer.ConnectToNSQLookupd(config.Address); err != nil {
 		consumer.Stop()
 		klog.Errorf("Failed to connect to NSQLookupd at %s for topic %s, channel %s: %v", config.Address, config.Topic, config.Channel, err)
-		return nil, err
+		return nil
 	}
 
 	klog.Infof("Successfully created NSQ consumer for topic %s, channel %s, and connected to NSQLookupd at %s", config.Topic, config.Channel, config.Address)
 
-	return &NsqConsumer{Consumer: consumer}, nil
+	return &NsqConsumer{Consumer: consumer}
 }
 
 // Stop gracefully stops the NSQ consumer

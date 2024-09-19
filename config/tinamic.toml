@@ -53,3 +53,7 @@
         host="1.92.113.25"
         port=4161
 
+[register]
+    [register.consul]
+        host="39.101.164.253"
+        port=8500

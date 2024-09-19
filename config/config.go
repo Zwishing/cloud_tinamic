@@ -1,10 +1,8 @@
 package conf
 
 import (
-	"errors"
 	"github.com/cloudwego/kitex/pkg/klog"
 	"github.com/spf13/viper"
-	"os"
 	"sync"
 )
 
@@ -18,8 +16,7 @@ type Config struct {
 }
 
 func NewConfig() *Config {
-	config := new(Config)
-	config.Viper = viper.New()
+	config := &Config{Viper: viper.New()}
 
 	config.AddConfigPath("./config")
 	config.AddConfigPath("../config")
@@ -27,12 +24,9 @@ func NewConfig() *Config {
 	config.SetConfigName("tinamic")
 	config.SetConfigType("toml")
 
-	// Read configuration
 	if err := config.ReadInConfig(); err != nil {
-		var configFileNotFoundError viper.ConfigFileNotFoundError
-		if !errors.As(err, &configFileNotFoundError) {
-			klog.Errorf("failed to read configuration:%v", err)
-			os.Exit(1)
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			klog.Fatalf("无法读取配置:%v", err)
 		}
 	}
 
