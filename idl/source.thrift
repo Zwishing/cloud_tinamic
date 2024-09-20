@@ -2,7 +2,7 @@ namespace go data.source
 
 include "base.thrift"
 
-enum SourceType {
+enum SourceCategory {
     VECTOR =  1
     IMAGERY = 2
     TERRAIN = 3
@@ -22,20 +22,25 @@ struct Item {
     2: ItemType item_type,
     3: string key,
     4: i64 size,
-    5: string modified_time,
+    5: i64 modified_time,
     6: string path
 }
 
 struct UploadRequest{
-
+    1: SourceCategory source_category,
+    2: string parent_id,
+    3: string name,
+    4: i64 size,
+    5: binary file_data,
 }
 
 struct UploadResponse{
     1: base.BaseResp base,
+    2: string source_id,
 }
 
 struct PresignedUploadResquest{
-    1: SourceType source_type,
+    1: SourceCategory source_category,
     2: string path,
     3: string name,
 }
@@ -46,7 +51,7 @@ struct PresignedUploadResponse{
 }
 
 struct GetItemRequest {
-    1: SourceType source_type,
+    1: SourceCategory source_category,
     2: string path
     3: string key
 }
@@ -57,13 +62,10 @@ struct GetItemResponse {
 }
 
 struct CreateFolderRequest {
-    1: SourceType source_type,
-    2: string name
-    3: string path
-}
-
-struct CreateFolderResponse {
-    1: base.BaseResp base,
+    1: required SourceCategory source_category,
+    2: required string parent_id,
+    3: required string name,
+    4: required string path,
 }
 
 struct DeleteItemRequest{
@@ -76,20 +78,22 @@ struct DeleteItemResponse{
 }
 
 struct AddItemRequest{
-    1: SourceType source_type,
+    1: SourceCategory source_category,
     2: string currentFolder,
     3: Item item,
 }
 
 struct AddItemResponse{
     1: base.BaseResp base,
+    2: Item item,
 }
 
 service SourceService{
-    UploadResponse Upload(1:UploadRequest req),
-    PresignedUploadResponse PresignedUpload(1:PresignedUploadResquest req),
+
     GetItemResponse GetItem(1:GetItemRequest req),
-    CreateFolderResponse CreateFolder(1:CreateFolderRequest req),
     DeleteItemResponse DeleteItem(1:DeleteItemRequest req),
     AddItemResponse AddItem(1:AddItemRequest req),
+    AddItemResponse CreateFolder(1:CreateFolderRequest req),
+    UploadResponse Upload(1:UploadRequest req),
+    PresignedUploadResponse PresignedUpload(1:PresignedUploadResquest req),
 }

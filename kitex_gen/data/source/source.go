@@ -3,6 +3,7 @@
 package source
 
 import (
+	"bytes"
 	"cloud_tinamic/kitex_gen/base"
 	"context"
 	"database/sql"
@@ -12,67 +13,67 @@ import (
 	"strings"
 )
 
-type SourceType int64
+type SourceCategory int64
 
 const (
-	SourceType_VECTOR         SourceType = 1
-	SourceType_IMAGERY        SourceType = 2
-	SourceType_TERRAIN        SourceType = 3
-	SourceType_POINTCLOUD     SourceType = 4
-	SourceType_PHOTOGRAMMETRY SourceType = 5
-	SourceType_SURFACEMODEL   SourceType = 6
-	SourceType_BIM            SourceType = 7
+	SourceCategory_VECTOR         SourceCategory = 1
+	SourceCategory_IMAGERY        SourceCategory = 2
+	SourceCategory_TERRAIN        SourceCategory = 3
+	SourceCategory_POINTCLOUD     SourceCategory = 4
+	SourceCategory_PHOTOGRAMMETRY SourceCategory = 5
+	SourceCategory_SURFACEMODEL   SourceCategory = 6
+	SourceCategory_BIM            SourceCategory = 7
 )
 
-func (p SourceType) String() string {
+func (p SourceCategory) String() string {
 	switch p {
-	case SourceType_VECTOR:
+	case SourceCategory_VECTOR:
 		return "VECTOR"
-	case SourceType_IMAGERY:
+	case SourceCategory_IMAGERY:
 		return "IMAGERY"
-	case SourceType_TERRAIN:
+	case SourceCategory_TERRAIN:
 		return "TERRAIN"
-	case SourceType_POINTCLOUD:
+	case SourceCategory_POINTCLOUD:
 		return "POINTCLOUD"
-	case SourceType_PHOTOGRAMMETRY:
+	case SourceCategory_PHOTOGRAMMETRY:
 		return "PHOTOGRAMMETRY"
-	case SourceType_SURFACEMODEL:
+	case SourceCategory_SURFACEMODEL:
 		return "SURFACEMODEL"
-	case SourceType_BIM:
+	case SourceCategory_BIM:
 		return "BIM"
 	}
 	return "<UNSET>"
 }
 
-func SourceTypeFromString(s string) (SourceType, error) {
+func SourceCategoryFromString(s string) (SourceCategory, error) {
 	switch s {
 	case "VECTOR":
-		return SourceType_VECTOR, nil
+		return SourceCategory_VECTOR, nil
 	case "IMAGERY":
-		return SourceType_IMAGERY, nil
+		return SourceCategory_IMAGERY, nil
 	case "TERRAIN":
-		return SourceType_TERRAIN, nil
+		return SourceCategory_TERRAIN, nil
 	case "POINTCLOUD":
-		return SourceType_POINTCLOUD, nil
+		return SourceCategory_POINTCLOUD, nil
 	case "PHOTOGRAMMETRY":
-		return SourceType_PHOTOGRAMMETRY, nil
+		return SourceCategory_PHOTOGRAMMETRY, nil
 	case "SURFACEMODEL":
-		return SourceType_SURFACEMODEL, nil
+		return SourceCategory_SURFACEMODEL, nil
 	case "BIM":
-		return SourceType_BIM, nil
+		return SourceCategory_BIM, nil
 	}
-	return SourceType(0), fmt.Errorf("not a valid SourceType string")
+	return SourceCategory(0), fmt.Errorf("not a valid SourceCategory string")
 }
 
-func SourceTypePtr(v SourceType) *SourceType { return &v }
-func (p *SourceType) Scan(value interface{}) (err error) {
+func SourceCategoryPtr(v SourceCategory) *SourceCategory { return &v }
+func (p *SourceCategory) Scan(value interface{}) (err error) {
 	var result sql.NullInt64
 	err = result.Scan(value)
-	*p = SourceType(result.Int64)
+	*p = SourceCategory(result.Int64)
 	return
 }
 
-func (p *SourceType) Value() (driver.Value, error) {
+func (p *SourceCategory) Value() (driver.Value, error) {
 	if p == nil {
 		return nil, nil
 	}
@@ -126,7 +127,7 @@ type Item struct {
 	ItemType     ItemType `thrift:"item_type,2" frugal:"2,default,ItemType" json:"item_type"`
 	Key          string   `thrift:"key,3" frugal:"3,default,string" json:"key"`
 	Size         int64    `thrift:"size,4" frugal:"4,default,i64" json:"size"`
-	ModifiedTime string   `thrift:"modified_time,5" frugal:"5,default,string" json:"modified_time"`
+	ModifiedTime int64    `thrift:"modified_time,5" frugal:"5,default,i64" json:"modified_time"`
 	Path         string   `thrift:"path,6" frugal:"6,default,string" json:"path"`
 }
 
@@ -153,7 +154,7 @@ func (p *Item) GetSize() (v int64) {
 	return p.Size
 }
 
-func (p *Item) GetModifiedTime() (v string) {
+func (p *Item) GetModifiedTime() (v int64) {
 	return p.ModifiedTime
 }
 
@@ -172,7 +173,7 @@ func (p *Item) SetKey(val string) {
 func (p *Item) SetSize(val int64) {
 	p.Size = val
 }
-func (p *Item) SetModifiedTime(val string) {
+func (p *Item) SetModifiedTime(val int64) {
 	p.ModifiedTime = val
 }
 func (p *Item) SetPath(val string) {
@@ -240,7 +241,7 @@ func (p *Item) Read(iprot thrift.TProtocol) (err error) {
 				goto SkipFieldError
 			}
 		case 5:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.I64 {
 				if err = p.ReadField5(iprot); err != nil {
 					goto ReadFieldError
 				}
@@ -330,8 +331,8 @@ func (p *Item) ReadField4(iprot thrift.TProtocol) error {
 }
 func (p *Item) ReadField5(iprot thrift.TProtocol) error {
 
-	var _field string
-	if v, err := iprot.ReadString(); err != nil {
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
 		return err
 	} else {
 		_field = v
@@ -468,10 +469,10 @@ WriteFieldEndError:
 }
 
 func (p *Item) writeField5(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("modified_time", thrift.STRING, 5); err != nil {
+	if err = oprot.WriteFieldBegin("modified_time", thrift.I64, 5); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.ModifiedTime); err != nil {
+	if err := oprot.WriteI64(p.ModifiedTime); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -564,9 +565,9 @@ func (p *Item) Field4DeepEqual(src int64) bool {
 	}
 	return true
 }
-func (p *Item) Field5DeepEqual(src string) bool {
+func (p *Item) Field5DeepEqual(src int64) bool {
 
-	if strings.Compare(p.ModifiedTime, src) != 0 {
+	if p.ModifiedTime != src {
 		return false
 	}
 	return true
@@ -580,6 +581,11 @@ func (p *Item) Field6DeepEqual(src string) bool {
 }
 
 type UploadRequest struct {
+	SourceCategory SourceCategory `thrift:"source_category,1" frugal:"1,default,SourceCategory" json:"source_category"`
+	ParentId       string         `thrift:"parent_id,2" frugal:"2,default,string" json:"parent_id"`
+	Name           string         `thrift:"name,3" frugal:"3,default,string" json:"name"`
+	Size           int64          `thrift:"size,4" frugal:"4,default,i64" json:"size"`
+	FileData       []byte         `thrift:"file_data,5" frugal:"5,default,binary" json:"file_data"`
 }
 
 func NewUploadRequest() *UploadRequest {
@@ -589,7 +595,48 @@ func NewUploadRequest() *UploadRequest {
 func (p *UploadRequest) InitDefault() {
 }
 
-var fieldIDToName_UploadRequest = map[int16]string{}
+func (p *UploadRequest) GetSourceCategory() (v SourceCategory) {
+	return p.SourceCategory
+}
+
+func (p *UploadRequest) GetParentId() (v string) {
+	return p.ParentId
+}
+
+func (p *UploadRequest) GetName() (v string) {
+	return p.Name
+}
+
+func (p *UploadRequest) GetSize() (v int64) {
+	return p.Size
+}
+
+func (p *UploadRequest) GetFileData() (v []byte) {
+	return p.FileData
+}
+func (p *UploadRequest) SetSourceCategory(val SourceCategory) {
+	p.SourceCategory = val
+}
+func (p *UploadRequest) SetParentId(val string) {
+	p.ParentId = val
+}
+func (p *UploadRequest) SetName(val string) {
+	p.Name = val
+}
+func (p *UploadRequest) SetSize(val int64) {
+	p.Size = val
+}
+func (p *UploadRequest) SetFileData(val []byte) {
+	p.FileData = val
+}
+
+var fieldIDToName_UploadRequest = map[int16]string{
+	1: "source_category",
+	2: "parent_id",
+	3: "name",
+	4: "size",
+	5: "file_data",
+}
 
 func (p *UploadRequest) Read(iprot thrift.TProtocol) (err error) {
 
@@ -608,8 +655,52 @@ func (p *UploadRequest) Read(iprot thrift.TProtocol) (err error) {
 		if fieldTypeId == thrift.STOP {
 			break
 		}
-		if err = iprot.Skip(fieldTypeId); err != nil {
-			goto SkipFieldTypeError
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
 		}
 		if err = iprot.ReadFieldEnd(); err != nil {
 			goto ReadFieldEndError
@@ -624,8 +715,10 @@ ReadStructBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
 ReadFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-SkipFieldTypeError:
-	return thrift.PrependError(fmt.Sprintf("%T skip field type %d error", p, fieldTypeId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_UploadRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 
 ReadFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
@@ -633,11 +726,88 @@ ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
 }
 
+func (p *UploadRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field SourceCategory
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = SourceCategory(v)
+	}
+	p.SourceCategory = _field
+	return nil
+}
+func (p *UploadRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ParentId = _field
+	return nil
+}
+func (p *UploadRequest) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Name = _field
+	return nil
+}
+func (p *UploadRequest) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Size = _field
+	return nil
+}
+func (p *UploadRequest) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field []byte
+	if v, err := iprot.ReadBinary(); err != nil {
+		return err
+	} else {
+		_field = []byte(v)
+	}
+	p.FileData = _field
+	return nil
+}
+
 func (p *UploadRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
 	if err = oprot.WriteStructBegin("UploadRequest"); err != nil {
 		goto WriteStructBeginError
 	}
 	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
 	}
 	if err = oprot.WriteFieldStop(); err != nil {
 		goto WriteFieldStopError
@@ -648,10 +818,97 @@ func (p *UploadRequest) Write(oprot thrift.TProtocol) (err error) {
 	return nil
 WriteStructBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
 WriteFieldStopError:
 	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
 WriteStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *UploadRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("source_category", thrift.I32, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(int32(p.SourceCategory)); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *UploadRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("parent_id", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.ParentId); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *UploadRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("name", thrift.STRING, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Name); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *UploadRequest) writeField4(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("size", thrift.I64, 4); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.Size); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+
+func (p *UploadRequest) writeField5(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("file_data", thrift.STRING, 5); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteBinary([]byte(p.FileData)); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
 }
 
 func (p *UploadRequest) String() string {
@@ -668,11 +925,63 @@ func (p *UploadRequest) DeepEqual(ano *UploadRequest) bool {
 	} else if p == nil || ano == nil {
 		return false
 	}
+	if !p.Field1DeepEqual(ano.SourceCategory) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.ParentId) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Name) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.Size) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.FileData) {
+		return false
+	}
+	return true
+}
+
+func (p *UploadRequest) Field1DeepEqual(src SourceCategory) bool {
+
+	if p.SourceCategory != src {
+		return false
+	}
+	return true
+}
+func (p *UploadRequest) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.ParentId, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *UploadRequest) Field3DeepEqual(src string) bool {
+
+	if strings.Compare(p.Name, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *UploadRequest) Field4DeepEqual(src int64) bool {
+
+	if p.Size != src {
+		return false
+	}
+	return true
+}
+func (p *UploadRequest) Field5DeepEqual(src []byte) bool {
+
+	if bytes.Compare(p.FileData, src) != 0 {
+		return false
+	}
 	return true
 }
 
 type UploadResponse struct {
-	Base *base.BaseResp `thrift:"base,1" frugal:"1,default,base.BaseResp" json:"base"`
+	Base     *base.BaseResp `thrift:"base,1" frugal:"1,default,base.BaseResp" json:"base"`
+	SourceId string         `thrift:"source_id,2" frugal:"2,default,string" json:"source_id"`
 }
 
 func NewUploadResponse() *UploadResponse {
@@ -690,12 +999,20 @@ func (p *UploadResponse) GetBase() (v *base.BaseResp) {
 	}
 	return p.Base
 }
+
+func (p *UploadResponse) GetSourceId() (v string) {
+	return p.SourceId
+}
 func (p *UploadResponse) SetBase(val *base.BaseResp) {
 	p.Base = val
+}
+func (p *UploadResponse) SetSourceId(val string) {
+	p.SourceId = val
 }
 
 var fieldIDToName_UploadResponse = map[int16]string{
 	1: "base",
+	2: "source_id",
 }
 
 func (p *UploadResponse) IsSetBase() bool {
@@ -724,6 +1041,14 @@ func (p *UploadResponse) Read(iprot thrift.TProtocol) (err error) {
 		case 1:
 			if fieldTypeId == thrift.STRUCT {
 				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -766,6 +1091,17 @@ func (p *UploadResponse) ReadField1(iprot thrift.TProtocol) error {
 	p.Base = _field
 	return nil
 }
+func (p *UploadResponse) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.SourceId = _field
+	return nil
+}
 
 func (p *UploadResponse) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -775,6 +1111,10 @@ func (p *UploadResponse) Write(oprot thrift.TProtocol) (err error) {
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
 			goto WriteFieldError
 		}
 	}
@@ -812,6 +1152,23 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
+func (p *UploadResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("source_id", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.SourceId); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
 func (p *UploadResponse) String() string {
 	if p == nil {
 		return "<nil>"
@@ -829,6 +1186,9 @@ func (p *UploadResponse) DeepEqual(ano *UploadResponse) bool {
 	if !p.Field1DeepEqual(ano.Base) {
 		return false
 	}
+	if !p.Field2DeepEqual(ano.SourceId) {
+		return false
+	}
 	return true
 }
 
@@ -839,11 +1199,18 @@ func (p *UploadResponse) Field1DeepEqual(src *base.BaseResp) bool {
 	}
 	return true
 }
+func (p *UploadResponse) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.SourceId, src) != 0 {
+		return false
+	}
+	return true
+}
 
 type PresignedUploadResquest struct {
-	SourceType SourceType `thrift:"source_type,1" frugal:"1,default,SourceType" json:"source_type"`
-	Path       string     `thrift:"path,2" frugal:"2,default,string" json:"path"`
-	Name       string     `thrift:"name,3" frugal:"3,default,string" json:"name"`
+	SourceCategory SourceCategory `thrift:"source_category,1" frugal:"1,default,SourceCategory" json:"source_category"`
+	Path           string         `thrift:"path,2" frugal:"2,default,string" json:"path"`
+	Name           string         `thrift:"name,3" frugal:"3,default,string" json:"name"`
 }
 
 func NewPresignedUploadResquest() *PresignedUploadResquest {
@@ -853,8 +1220,8 @@ func NewPresignedUploadResquest() *PresignedUploadResquest {
 func (p *PresignedUploadResquest) InitDefault() {
 }
 
-func (p *PresignedUploadResquest) GetSourceType() (v SourceType) {
-	return p.SourceType
+func (p *PresignedUploadResquest) GetSourceCategory() (v SourceCategory) {
+	return p.SourceCategory
 }
 
 func (p *PresignedUploadResquest) GetPath() (v string) {
@@ -864,8 +1231,8 @@ func (p *PresignedUploadResquest) GetPath() (v string) {
 func (p *PresignedUploadResquest) GetName() (v string) {
 	return p.Name
 }
-func (p *PresignedUploadResquest) SetSourceType(val SourceType) {
-	p.SourceType = val
+func (p *PresignedUploadResquest) SetSourceCategory(val SourceCategory) {
+	p.SourceCategory = val
 }
 func (p *PresignedUploadResquest) SetPath(val string) {
 	p.Path = val
@@ -875,7 +1242,7 @@ func (p *PresignedUploadResquest) SetName(val string) {
 }
 
 var fieldIDToName_PresignedUploadResquest = map[int16]string{
-	1: "source_type",
+	1: "source_category",
 	2: "path",
 	3: "name",
 }
@@ -954,13 +1321,13 @@ ReadStructEndError:
 
 func (p *PresignedUploadResquest) ReadField1(iprot thrift.TProtocol) error {
 
-	var _field SourceType
+	var _field SourceCategory
 	if v, err := iprot.ReadI32(); err != nil {
 		return err
 	} else {
-		_field = SourceType(v)
+		_field = SourceCategory(v)
 	}
-	p.SourceType = _field
+	p.SourceCategory = _field
 	return nil
 }
 func (p *PresignedUploadResquest) ReadField2(iprot thrift.TProtocol) error {
@@ -1023,10 +1390,10 @@ WriteStructEndError:
 }
 
 func (p *PresignedUploadResquest) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("source_type", thrift.I32, 1); err != nil {
+	if err = oprot.WriteFieldBegin("source_category", thrift.I32, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteI32(int32(p.SourceType)); err != nil {
+	if err := oprot.WriteI32(int32(p.SourceCategory)); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -1087,7 +1454,7 @@ func (p *PresignedUploadResquest) DeepEqual(ano *PresignedUploadResquest) bool {
 	} else if p == nil || ano == nil {
 		return false
 	}
-	if !p.Field1DeepEqual(ano.SourceType) {
+	if !p.Field1DeepEqual(ano.SourceCategory) {
 		return false
 	}
 	if !p.Field2DeepEqual(ano.Path) {
@@ -1099,9 +1466,9 @@ func (p *PresignedUploadResquest) DeepEqual(ano *PresignedUploadResquest) bool {
 	return true
 }
 
-func (p *PresignedUploadResquest) Field1DeepEqual(src SourceType) bool {
+func (p *PresignedUploadResquest) Field1DeepEqual(src SourceCategory) bool {
 
-	if p.SourceType != src {
+	if p.SourceCategory != src {
 		return false
 	}
 	return true
@@ -1350,9 +1717,9 @@ func (p *PresignedUploadResponse) Field2DeepEqual(src string) bool {
 }
 
 type GetItemRequest struct {
-	SourceType SourceType `thrift:"source_type,1" frugal:"1,default,SourceType" json:"source_type"`
-	Path       string     `thrift:"path,2" frugal:"2,default,string" json:"path"`
-	Key        string     `thrift:"key,3" frugal:"3,default,string" json:"key"`
+	SourceCategory SourceCategory `thrift:"source_category,1" frugal:"1,default,SourceCategory" json:"source_category"`
+	Path           string         `thrift:"path,2" frugal:"2,default,string" json:"path"`
+	Key            string         `thrift:"key,3" frugal:"3,default,string" json:"key"`
 }
 
 func NewGetItemRequest() *GetItemRequest {
@@ -1362,8 +1729,8 @@ func NewGetItemRequest() *GetItemRequest {
 func (p *GetItemRequest) InitDefault() {
 }
 
-func (p *GetItemRequest) GetSourceType() (v SourceType) {
-	return p.SourceType
+func (p *GetItemRequest) GetSourceCategory() (v SourceCategory) {
+	return p.SourceCategory
 }
 
 func (p *GetItemRequest) GetPath() (v string) {
@@ -1373,8 +1740,8 @@ func (p *GetItemRequest) GetPath() (v string) {
 func (p *GetItemRequest) GetKey() (v string) {
 	return p.Key
 }
-func (p *GetItemRequest) SetSourceType(val SourceType) {
-	p.SourceType = val
+func (p *GetItemRequest) SetSourceCategory(val SourceCategory) {
+	p.SourceCategory = val
 }
 func (p *GetItemRequest) SetPath(val string) {
 	p.Path = val
@@ -1384,7 +1751,7 @@ func (p *GetItemRequest) SetKey(val string) {
 }
 
 var fieldIDToName_GetItemRequest = map[int16]string{
-	1: "source_type",
+	1: "source_category",
 	2: "path",
 	3: "key",
 }
@@ -1463,13 +1830,13 @@ ReadStructEndError:
 
 func (p *GetItemRequest) ReadField1(iprot thrift.TProtocol) error {
 
-	var _field SourceType
+	var _field SourceCategory
 	if v, err := iprot.ReadI32(); err != nil {
 		return err
 	} else {
-		_field = SourceType(v)
+		_field = SourceCategory(v)
 	}
-	p.SourceType = _field
+	p.SourceCategory = _field
 	return nil
 }
 func (p *GetItemRequest) ReadField2(iprot thrift.TProtocol) error {
@@ -1532,10 +1899,10 @@ WriteStructEndError:
 }
 
 func (p *GetItemRequest) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("source_type", thrift.I32, 1); err != nil {
+	if err = oprot.WriteFieldBegin("source_category", thrift.I32, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteI32(int32(p.SourceType)); err != nil {
+	if err := oprot.WriteI32(int32(p.SourceCategory)); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -1596,7 +1963,7 @@ func (p *GetItemRequest) DeepEqual(ano *GetItemRequest) bool {
 	} else if p == nil || ano == nil {
 		return false
 	}
-	if !p.Field1DeepEqual(ano.SourceType) {
+	if !p.Field1DeepEqual(ano.SourceCategory) {
 		return false
 	}
 	if !p.Field2DeepEqual(ano.Path) {
@@ -1608,9 +1975,9 @@ func (p *GetItemRequest) DeepEqual(ano *GetItemRequest) bool {
 	return true
 }
 
-func (p *GetItemRequest) Field1DeepEqual(src SourceType) bool {
+func (p *GetItemRequest) Field1DeepEqual(src SourceCategory) bool {
 
-	if p.SourceType != src {
+	if p.SourceCategory != src {
 		return false
 	}
 	return true
@@ -1885,9 +2252,10 @@ func (p *GetItemResponse) Field2DeepEqual(src []*Item) bool {
 }
 
 type CreateFolderRequest struct {
-	SourceType SourceType `thrift:"source_type,1" frugal:"1,default,SourceType" json:"source_type"`
-	Name       string     `thrift:"name,2" frugal:"2,default,string" json:"name"`
-	Path       string     `thrift:"path,3" frugal:"3,default,string" json:"path"`
+	SourceCategory SourceCategory `thrift:"source_category,1,required" frugal:"1,required,SourceCategory" json:"source_category"`
+	ParentId       string         `thrift:"parent_id,2,required" frugal:"2,required,string" json:"parent_id"`
+	Name           string         `thrift:"name,3,required" frugal:"3,required,string" json:"name"`
+	Path           string         `thrift:"path,4,required" frugal:"4,required,string" json:"path"`
 }
 
 func NewCreateFolderRequest() *CreateFolderRequest {
@@ -1897,8 +2265,12 @@ func NewCreateFolderRequest() *CreateFolderRequest {
 func (p *CreateFolderRequest) InitDefault() {
 }
 
-func (p *CreateFolderRequest) GetSourceType() (v SourceType) {
-	return p.SourceType
+func (p *CreateFolderRequest) GetSourceCategory() (v SourceCategory) {
+	return p.SourceCategory
+}
+
+func (p *CreateFolderRequest) GetParentId() (v string) {
+	return p.ParentId
 }
 
 func (p *CreateFolderRequest) GetName() (v string) {
@@ -1908,8 +2280,11 @@ func (p *CreateFolderRequest) GetName() (v string) {
 func (p *CreateFolderRequest) GetPath() (v string) {
 	return p.Path
 }
-func (p *CreateFolderRequest) SetSourceType(val SourceType) {
-	p.SourceType = val
+func (p *CreateFolderRequest) SetSourceCategory(val SourceCategory) {
+	p.SourceCategory = val
+}
+func (p *CreateFolderRequest) SetParentId(val string) {
+	p.ParentId = val
 }
 func (p *CreateFolderRequest) SetName(val string) {
 	p.Name = val
@@ -1919,15 +2294,20 @@ func (p *CreateFolderRequest) SetPath(val string) {
 }
 
 var fieldIDToName_CreateFolderRequest = map[int16]string{
-	1: "source_type",
-	2: "name",
-	3: "path",
+	1: "source_category",
+	2: "parent_id",
+	3: "name",
+	4: "path",
 }
 
 func (p *CreateFolderRequest) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
+	var issetSourceCategory bool = false
+	var issetParentId bool = false
+	var issetName bool = false
+	var issetPath bool = false
 
 	if _, err = iprot.ReadStructBegin(); err != nil {
 		goto ReadStructBeginError
@@ -1948,6 +2328,7 @@ func (p *CreateFolderRequest) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField1(iprot); err != nil {
 					goto ReadFieldError
 				}
+				issetSourceCategory = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -1956,6 +2337,7 @@ func (p *CreateFolderRequest) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
+				issetParentId = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -1964,6 +2346,16 @@ func (p *CreateFolderRequest) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
+				issetName = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetPath = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -1980,6 +2372,25 @@ func (p *CreateFolderRequest) Read(iprot thrift.TProtocol) (err error) {
 		goto ReadStructEndError
 	}
 
+	if !issetSourceCategory {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetParentId {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetName {
+		fieldId = 3
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetPath {
+		fieldId = 4
+		goto RequiredFieldNotSetError
+	}
 	return nil
 ReadStructBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
@@ -1994,17 +2405,19 @@ ReadFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
 ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_CreateFolderRequest[fieldId]))
 }
 
 func (p *CreateFolderRequest) ReadField1(iprot thrift.TProtocol) error {
 
-	var _field SourceType
+	var _field SourceCategory
 	if v, err := iprot.ReadI32(); err != nil {
 		return err
 	} else {
-		_field = SourceType(v)
+		_field = SourceCategory(v)
 	}
-	p.SourceType = _field
+	p.SourceCategory = _field
 	return nil
 }
 func (p *CreateFolderRequest) ReadField2(iprot thrift.TProtocol) error {
@@ -2015,10 +2428,21 @@ func (p *CreateFolderRequest) ReadField2(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.Name = _field
+	p.ParentId = _field
 	return nil
 }
 func (p *CreateFolderRequest) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Name = _field
+	return nil
+}
+func (p *CreateFolderRequest) ReadField4(iprot thrift.TProtocol) error {
 
 	var _field string
 	if v, err := iprot.ReadString(); err != nil {
@@ -2048,227 +2472,8 @@ func (p *CreateFolderRequest) Write(oprot thrift.TProtocol) (err error) {
 			fieldId = 3
 			goto WriteFieldError
 		}
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *CreateFolderRequest) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("source_type", thrift.I32, 1); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := oprot.WriteI32(int32(p.SourceType)); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
-}
-
-func (p *CreateFolderRequest) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("name", thrift.STRING, 2); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := oprot.WriteString(p.Name); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
-}
-
-func (p *CreateFolderRequest) writeField3(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("path", thrift.STRING, 3); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := oprot.WriteString(p.Path); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
-}
-
-func (p *CreateFolderRequest) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("CreateFolderRequest(%+v)", *p)
-
-}
-
-func (p *CreateFolderRequest) DeepEqual(ano *CreateFolderRequest) bool {
-	if p == ano {
-		return true
-	} else if p == nil || ano == nil {
-		return false
-	}
-	if !p.Field1DeepEqual(ano.SourceType) {
-		return false
-	}
-	if !p.Field2DeepEqual(ano.Name) {
-		return false
-	}
-	if !p.Field3DeepEqual(ano.Path) {
-		return false
-	}
-	return true
-}
-
-func (p *CreateFolderRequest) Field1DeepEqual(src SourceType) bool {
-
-	if p.SourceType != src {
-		return false
-	}
-	return true
-}
-func (p *CreateFolderRequest) Field2DeepEqual(src string) bool {
-
-	if strings.Compare(p.Name, src) != 0 {
-		return false
-	}
-	return true
-}
-func (p *CreateFolderRequest) Field3DeepEqual(src string) bool {
-
-	if strings.Compare(p.Path, src) != 0 {
-		return false
-	}
-	return true
-}
-
-type CreateFolderResponse struct {
-	Base *base.BaseResp `thrift:"base,1" frugal:"1,default,base.BaseResp" json:"base"`
-}
-
-func NewCreateFolderResponse() *CreateFolderResponse {
-	return &CreateFolderResponse{}
-}
-
-func (p *CreateFolderResponse) InitDefault() {
-}
-
-var CreateFolderResponse_Base_DEFAULT *base.BaseResp
-
-func (p *CreateFolderResponse) GetBase() (v *base.BaseResp) {
-	if !p.IsSetBase() {
-		return CreateFolderResponse_Base_DEFAULT
-	}
-	return p.Base
-}
-func (p *CreateFolderResponse) SetBase(val *base.BaseResp) {
-	p.Base = val
-}
-
-var fieldIDToName_CreateFolderResponse = map[int16]string{
-	1: "base",
-}
-
-func (p *CreateFolderResponse) IsSetBase() bool {
-	return p.Base != nil
-}
-
-func (p *CreateFolderResponse) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.STRUCT {
-				if err = p.ReadField1(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		default:
-			if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		}
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_CreateFolderResponse[fieldId]), err)
-SkipFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-}
-
-func (p *CreateFolderResponse) ReadField1(iprot thrift.TProtocol) error {
-	_field := base.NewBaseResp()
-	if err := _field.Read(iprot); err != nil {
-		return err
-	}
-	p.Base = _field
-	return nil
-}
-
-func (p *CreateFolderResponse) Write(oprot thrift.TProtocol) (err error) {
-	var fieldId int16
-	if err = oprot.WriteStructBegin("CreateFolderResponse"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-		if err = p.writeField1(oprot); err != nil {
-			fieldId = 1
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
 			goto WriteFieldError
 		}
 	}
@@ -2289,11 +2494,11 @@ WriteStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
 }
 
-func (p *CreateFolderResponse) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("base", thrift.STRUCT, 1); err != nil {
+func (p *CreateFolderRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("source_category", thrift.I32, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := p.Base.Write(oprot); err != nil {
+	if err := oprot.WriteI32(int32(p.SourceCategory)); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -2306,29 +2511,110 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
-func (p *CreateFolderResponse) String() string {
+func (p *CreateFolderRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("parent_id", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.ParentId); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *CreateFolderRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("name", thrift.STRING, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Name); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *CreateFolderRequest) writeField4(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("path", thrift.STRING, 4); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Path); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+
+func (p *CreateFolderRequest) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("CreateFolderResponse(%+v)", *p)
+	return fmt.Sprintf("CreateFolderRequest(%+v)", *p)
 
 }
 
-func (p *CreateFolderResponse) DeepEqual(ano *CreateFolderResponse) bool {
+func (p *CreateFolderRequest) DeepEqual(ano *CreateFolderRequest) bool {
 	if p == ano {
 		return true
 	} else if p == nil || ano == nil {
 		return false
 	}
-	if !p.Field1DeepEqual(ano.Base) {
+	if !p.Field1DeepEqual(ano.SourceCategory) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.ParentId) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Name) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.Path) {
 		return false
 	}
 	return true
 }
 
-func (p *CreateFolderResponse) Field1DeepEqual(src *base.BaseResp) bool {
+func (p *CreateFolderRequest) Field1DeepEqual(src SourceCategory) bool {
 
-	if !p.Base.DeepEqual(src) {
+	if p.SourceCategory != src {
+		return false
+	}
+	return true
+}
+func (p *CreateFolderRequest) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.ParentId, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *CreateFolderRequest) Field3DeepEqual(src string) bool {
+
+	if strings.Compare(p.Name, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *CreateFolderRequest) Field4DeepEqual(src string) bool {
+
+	if strings.Compare(p.Path, src) != 0 {
 		return false
 	}
 	return true
@@ -2726,9 +3012,9 @@ func (p *DeleteItemResponse) Field1DeepEqual(src *base.BaseResp) bool {
 }
 
 type AddItemRequest struct {
-	SourceType    SourceType `thrift:"source_type,1" frugal:"1,default,SourceType" json:"source_type"`
-	CurrentFolder string     `thrift:"currentFolder,2" frugal:"2,default,string" json:"currentFolder"`
-	Item          *Item      `thrift:"item,3" frugal:"3,default,Item" json:"item"`
+	SourceCategory SourceCategory `thrift:"source_category,1" frugal:"1,default,SourceCategory" json:"source_category"`
+	CurrentFolder  string         `thrift:"currentFolder,2" frugal:"2,default,string" json:"currentFolder"`
+	Item           *Item          `thrift:"item,3" frugal:"3,default,Item" json:"item"`
 }
 
 func NewAddItemRequest() *AddItemRequest {
@@ -2738,8 +3024,8 @@ func NewAddItemRequest() *AddItemRequest {
 func (p *AddItemRequest) InitDefault() {
 }
 
-func (p *AddItemRequest) GetSourceType() (v SourceType) {
-	return p.SourceType
+func (p *AddItemRequest) GetSourceCategory() (v SourceCategory) {
+	return p.SourceCategory
 }
 
 func (p *AddItemRequest) GetCurrentFolder() (v string) {
@@ -2754,8 +3040,8 @@ func (p *AddItemRequest) GetItem() (v *Item) {
 	}
 	return p.Item
 }
-func (p *AddItemRequest) SetSourceType(val SourceType) {
-	p.SourceType = val
+func (p *AddItemRequest) SetSourceCategory(val SourceCategory) {
+	p.SourceCategory = val
 }
 func (p *AddItemRequest) SetCurrentFolder(val string) {
 	p.CurrentFolder = val
@@ -2765,7 +3051,7 @@ func (p *AddItemRequest) SetItem(val *Item) {
 }
 
 var fieldIDToName_AddItemRequest = map[int16]string{
-	1: "source_type",
+	1: "source_category",
 	2: "currentFolder",
 	3: "item",
 }
@@ -2848,13 +3134,13 @@ ReadStructEndError:
 
 func (p *AddItemRequest) ReadField1(iprot thrift.TProtocol) error {
 
-	var _field SourceType
+	var _field SourceCategory
 	if v, err := iprot.ReadI32(); err != nil {
 		return err
 	} else {
-		_field = SourceType(v)
+		_field = SourceCategory(v)
 	}
-	p.SourceType = _field
+	p.SourceCategory = _field
 	return nil
 }
 func (p *AddItemRequest) ReadField2(iprot thrift.TProtocol) error {
@@ -2914,10 +3200,10 @@ WriteStructEndError:
 }
 
 func (p *AddItemRequest) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("source_type", thrift.I32, 1); err != nil {
+	if err = oprot.WriteFieldBegin("source_category", thrift.I32, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteI32(int32(p.SourceType)); err != nil {
+	if err := oprot.WriteI32(int32(p.SourceCategory)); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -2978,7 +3264,7 @@ func (p *AddItemRequest) DeepEqual(ano *AddItemRequest) bool {
 	} else if p == nil || ano == nil {
 		return false
 	}
-	if !p.Field1DeepEqual(ano.SourceType) {
+	if !p.Field1DeepEqual(ano.SourceCategory) {
 		return false
 	}
 	if !p.Field2DeepEqual(ano.CurrentFolder) {
@@ -2990,9 +3276,9 @@ func (p *AddItemRequest) DeepEqual(ano *AddItemRequest) bool {
 	return true
 }
 
-func (p *AddItemRequest) Field1DeepEqual(src SourceType) bool {
+func (p *AddItemRequest) Field1DeepEqual(src SourceCategory) bool {
 
-	if p.SourceType != src {
+	if p.SourceCategory != src {
 		return false
 	}
 	return true
@@ -3014,6 +3300,7 @@ func (p *AddItemRequest) Field3DeepEqual(src *Item) bool {
 
 type AddItemResponse struct {
 	Base *base.BaseResp `thrift:"base,1" frugal:"1,default,base.BaseResp" json:"base"`
+	Item *Item          `thrift:"item,2" frugal:"2,default,Item" json:"item"`
 }
 
 func NewAddItemResponse() *AddItemResponse {
@@ -3031,16 +3318,33 @@ func (p *AddItemResponse) GetBase() (v *base.BaseResp) {
 	}
 	return p.Base
 }
+
+var AddItemResponse_Item_DEFAULT *Item
+
+func (p *AddItemResponse) GetItem() (v *Item) {
+	if !p.IsSetItem() {
+		return AddItemResponse_Item_DEFAULT
+	}
+	return p.Item
+}
 func (p *AddItemResponse) SetBase(val *base.BaseResp) {
 	p.Base = val
+}
+func (p *AddItemResponse) SetItem(val *Item) {
+	p.Item = val
 }
 
 var fieldIDToName_AddItemResponse = map[int16]string{
 	1: "base",
+	2: "item",
 }
 
 func (p *AddItemResponse) IsSetBase() bool {
 	return p.Base != nil
+}
+
+func (p *AddItemResponse) IsSetItem() bool {
+	return p.Item != nil
 }
 
 func (p *AddItemResponse) Read(iprot thrift.TProtocol) (err error) {
@@ -3065,6 +3369,14 @@ func (p *AddItemResponse) Read(iprot thrift.TProtocol) (err error) {
 		case 1:
 			if fieldTypeId == thrift.STRUCT {
 				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -3107,6 +3419,14 @@ func (p *AddItemResponse) ReadField1(iprot thrift.TProtocol) error {
 	p.Base = _field
 	return nil
 }
+func (p *AddItemResponse) ReadField2(iprot thrift.TProtocol) error {
+	_field := NewItem()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Item = _field
+	return nil
+}
 
 func (p *AddItemResponse) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -3116,6 +3436,10 @@ func (p *AddItemResponse) Write(oprot thrift.TProtocol) (err error) {
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
 			goto WriteFieldError
 		}
 	}
@@ -3153,6 +3477,23 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
+func (p *AddItemResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("item", thrift.STRUCT, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Item.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
 func (p *AddItemResponse) String() string {
 	if p == nil {
 		return "<nil>"
@@ -3170,6 +3511,9 @@ func (p *AddItemResponse) DeepEqual(ano *AddItemResponse) bool {
 	if !p.Field1DeepEqual(ano.Base) {
 		return false
 	}
+	if !p.Field2DeepEqual(ano.Item) {
+		return false
+	}
 	return true
 }
 
@@ -3180,699 +3524,26 @@ func (p *AddItemResponse) Field1DeepEqual(src *base.BaseResp) bool {
 	}
 	return true
 }
+func (p *AddItemResponse) Field2DeepEqual(src *Item) bool {
+
+	if !p.Item.DeepEqual(src) {
+		return false
+	}
+	return true
+}
 
 type SourceService interface {
-	Upload(ctx context.Context, req *UploadRequest) (r *UploadResponse, err error)
-
-	PresignedUpload(ctx context.Context, req *PresignedUploadResquest) (r *PresignedUploadResponse, err error)
-
 	GetItem(ctx context.Context, req *GetItemRequest) (r *GetItemResponse, err error)
-
-	CreateFolder(ctx context.Context, req *CreateFolderRequest) (r *CreateFolderResponse, err error)
 
 	DeleteItem(ctx context.Context, req *DeleteItemRequest) (r *DeleteItemResponse, err error)
 
 	AddItem(ctx context.Context, req *AddItemRequest) (r *AddItemResponse, err error)
-}
 
-type SourceServiceUploadArgs struct {
-	Req *UploadRequest `thrift:"req,1" frugal:"1,default,UploadRequest" json:"req"`
-}
+	CreateFolder(ctx context.Context, req *CreateFolderRequest) (r *AddItemResponse, err error)
 
-func NewSourceServiceUploadArgs() *SourceServiceUploadArgs {
-	return &SourceServiceUploadArgs{}
-}
+	Upload(ctx context.Context, req *UploadRequest) (r *UploadResponse, err error)
 
-func (p *SourceServiceUploadArgs) InitDefault() {
-}
-
-var SourceServiceUploadArgs_Req_DEFAULT *UploadRequest
-
-func (p *SourceServiceUploadArgs) GetReq() (v *UploadRequest) {
-	if !p.IsSetReq() {
-		return SourceServiceUploadArgs_Req_DEFAULT
-	}
-	return p.Req
-}
-func (p *SourceServiceUploadArgs) SetReq(val *UploadRequest) {
-	p.Req = val
-}
-
-var fieldIDToName_SourceServiceUploadArgs = map[int16]string{
-	1: "req",
-}
-
-func (p *SourceServiceUploadArgs) IsSetReq() bool {
-	return p.Req != nil
-}
-
-func (p *SourceServiceUploadArgs) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.STRUCT {
-				if err = p.ReadField1(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		default:
-			if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		}
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceUploadArgs[fieldId]), err)
-SkipFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-}
-
-func (p *SourceServiceUploadArgs) ReadField1(iprot thrift.TProtocol) error {
-	_field := NewUploadRequest()
-	if err := _field.Read(iprot); err != nil {
-		return err
-	}
-	p.Req = _field
-	return nil
-}
-
-func (p *SourceServiceUploadArgs) Write(oprot thrift.TProtocol) (err error) {
-	var fieldId int16
-	if err = oprot.WriteStructBegin("Upload_args"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-		if err = p.writeField1(oprot); err != nil {
-			fieldId = 1
-			goto WriteFieldError
-		}
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *SourceServiceUploadArgs) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := p.Req.Write(oprot); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
-}
-
-func (p *SourceServiceUploadArgs) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("SourceServiceUploadArgs(%+v)", *p)
-
-}
-
-func (p *SourceServiceUploadArgs) DeepEqual(ano *SourceServiceUploadArgs) bool {
-	if p == ano {
-		return true
-	} else if p == nil || ano == nil {
-		return false
-	}
-	if !p.Field1DeepEqual(ano.Req) {
-		return false
-	}
-	return true
-}
-
-func (p *SourceServiceUploadArgs) Field1DeepEqual(src *UploadRequest) bool {
-
-	if !p.Req.DeepEqual(src) {
-		return false
-	}
-	return true
-}
-
-type SourceServiceUploadResult struct {
-	Success *UploadResponse `thrift:"success,0,optional" frugal:"0,optional,UploadResponse" json:"success,omitempty"`
-}
-
-func NewSourceServiceUploadResult() *SourceServiceUploadResult {
-	return &SourceServiceUploadResult{}
-}
-
-func (p *SourceServiceUploadResult) InitDefault() {
-}
-
-var SourceServiceUploadResult_Success_DEFAULT *UploadResponse
-
-func (p *SourceServiceUploadResult) GetSuccess() (v *UploadResponse) {
-	if !p.IsSetSuccess() {
-		return SourceServiceUploadResult_Success_DEFAULT
-	}
-	return p.Success
-}
-func (p *SourceServiceUploadResult) SetSuccess(x interface{}) {
-	p.Success = x.(*UploadResponse)
-}
-
-var fieldIDToName_SourceServiceUploadResult = map[int16]string{
-	0: "success",
-}
-
-func (p *SourceServiceUploadResult) IsSetSuccess() bool {
-	return p.Success != nil
-}
-
-func (p *SourceServiceUploadResult) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-
-		switch fieldId {
-		case 0:
-			if fieldTypeId == thrift.STRUCT {
-				if err = p.ReadField0(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		default:
-			if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		}
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceUploadResult[fieldId]), err)
-SkipFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-}
-
-func (p *SourceServiceUploadResult) ReadField0(iprot thrift.TProtocol) error {
-	_field := NewUploadResponse()
-	if err := _field.Read(iprot); err != nil {
-		return err
-	}
-	p.Success = _field
-	return nil
-}
-
-func (p *SourceServiceUploadResult) Write(oprot thrift.TProtocol) (err error) {
-	var fieldId int16
-	if err = oprot.WriteStructBegin("Upload_result"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-		if err = p.writeField0(oprot); err != nil {
-			fieldId = 0
-			goto WriteFieldError
-		}
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *SourceServiceUploadResult) writeField0(oprot thrift.TProtocol) (err error) {
-	if p.IsSetSuccess() {
-		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
-			goto WriteFieldBeginError
-		}
-		if err := p.Success.Write(oprot); err != nil {
-			return err
-		}
-		if err = oprot.WriteFieldEnd(); err != nil {
-			goto WriteFieldEndError
-		}
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
-}
-
-func (p *SourceServiceUploadResult) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("SourceServiceUploadResult(%+v)", *p)
-
-}
-
-func (p *SourceServiceUploadResult) DeepEqual(ano *SourceServiceUploadResult) bool {
-	if p == ano {
-		return true
-	} else if p == nil || ano == nil {
-		return false
-	}
-	if !p.Field0DeepEqual(ano.Success) {
-		return false
-	}
-	return true
-}
-
-func (p *SourceServiceUploadResult) Field0DeepEqual(src *UploadResponse) bool {
-
-	if !p.Success.DeepEqual(src) {
-		return false
-	}
-	return true
-}
-
-type SourceServicePresignedUploadArgs struct {
-	Req *PresignedUploadResquest `thrift:"req,1" frugal:"1,default,PresignedUploadResquest" json:"req"`
-}
-
-func NewSourceServicePresignedUploadArgs() *SourceServicePresignedUploadArgs {
-	return &SourceServicePresignedUploadArgs{}
-}
-
-func (p *SourceServicePresignedUploadArgs) InitDefault() {
-}
-
-var SourceServicePresignedUploadArgs_Req_DEFAULT *PresignedUploadResquest
-
-func (p *SourceServicePresignedUploadArgs) GetReq() (v *PresignedUploadResquest) {
-	if !p.IsSetReq() {
-		return SourceServicePresignedUploadArgs_Req_DEFAULT
-	}
-	return p.Req
-}
-func (p *SourceServicePresignedUploadArgs) SetReq(val *PresignedUploadResquest) {
-	p.Req = val
-}
-
-var fieldIDToName_SourceServicePresignedUploadArgs = map[int16]string{
-	1: "req",
-}
-
-func (p *SourceServicePresignedUploadArgs) IsSetReq() bool {
-	return p.Req != nil
-}
-
-func (p *SourceServicePresignedUploadArgs) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.STRUCT {
-				if err = p.ReadField1(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		default:
-			if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		}
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServicePresignedUploadArgs[fieldId]), err)
-SkipFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-}
-
-func (p *SourceServicePresignedUploadArgs) ReadField1(iprot thrift.TProtocol) error {
-	_field := NewPresignedUploadResquest()
-	if err := _field.Read(iprot); err != nil {
-		return err
-	}
-	p.Req = _field
-	return nil
-}
-
-func (p *SourceServicePresignedUploadArgs) Write(oprot thrift.TProtocol) (err error) {
-	var fieldId int16
-	if err = oprot.WriteStructBegin("PresignedUpload_args"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-		if err = p.writeField1(oprot); err != nil {
-			fieldId = 1
-			goto WriteFieldError
-		}
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *SourceServicePresignedUploadArgs) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := p.Req.Write(oprot); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
-}
-
-func (p *SourceServicePresignedUploadArgs) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("SourceServicePresignedUploadArgs(%+v)", *p)
-
-}
-
-func (p *SourceServicePresignedUploadArgs) DeepEqual(ano *SourceServicePresignedUploadArgs) bool {
-	if p == ano {
-		return true
-	} else if p == nil || ano == nil {
-		return false
-	}
-	if !p.Field1DeepEqual(ano.Req) {
-		return false
-	}
-	return true
-}
-
-func (p *SourceServicePresignedUploadArgs) Field1DeepEqual(src *PresignedUploadResquest) bool {
-
-	if !p.Req.DeepEqual(src) {
-		return false
-	}
-	return true
-}
-
-type SourceServicePresignedUploadResult struct {
-	Success *PresignedUploadResponse `thrift:"success,0,optional" frugal:"0,optional,PresignedUploadResponse" json:"success,omitempty"`
-}
-
-func NewSourceServicePresignedUploadResult() *SourceServicePresignedUploadResult {
-	return &SourceServicePresignedUploadResult{}
-}
-
-func (p *SourceServicePresignedUploadResult) InitDefault() {
-}
-
-var SourceServicePresignedUploadResult_Success_DEFAULT *PresignedUploadResponse
-
-func (p *SourceServicePresignedUploadResult) GetSuccess() (v *PresignedUploadResponse) {
-	if !p.IsSetSuccess() {
-		return SourceServicePresignedUploadResult_Success_DEFAULT
-	}
-	return p.Success
-}
-func (p *SourceServicePresignedUploadResult) SetSuccess(x interface{}) {
-	p.Success = x.(*PresignedUploadResponse)
-}
-
-var fieldIDToName_SourceServicePresignedUploadResult = map[int16]string{
-	0: "success",
-}
-
-func (p *SourceServicePresignedUploadResult) IsSetSuccess() bool {
-	return p.Success != nil
-}
-
-func (p *SourceServicePresignedUploadResult) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-
-		switch fieldId {
-		case 0:
-			if fieldTypeId == thrift.STRUCT {
-				if err = p.ReadField0(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		default:
-			if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		}
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServicePresignedUploadResult[fieldId]), err)
-SkipFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-}
-
-func (p *SourceServicePresignedUploadResult) ReadField0(iprot thrift.TProtocol) error {
-	_field := NewPresignedUploadResponse()
-	if err := _field.Read(iprot); err != nil {
-		return err
-	}
-	p.Success = _field
-	return nil
-}
-
-func (p *SourceServicePresignedUploadResult) Write(oprot thrift.TProtocol) (err error) {
-	var fieldId int16
-	if err = oprot.WriteStructBegin("PresignedUpload_result"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-		if err = p.writeField0(oprot); err != nil {
-			fieldId = 0
-			goto WriteFieldError
-		}
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *SourceServicePresignedUploadResult) writeField0(oprot thrift.TProtocol) (err error) {
-	if p.IsSetSuccess() {
-		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
-			goto WriteFieldBeginError
-		}
-		if err := p.Success.Write(oprot); err != nil {
-			return err
-		}
-		if err = oprot.WriteFieldEnd(); err != nil {
-			goto WriteFieldEndError
-		}
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
-}
-
-func (p *SourceServicePresignedUploadResult) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("SourceServicePresignedUploadResult(%+v)", *p)
-
-}
-
-func (p *SourceServicePresignedUploadResult) DeepEqual(ano *SourceServicePresignedUploadResult) bool {
-	if p == ano {
-		return true
-	} else if p == nil || ano == nil {
-		return false
-	}
-	if !p.Field0DeepEqual(ano.Success) {
-		return false
-	}
-	return true
-}
-
-func (p *SourceServicePresignedUploadResult) Field0DeepEqual(src *PresignedUploadResponse) bool {
-
-	if !p.Success.DeepEqual(src) {
-		return false
-	}
-	return true
+	PresignedUpload(ctx context.Context, req *PresignedUploadResquest) (r *PresignedUploadResponse, err error)
 }
 
 type SourceServiceGetItemArgs struct {
@@ -4208,346 +3879,6 @@ func (p *SourceServiceGetItemResult) DeepEqual(ano *SourceServiceGetItemResult) 
 }
 
 func (p *SourceServiceGetItemResult) Field0DeepEqual(src *GetItemResponse) bool {
-
-	if !p.Success.DeepEqual(src) {
-		return false
-	}
-	return true
-}
-
-type SourceServiceCreateFolderArgs struct {
-	Req *CreateFolderRequest `thrift:"req,1" frugal:"1,default,CreateFolderRequest" json:"req"`
-}
-
-func NewSourceServiceCreateFolderArgs() *SourceServiceCreateFolderArgs {
-	return &SourceServiceCreateFolderArgs{}
-}
-
-func (p *SourceServiceCreateFolderArgs) InitDefault() {
-}
-
-var SourceServiceCreateFolderArgs_Req_DEFAULT *CreateFolderRequest
-
-func (p *SourceServiceCreateFolderArgs) GetReq() (v *CreateFolderRequest) {
-	if !p.IsSetReq() {
-		return SourceServiceCreateFolderArgs_Req_DEFAULT
-	}
-	return p.Req
-}
-func (p *SourceServiceCreateFolderArgs) SetReq(val *CreateFolderRequest) {
-	p.Req = val
-}
-
-var fieldIDToName_SourceServiceCreateFolderArgs = map[int16]string{
-	1: "req",
-}
-
-func (p *SourceServiceCreateFolderArgs) IsSetReq() bool {
-	return p.Req != nil
-}
-
-func (p *SourceServiceCreateFolderArgs) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.STRUCT {
-				if err = p.ReadField1(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		default:
-			if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		}
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceCreateFolderArgs[fieldId]), err)
-SkipFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-}
-
-func (p *SourceServiceCreateFolderArgs) ReadField1(iprot thrift.TProtocol) error {
-	_field := NewCreateFolderRequest()
-	if err := _field.Read(iprot); err != nil {
-		return err
-	}
-	p.Req = _field
-	return nil
-}
-
-func (p *SourceServiceCreateFolderArgs) Write(oprot thrift.TProtocol) (err error) {
-	var fieldId int16
-	if err = oprot.WriteStructBegin("CreateFolder_args"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-		if err = p.writeField1(oprot); err != nil {
-			fieldId = 1
-			goto WriteFieldError
-		}
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *SourceServiceCreateFolderArgs) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := p.Req.Write(oprot); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
-}
-
-func (p *SourceServiceCreateFolderArgs) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("SourceServiceCreateFolderArgs(%+v)", *p)
-
-}
-
-func (p *SourceServiceCreateFolderArgs) DeepEqual(ano *SourceServiceCreateFolderArgs) bool {
-	if p == ano {
-		return true
-	} else if p == nil || ano == nil {
-		return false
-	}
-	if !p.Field1DeepEqual(ano.Req) {
-		return false
-	}
-	return true
-}
-
-func (p *SourceServiceCreateFolderArgs) Field1DeepEqual(src *CreateFolderRequest) bool {
-
-	if !p.Req.DeepEqual(src) {
-		return false
-	}
-	return true
-}
-
-type SourceServiceCreateFolderResult struct {
-	Success *CreateFolderResponse `thrift:"success,0,optional" frugal:"0,optional,CreateFolderResponse" json:"success,omitempty"`
-}
-
-func NewSourceServiceCreateFolderResult() *SourceServiceCreateFolderResult {
-	return &SourceServiceCreateFolderResult{}
-}
-
-func (p *SourceServiceCreateFolderResult) InitDefault() {
-}
-
-var SourceServiceCreateFolderResult_Success_DEFAULT *CreateFolderResponse
-
-func (p *SourceServiceCreateFolderResult) GetSuccess() (v *CreateFolderResponse) {
-	if !p.IsSetSuccess() {
-		return SourceServiceCreateFolderResult_Success_DEFAULT
-	}
-	return p.Success
-}
-func (p *SourceServiceCreateFolderResult) SetSuccess(x interface{}) {
-	p.Success = x.(*CreateFolderResponse)
-}
-
-var fieldIDToName_SourceServiceCreateFolderResult = map[int16]string{
-	0: "success",
-}
-
-func (p *SourceServiceCreateFolderResult) IsSetSuccess() bool {
-	return p.Success != nil
-}
-
-func (p *SourceServiceCreateFolderResult) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-
-		switch fieldId {
-		case 0:
-			if fieldTypeId == thrift.STRUCT {
-				if err = p.ReadField0(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		default:
-			if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		}
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceCreateFolderResult[fieldId]), err)
-SkipFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-}
-
-func (p *SourceServiceCreateFolderResult) ReadField0(iprot thrift.TProtocol) error {
-	_field := NewCreateFolderResponse()
-	if err := _field.Read(iprot); err != nil {
-		return err
-	}
-	p.Success = _field
-	return nil
-}
-
-func (p *SourceServiceCreateFolderResult) Write(oprot thrift.TProtocol) (err error) {
-	var fieldId int16
-	if err = oprot.WriteStructBegin("CreateFolder_result"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-		if err = p.writeField0(oprot); err != nil {
-			fieldId = 0
-			goto WriteFieldError
-		}
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *SourceServiceCreateFolderResult) writeField0(oprot thrift.TProtocol) (err error) {
-	if p.IsSetSuccess() {
-		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
-			goto WriteFieldBeginError
-		}
-		if err := p.Success.Write(oprot); err != nil {
-			return err
-		}
-		if err = oprot.WriteFieldEnd(); err != nil {
-			goto WriteFieldEndError
-		}
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
-}
-
-func (p *SourceServiceCreateFolderResult) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("SourceServiceCreateFolderResult(%+v)", *p)
-
-}
-
-func (p *SourceServiceCreateFolderResult) DeepEqual(ano *SourceServiceCreateFolderResult) bool {
-	if p == ano {
-		return true
-	} else if p == nil || ano == nil {
-		return false
-	}
-	if !p.Field0DeepEqual(ano.Success) {
-		return false
-	}
-	return true
-}
-
-func (p *SourceServiceCreateFolderResult) Field0DeepEqual(src *CreateFolderResponse) bool {
 
 	if !p.Success.DeepEqual(src) {
 		return false
@@ -5228,6 +4559,1026 @@ func (p *SourceServiceAddItemResult) DeepEqual(ano *SourceServiceAddItemResult) 
 }
 
 func (p *SourceServiceAddItemResult) Field0DeepEqual(src *AddItemResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type SourceServiceCreateFolderArgs struct {
+	Req *CreateFolderRequest `thrift:"req,1" frugal:"1,default,CreateFolderRequest" json:"req"`
+}
+
+func NewSourceServiceCreateFolderArgs() *SourceServiceCreateFolderArgs {
+	return &SourceServiceCreateFolderArgs{}
+}
+
+func (p *SourceServiceCreateFolderArgs) InitDefault() {
+}
+
+var SourceServiceCreateFolderArgs_Req_DEFAULT *CreateFolderRequest
+
+func (p *SourceServiceCreateFolderArgs) GetReq() (v *CreateFolderRequest) {
+	if !p.IsSetReq() {
+		return SourceServiceCreateFolderArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *SourceServiceCreateFolderArgs) SetReq(val *CreateFolderRequest) {
+	p.Req = val
+}
+
+var fieldIDToName_SourceServiceCreateFolderArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *SourceServiceCreateFolderArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *SourceServiceCreateFolderArgs) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceCreateFolderArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *SourceServiceCreateFolderArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewCreateFolderRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *SourceServiceCreateFolderArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("CreateFolder_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *SourceServiceCreateFolderArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *SourceServiceCreateFolderArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("SourceServiceCreateFolderArgs(%+v)", *p)
+
+}
+
+func (p *SourceServiceCreateFolderArgs) DeepEqual(ano *SourceServiceCreateFolderArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *SourceServiceCreateFolderArgs) Field1DeepEqual(src *CreateFolderRequest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type SourceServiceCreateFolderResult struct {
+	Success *AddItemResponse `thrift:"success,0,optional" frugal:"0,optional,AddItemResponse" json:"success,omitempty"`
+}
+
+func NewSourceServiceCreateFolderResult() *SourceServiceCreateFolderResult {
+	return &SourceServiceCreateFolderResult{}
+}
+
+func (p *SourceServiceCreateFolderResult) InitDefault() {
+}
+
+var SourceServiceCreateFolderResult_Success_DEFAULT *AddItemResponse
+
+func (p *SourceServiceCreateFolderResult) GetSuccess() (v *AddItemResponse) {
+	if !p.IsSetSuccess() {
+		return SourceServiceCreateFolderResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *SourceServiceCreateFolderResult) SetSuccess(x interface{}) {
+	p.Success = x.(*AddItemResponse)
+}
+
+var fieldIDToName_SourceServiceCreateFolderResult = map[int16]string{
+	0: "success",
+}
+
+func (p *SourceServiceCreateFolderResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *SourceServiceCreateFolderResult) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceCreateFolderResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *SourceServiceCreateFolderResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewAddItemResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *SourceServiceCreateFolderResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("CreateFolder_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *SourceServiceCreateFolderResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *SourceServiceCreateFolderResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("SourceServiceCreateFolderResult(%+v)", *p)
+
+}
+
+func (p *SourceServiceCreateFolderResult) DeepEqual(ano *SourceServiceCreateFolderResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *SourceServiceCreateFolderResult) Field0DeepEqual(src *AddItemResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type SourceServiceUploadArgs struct {
+	Req *UploadRequest `thrift:"req,1" frugal:"1,default,UploadRequest" json:"req"`
+}
+
+func NewSourceServiceUploadArgs() *SourceServiceUploadArgs {
+	return &SourceServiceUploadArgs{}
+}
+
+func (p *SourceServiceUploadArgs) InitDefault() {
+}
+
+var SourceServiceUploadArgs_Req_DEFAULT *UploadRequest
+
+func (p *SourceServiceUploadArgs) GetReq() (v *UploadRequest) {
+	if !p.IsSetReq() {
+		return SourceServiceUploadArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *SourceServiceUploadArgs) SetReq(val *UploadRequest) {
+	p.Req = val
+}
+
+var fieldIDToName_SourceServiceUploadArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *SourceServiceUploadArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *SourceServiceUploadArgs) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceUploadArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *SourceServiceUploadArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewUploadRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *SourceServiceUploadArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("Upload_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *SourceServiceUploadArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *SourceServiceUploadArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("SourceServiceUploadArgs(%+v)", *p)
+
+}
+
+func (p *SourceServiceUploadArgs) DeepEqual(ano *SourceServiceUploadArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *SourceServiceUploadArgs) Field1DeepEqual(src *UploadRequest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type SourceServiceUploadResult struct {
+	Success *UploadResponse `thrift:"success,0,optional" frugal:"0,optional,UploadResponse" json:"success,omitempty"`
+}
+
+func NewSourceServiceUploadResult() *SourceServiceUploadResult {
+	return &SourceServiceUploadResult{}
+}
+
+func (p *SourceServiceUploadResult) InitDefault() {
+}
+
+var SourceServiceUploadResult_Success_DEFAULT *UploadResponse
+
+func (p *SourceServiceUploadResult) GetSuccess() (v *UploadResponse) {
+	if !p.IsSetSuccess() {
+		return SourceServiceUploadResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *SourceServiceUploadResult) SetSuccess(x interface{}) {
+	p.Success = x.(*UploadResponse)
+}
+
+var fieldIDToName_SourceServiceUploadResult = map[int16]string{
+	0: "success",
+}
+
+func (p *SourceServiceUploadResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *SourceServiceUploadResult) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceUploadResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *SourceServiceUploadResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewUploadResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *SourceServiceUploadResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("Upload_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *SourceServiceUploadResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *SourceServiceUploadResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("SourceServiceUploadResult(%+v)", *p)
+
+}
+
+func (p *SourceServiceUploadResult) DeepEqual(ano *SourceServiceUploadResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *SourceServiceUploadResult) Field0DeepEqual(src *UploadResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type SourceServicePresignedUploadArgs struct {
+	Req *PresignedUploadResquest `thrift:"req,1" frugal:"1,default,PresignedUploadResquest" json:"req"`
+}
+
+func NewSourceServicePresignedUploadArgs() *SourceServicePresignedUploadArgs {
+	return &SourceServicePresignedUploadArgs{}
+}
+
+func (p *SourceServicePresignedUploadArgs) InitDefault() {
+}
+
+var SourceServicePresignedUploadArgs_Req_DEFAULT *PresignedUploadResquest
+
+func (p *SourceServicePresignedUploadArgs) GetReq() (v *PresignedUploadResquest) {
+	if !p.IsSetReq() {
+		return SourceServicePresignedUploadArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *SourceServicePresignedUploadArgs) SetReq(val *PresignedUploadResquest) {
+	p.Req = val
+}
+
+var fieldIDToName_SourceServicePresignedUploadArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *SourceServicePresignedUploadArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *SourceServicePresignedUploadArgs) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServicePresignedUploadArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *SourceServicePresignedUploadArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewPresignedUploadResquest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *SourceServicePresignedUploadArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PresignedUpload_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *SourceServicePresignedUploadArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *SourceServicePresignedUploadArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("SourceServicePresignedUploadArgs(%+v)", *p)
+
+}
+
+func (p *SourceServicePresignedUploadArgs) DeepEqual(ano *SourceServicePresignedUploadArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *SourceServicePresignedUploadArgs) Field1DeepEqual(src *PresignedUploadResquest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type SourceServicePresignedUploadResult struct {
+	Success *PresignedUploadResponse `thrift:"success,0,optional" frugal:"0,optional,PresignedUploadResponse" json:"success,omitempty"`
+}
+
+func NewSourceServicePresignedUploadResult() *SourceServicePresignedUploadResult {
+	return &SourceServicePresignedUploadResult{}
+}
+
+func (p *SourceServicePresignedUploadResult) InitDefault() {
+}
+
+var SourceServicePresignedUploadResult_Success_DEFAULT *PresignedUploadResponse
+
+func (p *SourceServicePresignedUploadResult) GetSuccess() (v *PresignedUploadResponse) {
+	if !p.IsSetSuccess() {
+		return SourceServicePresignedUploadResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *SourceServicePresignedUploadResult) SetSuccess(x interface{}) {
+	p.Success = x.(*PresignedUploadResponse)
+}
+
+var fieldIDToName_SourceServicePresignedUploadResult = map[int16]string{
+	0: "success",
+}
+
+func (p *SourceServicePresignedUploadResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *SourceServicePresignedUploadResult) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServicePresignedUploadResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *SourceServicePresignedUploadResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewPresignedUploadResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *SourceServicePresignedUploadResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("PresignedUpload_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *SourceServicePresignedUploadResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *SourceServicePresignedUploadResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("SourceServicePresignedUploadResult(%+v)", *p)
+
+}
+
+func (p *SourceServicePresignedUploadResult) DeepEqual(ano *SourceServicePresignedUploadResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *SourceServicePresignedUploadResult) Field0DeepEqual(src *PresignedUploadResponse) bool {
 
 	if !p.Success.DeepEqual(src) {
 		return false

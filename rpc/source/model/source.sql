@@ -5,7 +5,9 @@ CREATE TABLE IF NOT EXISTS data_source.base_info(
     source_id uuid NOT NULL UNIQUE,
     name varchar(255) NOT NULL,
     source_category integer NOT NULL,
-    deleted_at bool DEFAULT FALSE NOT NULL
+    deleted_at bool DEFAULT NULL,
+    created_at timestamp,
+    updated_at timestamp
 );
 
 COMMENT ON TABLE data_source.base_info IS '存储数据源的基础信息表';
@@ -29,7 +31,9 @@ CREATE TABLE IF NOT EXISTS data_source.storage(
     size bigint default 0,
     modified_time timestamptz,
     path varchar(255) NOT NULL,
-    deleted_at bool DEFAULT FALSE NOT NULL
+    deleted_at bool DEFAULT NULL,
+    created_at timestamp,
+    updated_at timestamp
 );
 
 COMMENT ON TABLE data_source.storage IS '存储所有源数据的表';
@@ -47,3 +51,9 @@ COMMENT ON COLUMN data_source.storage.path IS '数据源的minio的存储路径'
 CREATE INDEX storage_id_index ON data_source.storage(id);
 CREATE INDEX storage_uuid_index ON data_source.storage(source_id);
 CREATE INDEX storage_parent_uuid_index ON data_source.storage(parent_id);
+
+INSERT INTO data_source.base_info("source_id","name","source_category")VALUES ('9269d343-c2c9-b175-a9ac-c6f668ebfc78','矢量',1);
+
+INSERT INTO data_source.storage(source_id, name, storage_category,
+                                 path)
+VALUES ('9269d343-c2c9-b175-a9ac-c6f668ebfc78','矢量',2,'/vector');

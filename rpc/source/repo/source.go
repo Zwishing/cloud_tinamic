@@ -5,23 +5,43 @@ import (
 	"cloud_tinamic/pkg/storage"
 	"cloud_tinamic/rpc/source/model"
 	"fmt"
-	"github.com/cloudwego/kitex/pkg/klog"
-	"gorm.io/gorm"
+	"io"
 	"strings"
 	"time"
+
+	"github.com/cloudwego/kitex/pkg/klog"
+	"github.com/minio/minio-go/v7"
+	"gorm.io/gorm"
 )
 
+type DBRepo interface {
+	GetItemById(parentId string) ([]*model.Storage, error)
+	GetItemByPath(SourceCategory source.SourceCategory, path string) ([]*source.Item, error)
+	AddItem(SourceCategory source.SourceCategory, dest string, item *source.Item) (bool, error)
+	DeleteItem(SourceCategory source.SourceCategory, uuid string) (bool, error)
+	GetPathById(sourceId string) (string, error)
+}
+
+type MinioRepo interface {
+	PresignedUploadUrl(SourceCategory source.SourceCategory, path string, name string) (string, error)
+	UploadToMinio(bucketName, path, fileName string, reader io.Reader, fileSize int64) error
+}
+
 type SourceRepo interface {
-	GetItemById(uuid string) ([]*model.Storage, error)
-	GetItemByPath(sourceType source.SourceType, path string) ([]*source.Item, error)
-	AddItem(sourceType source.SourceType, dest string, item *source.Item) (bool, error)
-	PresignedUploadUrl(sourceType source.SourceType, path string, name string) (string, error)
-	DeleteItem(sourceType source.SourceType, uuid string) (bool, error)
+	DBRepo
+	MinioRepo
 }
 
 type SourceRepoImpl struct {
 	DB    *gorm.DB
 	minio *storage.Storage
+}
+
+// UploadToMinio implements SourceRepo.
+func (s *SourceRepoImpl) UploadToMinio(bucketName, path, fileName string, reader io.Reader, fileSize int64) error {
+	opts := minio.PutObjectOptions{}
+	_, err := s.minio.Upload(bucketName, fileName, reader, fileSize, opts)
+	return err
 }
 
 func NewSourceRepoImpl(db *gorm.DB, minio *storage.Storage) SourceRepo {
@@ -31,10 +51,10 @@ func NewSourceRepoImpl(db *gorm.DB, minio *storage.Storage) SourceRepo {
 	}
 }
 
-func (s *SourceRepoImpl) GetItemById(uuid string) ([]*model.Storage, error) {
+func (s *SourceRepoImpl) GetItemById(sourceId string) ([]*model.Storage, error) {
 	var items []*model.Storage
 	err := s.DB.Table("data_source.storage").
-		Where("parent_id = ?", uuid).
+		Where("parent_id = ?", sourceId).
 		Find(&items).Error
 	if err != nil {
 		// Changed from Fatalf to Errorf to avoid program termination
@@ -43,38 +63,33 @@ func (s *SourceRepoImpl) GetItemById(uuid string) ([]*model.Storage, error) {
 	}
 	// Added a check for empty result
 	if len(items) == 0 {
-		klog.Infof("no items found for parent_id: %s", uuid)
+		klog.Infof("no items found for parent_id: %s", sourceId)
 	}
 	return items, nil
 }
 
 // GetItemByPath TODO
-func (db *SourceRepoImpl) GetItemByPath(sourceType source.SourceType, path string) ([]*source.Item, error) {
+func (db *SourceRepoImpl) GetItemByPath(SourceCategory source.SourceCategory, path string) ([]*source.Item, error) {
 	return nil, nil
 }
 
-func (db *SourceRepoImpl) AddItem(sourceType source.SourceType, dest string, item *source.Item) (bool, error) {
+func (db *SourceRepoImpl) AddItem(SourceCategory source.SourceCategory, parentId string, item *source.Item) (bool, error) {
 	// Parse the modified time outside of the transaction
-	modifiedTime, err := time.Parse(time.RFC3339, item.ModifiedTime)
-	if err != nil {
-		klog.Errorf("Failed to parse time string '%s': %v", item.ModifiedTime, err)
-		// Continue with zero time if parsing fails
-		modifiedTime = time.Time{}
-	}
+	modifiedTime := time.Unix(item.ModifiedTime, 0)
 
 	// Open a transaction
-	err = db.DB.Transaction(func(tx *gorm.DB) error {
+	err := db.DB.Transaction(func(tx *gorm.DB) error {
 		// Prepare base_info data
 		baseInfo := model.BaseInfo{
 			SourceId:       item.Key,
 			Name:           item.Name,
-			SourceCategory: int64(sourceType),
+			SourceCategory: int64(SourceCategory),
 		}
 
 		// Prepare storage data
-		storage := model.Storage{
+		store := model.Storage{
 			SourceId:        item.Key,
-			ParentId:        dest,
+			ParentId:        parentId,
 			Name:            item.Name,
 			StorageCategory: int64(item.ItemType),
 			Key:             item.Key,
@@ -89,7 +104,7 @@ func (db *SourceRepoImpl) AddItem(sourceType source.SourceType, dest string, ite
 		}
 
 		// Insert into storage table
-		if err := tx.Create(&storage).Error; err != nil {
+		if err := tx.Create(&store).Error; err != nil {
 			return fmt.Errorf("failed to insert into storage for uuid %s: %w", item.Key, err)
 		}
 
@@ -103,8 +118,8 @@ func (db *SourceRepoImpl) AddItem(sourceType source.SourceType, dest string, ite
 	return true, nil
 }
 
-func (db *SourceRepoImpl) PresignedUploadUrl(sourceType source.SourceType, path string, name string) (string, error) {
-	bucketName := strings.ToLower(sourceType.String())
+func (db *SourceRepoImpl) PresignedUploadUrl(SourceCategory source.SourceCategory, path string, name string) (string, error) {
+	bucketName := strings.ToLower(SourceCategory.String())
 	if db.minio.ObjExist(bucketName, name) {
 		err := fmt.Errorf("object already exists: %s/%s", bucketName, name)
 		klog.Errorf("failed to generate presigned URL: %v", err)
@@ -122,7 +137,7 @@ func (db *SourceRepoImpl) PresignedUploadUrl(sourceType source.SourceType, path 
 	return presignedURL, nil
 }
 
-func (db *SourceRepoImpl) DeleteItem(sourceType source.SourceType, uuid string) (bool, error) {
+func (db *SourceRepoImpl) DeleteItem(SourceCategory source.SourceCategory, uuid string) (bool, error) {
 	// Use GORM's transaction processing
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
 		// Delete from both base_info and storage tables in a single query
@@ -147,4 +162,18 @@ func (db *SourceRepoImpl) DeleteItem(sourceType source.SourceType, uuid string) 
 	}
 
 	return true, nil
+}
+
+func (s *SourceRepoImpl) GetPathById(sourceId string) (string, error) {
+	var path string
+	err := s.DB.Table("data_source.storage").
+		Select("path").
+		Where("source_id = ?", sourceId).
+		Scan(&path).Error // 使用 Scan 以确保可以接收单个字段的值
+
+	if err != nil {
+		return "", err // 返回空字符串和错误
+	}
+
+	return path, nil // 返回查询到的路径
 }

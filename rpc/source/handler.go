@@ -1,11 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"cloud_tinamic/kitex_gen/base"
 	source "cloud_tinamic/kitex_gen/data/source"
+	"cloud_tinamic/pkg/util"
 	"cloud_tinamic/rpc/source/pack"
 	"cloud_tinamic/rpc/source/repo"
 	"context"
+	"fmt"
+	"strings"
+	"time"
 )
 
 // SourceServiceImpl implements the last service interface defined in the IDL.
@@ -19,7 +24,38 @@ func NewSourceServiceImpl(repo repo.SourceRepo) *SourceServiceImpl {
 
 // Upload implements the SourceServiceImpl interface.
 func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadRequest) (resp *source.UploadResponse, err error) {
-	// TODO: Your code here...
+	resp = source.NewUploadResponse()
+	resp.SetBase(base.NewBaseResp())
+
+	bucketName := strings.ToLower(req.SourceCategory.String())
+	path, err := s.SourceRepo.GetPathById(req.ParentId)
+	newPath := fmt.Sprintf("%s/%s", path, req.Name)
+	// 上传到minio
+	// TODO 后续可以使用hash对重复的数据就可以不用在上传
+	err = s.SourceRepo.UploadToMinio(bucketName, newPath, req.Name, bytes.NewReader(req.FileData), req.Size)
+	if err != nil {
+		resp.Base.Code = base.Code_FAIL
+		resp.Base.Msg = "上传到minio失败"
+		return
+	}
+	// 上传成功后添加到数据记录
+	sourceId := util.UuidV4()
+	success, err := s.SourceRepo.AddItem(req.SourceCategory, req.ParentId, &source.Item{
+		Name:         req.Name,
+		ItemType:     source.ItemType_FILE,
+		Key:          sourceId,
+		Size:         req.Size,
+		ModifiedTime: time.Now().Unix(),
+		Path:         newPath,
+	})
+	if err != nil || success == false {
+		// TODO 为了保持数据一致性，需要删除已经上传到minio的数据
+		resp.Base.Code = base.Code_FAIL
+		resp.Base.Msg = "添加到数据库失败"
+		return
+	}
+
+	resp.SourceId = sourceId
 	return
 }
 
@@ -28,7 +64,7 @@ func (s *SourceServiceImpl) PresignedUpload(ctx context.Context, req *source.Pre
 	resp = source.NewPresignedUploadResponse()
 	resp.SetBase(base.NewBaseResp())
 
-	url, err := s.SourceRepo.PresignedUploadUrl(req.SourceType, req.Path, req.Name)
+	url, err := s.SourceRepo.PresignedUploadUrl(req.SourceCategory, req.Path, req.Name)
 	if err != nil {
 		resp.Base.Code = base.Code_FAIL
 		resp.Base.Msg = "无法生成上传URL"
@@ -59,8 +95,29 @@ func (s *SourceServiceImpl) GetItem(ctx context.Context, req *source.GetItemRequ
 }
 
 // CreateFolder implements the SourceServiceImpl interface.
-func (s *SourceServiceImpl) CreateFolder(ctx context.Context, req *source.CreateFolderRequest) (resp *source.CreateFolderResponse, err error) {
-	// TODO: Your code here...
+func (s *SourceServiceImpl) CreateFolder(ctx context.Context, req *source.CreateFolderRequest) (resp *source.AddItemResponse, err error) {
+	resp = source.NewAddItemResponse()
+	resp.SetBase(base.NewBaseResp())
+	// 生成唯一的标识
+	key := util.UuidV4()
+	folder := source.Item{
+		Name:         req.Name,
+		ItemType:     source.ItemType_FOLDER,
+		Key:          key,
+		Size:         0,
+		ModifiedTime: time.Now().Unix(),
+		Path:         req.Path,
+	}
+	success, err := s.SourceRepo.AddItem(req.SourceCategory, req.ParentId, &folder)
+	if err != nil || success == false {
+		resp.Base.Code = base.Code_FAIL
+		resp.Base.Msg = "创建文件夹错误"
+		return
+	}
+
+	resp.Base.Code = base.Code_SUCCESS
+	resp.Base.Msg = "创建文件夹成功"
+	resp.Item = &folder
 	return
 }
 
@@ -74,15 +131,16 @@ func (s *SourceServiceImpl) AddItem(ctx context.Context, req *source.AddItemRequ
 	resp = source.NewAddItemResponse()
 	resp.SetBase(base.NewBaseResp())
 
-	success, err := s.SourceRepo.AddItem(req.SourceType, req.CurrentFolder, req.Item)
+	success, err := s.SourceRepo.AddItem(req.SourceCategory, req.CurrentFolder, req.Item)
 	if err != nil {
 		resp.Base.Code = base.Code_SERVER_ERROR
 		resp.Base.Msg = "添加错误"
-		return nil, err
+		return
 	}
 	if !success {
 		resp.Base.Code = base.Code_FAIL
 		resp.Base.Msg = "添加失败"
+		return
 	}
 
 	resp.Base.Code = base.Code_SUCCESS

@@ -24,7 +24,7 @@ func Storage(m *model.Storage) *source.Item {
 		ItemType:     source.ItemType(m.StorageCategory),
 		Key:          m.Key,
 		Size:         m.Size,
-		ModifiedTime: m.ModifiedTime.String(),
+		ModifiedTime: m.ModifiedTime.Unix(),
 		Path:         m.Path,
 	}
 }

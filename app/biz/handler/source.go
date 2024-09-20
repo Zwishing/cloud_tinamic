@@ -1,10 +1,14 @@
 package handler
 
 import (
+	"cloud_tinamic/app/biz/model"
+	"cloud_tinamic/kitex_gen/base"
 	"cloud_tinamic/kitex_gen/data/source"
+	"cloud_tinamic/pkg/util"
 	"cloud_tinamic/pkg/util/response"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -22,22 +26,22 @@ import (
 // @Failure 503 {object} response.ErrorResponse
 // @Router /v1/source/{sourceType}/item [get]
 func GetItems(ctx *fiber.Ctx) error {
-	sourceType, err := validSourceType(ctx)
+	category, err := validSourceCategory(ctx)
 	if err != nil {
-		return response.Fail(ctx, fmt.Sprintf("sourceType %s is unsupported", sourceType))
+		return response.Fail(ctx, fmt.Sprintf("sourceType %s is unsupported", category))
 	}
-	key := ctx.Query("key", "")
-	
+	key := ctx.Query("sourceId", "")
+
 	resp, err := sourceClient.GetItem(context.Background(), &source.GetItemRequest{
-		SourceType: sourceType,
-		Path:       "",
-		Key:        key,
+		SourceCategory: category,
+		Path:           "",
+		Key:            key,
 	})
 	if err != nil {
 		return err
 	}
 
-	return response.Success(ctx, resp.Items)
+	return response.Success(ctx, model.Items(resp.Items))
 }
 
 // AddItem godoc
@@ -71,16 +75,16 @@ func AddItem(ctx *fiber.Ctx) error {
 // @Failure 503 {object} response.ErrorResponse
 // @Router /v1/source/{sourceType}/presigned-upload [post]
 func PresignedUpload(ctx *fiber.Ctx) error {
-	sourceType, err := validSourceType(ctx)
+	category, err := validSourceCategory(ctx)
 	if err != nil {
-		return response.Fail(ctx, fmt.Sprintf("sourceType %s is unsupported", sourceType))
+		return response.Fail(ctx, fmt.Sprintf("sourceType %s is unsupported", category))
 	}
 	path := ctx.Query("path", "")
 	name := ctx.Query("name", "")
 	resp, err := sourceClient.PresignedUpload(context.Background(), &source.PresignedUploadResquest{
-		SourceType: sourceType,
-		Path:       path,
-		Name:       name,
+		SourceCategory: category,
+		Path:           path,
+		Name:           name,
 	})
 	if err != nil {
 		return response.Fail(ctx, err.Error())
@@ -88,6 +92,61 @@ func PresignedUpload(ctx *fiber.Ctx) error {
 	return response.Success(ctx, fiber.Map{
 		"uploadURL": resp.Url,
 	})
+}
+
+func Upload(ctx *fiber.Ctx) error {
+	// 接收文件
+	category, err := validSourceCategory(ctx)
+	if err != nil {
+		return response.Fail(ctx, fmt.Sprintf("sourceType %s is unsupported", category))
+	}
+	file, err := ctx.FormFile("file")
+	var uploadReq model.UploadRequest
+	if err := ctx.BodyParser(&uploadReq); err != nil {
+		return response.Fail(ctx, "Invalid request body")
+	}
+	readFile, err := util.ReadFile(file)
+	if err != nil {
+		// TODO
+		return err
+	}
+	_, err = sourceClient.Upload(context.Background(), &source.UploadRequest{
+		SourceCategory: category,
+		ParentId:       uploadReq.ParentId,
+		Name:           uploadReq.Name,
+		Size:           file.Size,
+		FileData:       readFile,
+	})
+	if err != nil {
+		return err
+	}
+	return response.Success(ctx, "")
+}
+
+func NewFolder(ctx *fiber.Ctx) error {
+	category, err := validSourceCategory(ctx)
+	if err != nil {
+		return response.Fail(ctx, fmt.Sprintf("sourceType %s is unsupported", category))
+	}
+
+	var newFolderReq model.NewFolderRequest
+	if err := ctx.BodyParser(&newFolderReq); err != nil {
+		return response.Fail(ctx, "Invalid request body")
+	}
+
+	resp, err := sourceClient.CreateFolder(context.Background(), &source.CreateFolderRequest{
+		SourceCategory: category,
+		ParentId:       newFolderReq.ParentId,
+		Name:           newFolderReq.Name,
+		Path:           newFolderReq.Path,
+	})
+	if err != nil {
+		return response.Fail(ctx, "Failed to create folder")
+	}
+	if resp.Base.Code != base.Code_SUCCESS {
+		return response.Fail(ctx, "Failed to create folder")
+	}
+	return response.Success(ctx, model.Item(resp.Item))
 }
 
 // Publish godoc
@@ -108,11 +167,11 @@ func Publish(ctx *fiber.Ctx) error {
 	return nil
 }
 
-// validSourceType is an internal function and doesn't need Swagger documentation
-func validSourceType(ctx *fiber.Ctx) (source.SourceType, error) {
-	sourceType, err := source.SourceTypeFromString(ctx.Params("sourceType"))
+// validSourceCategory is an internal function and doesn't need Swagger documentation
+func validSourceCategory(ctx *fiber.Ctx) (source.SourceCategory, error) {
+	category, err := source.SourceCategoryFromString(strings.ToUpper(ctx.Params("sourceCategory")))
 	if err != nil {
-		return sourceType, err
+		return category, err
 	}
-	return sourceType, nil
+	return category, nil
 }

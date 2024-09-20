@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS user_info.account(
     user_id uuid DEFAULT uuid_generate_v4() NOT NULL,
     user_account varchar(255) UNIQUE NOT NULL,
     category smallint NOT NULL,
-    deleted_at bool DEFAULT NULL
+    deleted_at bool DEFAULT NULL,
+    created_at timestamp,
+    updated_at timestamp
 );
 -- 注释
 COMMENT ON TABLE user_info.account IS '账号表:记录登录账号信息';
@@ -15,7 +17,6 @@ COMMENT ON COLUMN user_info.account.id IS '账号ID';
 COMMENT ON COLUMN user_info.account.user_id IS '用户唯一标识';
 COMMENT ON COLUMN user_info.account.user_account IS '登录账号';
 COMMENT ON COLUMN user_info.account.category IS '账号类别,1=用户名，2=邮箱，3=手机号';
-COMMENT ON COLUMN user_info.account.deleted_at IS '逻辑删除:true=删除,false=未删除';
 -- 索引
 CREATE INDEX account_id_index ON user_info.account(id);
 CREATE INDEX account_user_id_index ON user_info.account(user_id);
@@ -30,7 +31,9 @@ CREATE TABLE IF NOT EXISTS user_info.user(
     phone_number varchar(11),
     salt varchar(64),
     password varchar(64),
-    deleted_at bool DEFAULT NULL
+    deleted_at bool DEFAULT NULL,
+    created_at timestamp,
+    updated_at timestamp
 );
 -- 注释
 COMMENT ON TABLE user_info.user IS '用户表:记录用户基本信息和密码';
@@ -42,7 +45,7 @@ COMMENT ON COLUMN user_info.user.avatar IS '用户头像图片';
 COMMENT ON COLUMN user_info.user.phone_number IS '手机号码';
 COMMENT ON COLUMN user_info.user.salt IS '密码加盐';
 COMMENT ON COLUMN user_info.user.password IS '登录密码';
-COMMENT ON COLUMN user_info.user.deleted_at IS '逻辑删除:true=删除,false=未删除';
+
 -- 索引
 CREATE INDEX user_id_index ON user_info.user(id);
 CREATE INDEX user_uuid_index ON user_info.user(user_id);
