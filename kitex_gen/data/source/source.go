@@ -129,6 +129,7 @@ type Item struct {
 	Size         int64    `thrift:"size,4" frugal:"4,default,i64" json:"size"`
 	ModifiedTime int64    `thrift:"modified_time,5" frugal:"5,default,i64" json:"modified_time"`
 	Path         string   `thrift:"path,6" frugal:"6,default,string" json:"path"`
+	ParentKey    string   `thrift:"parent_key,7" frugal:"7,default,string" json:"parent_key"`
 }
 
 func NewItem() *Item {
@@ -161,6 +162,10 @@ func (p *Item) GetModifiedTime() (v int64) {
 func (p *Item) GetPath() (v string) {
 	return p.Path
 }
+
+func (p *Item) GetParentKey() (v string) {
+	return p.ParentKey
+}
 func (p *Item) SetName(val string) {
 	p.Name = val
 }
@@ -179,6 +184,9 @@ func (p *Item) SetModifiedTime(val int64) {
 func (p *Item) SetPath(val string) {
 	p.Path = val
 }
+func (p *Item) SetParentKey(val string) {
+	p.ParentKey = val
+}
 
 var fieldIDToName_Item = map[int16]string{
 	1: "name",
@@ -187,6 +195,7 @@ var fieldIDToName_Item = map[int16]string{
 	4: "size",
 	5: "modified_time",
 	6: "path",
+	7: "parent_key",
 }
 
 func (p *Item) Read(iprot thrift.TProtocol) (err error) {
@@ -251,6 +260,14 @@ func (p *Item) Read(iprot thrift.TProtocol) (err error) {
 		case 6:
 			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 7:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField7(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -351,6 +368,17 @@ func (p *Item) ReadField6(iprot thrift.TProtocol) error {
 	p.Path = _field
 	return nil
 }
+func (p *Item) ReadField7(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ParentKey = _field
+	return nil
+}
 
 func (p *Item) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
@@ -380,6 +408,10 @@ func (p *Item) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField6(oprot); err != nil {
 			fieldId = 6
+			goto WriteFieldError
+		}
+		if err = p.writeField7(oprot); err != nil {
+			fieldId = 7
 			goto WriteFieldError
 		}
 	}
@@ -502,6 +534,23 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
 }
 
+func (p *Item) writeField7(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("parent_key", thrift.STRING, 7); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.ParentKey); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 end error: ", p), err)
+}
+
 func (p *Item) String() string {
 	if p == nil {
 		return "<nil>"
@@ -532,6 +581,9 @@ func (p *Item) DeepEqual(ano *Item) bool {
 		return false
 	}
 	if !p.Field6DeepEqual(ano.Path) {
+		return false
+	}
+	if !p.Field7DeepEqual(ano.ParentKey) {
 		return false
 	}
 	return true
@@ -579,10 +631,17 @@ func (p *Item) Field6DeepEqual(src string) bool {
 	}
 	return true
 }
+func (p *Item) Field7DeepEqual(src string) bool {
+
+	if strings.Compare(p.ParentKey, src) != 0 {
+		return false
+	}
+	return true
+}
 
 type UploadRequest struct {
 	SourceCategory SourceCategory `thrift:"source_category,1" frugal:"1,default,SourceCategory" json:"source_category"`
-	ParentId       string         `thrift:"parent_id,2" frugal:"2,default,string" json:"parent_id"`
+	Key            string         `thrift:"key,2" frugal:"2,default,string" json:"key"`
 	Name           string         `thrift:"name,3" frugal:"3,default,string" json:"name"`
 	Size           int64          `thrift:"size,4" frugal:"4,default,i64" json:"size"`
 	FileData       []byte         `thrift:"file_data,5" frugal:"5,default,binary" json:"file_data"`
@@ -599,8 +658,8 @@ func (p *UploadRequest) GetSourceCategory() (v SourceCategory) {
 	return p.SourceCategory
 }
 
-func (p *UploadRequest) GetParentId() (v string) {
-	return p.ParentId
+func (p *UploadRequest) GetKey() (v string) {
+	return p.Key
 }
 
 func (p *UploadRequest) GetName() (v string) {
@@ -617,8 +676,8 @@ func (p *UploadRequest) GetFileData() (v []byte) {
 func (p *UploadRequest) SetSourceCategory(val SourceCategory) {
 	p.SourceCategory = val
 }
-func (p *UploadRequest) SetParentId(val string) {
-	p.ParentId = val
+func (p *UploadRequest) SetKey(val string) {
+	p.Key = val
 }
 func (p *UploadRequest) SetName(val string) {
 	p.Name = val
@@ -632,7 +691,7 @@ func (p *UploadRequest) SetFileData(val []byte) {
 
 var fieldIDToName_UploadRequest = map[int16]string{
 	1: "source_category",
-	2: "parent_id",
+	2: "key",
 	3: "name",
 	4: "size",
 	5: "file_data",
@@ -745,7 +804,7 @@ func (p *UploadRequest) ReadField2(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.ParentId = _field
+	p.Key = _field
 	return nil
 }
 func (p *UploadRequest) ReadField3(iprot thrift.TProtocol) error {
@@ -844,10 +903,10 @@ WriteFieldEndError:
 }
 
 func (p *UploadRequest) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("parent_id", thrift.STRING, 2); err != nil {
+	if err = oprot.WriteFieldBegin("key", thrift.STRING, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.ParentId); err != nil {
+	if err := oprot.WriteString(p.Key); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -928,7 +987,7 @@ func (p *UploadRequest) DeepEqual(ano *UploadRequest) bool {
 	if !p.Field1DeepEqual(ano.SourceCategory) {
 		return false
 	}
-	if !p.Field2DeepEqual(ano.ParentId) {
+	if !p.Field2DeepEqual(ano.Key) {
 		return false
 	}
 	if !p.Field3DeepEqual(ano.Name) {
@@ -952,7 +1011,7 @@ func (p *UploadRequest) Field1DeepEqual(src SourceCategory) bool {
 }
 func (p *UploadRequest) Field2DeepEqual(src string) bool {
 
-	if strings.Compare(p.ParentId, src) != 0 {
+	if strings.Compare(p.Key, src) != 0 {
 		return false
 	}
 	return true
@@ -980,8 +1039,8 @@ func (p *UploadRequest) Field5DeepEqual(src []byte) bool {
 }
 
 type UploadResponse struct {
-	Base     *base.BaseResp `thrift:"base,1" frugal:"1,default,base.BaseResp" json:"base"`
-	SourceId string         `thrift:"source_id,2" frugal:"2,default,string" json:"source_id"`
+	Base *base.BaseResp `thrift:"base,1" frugal:"1,default,base.BaseResp" json:"base"`
+	Key  string         `thrift:"key,2" frugal:"2,default,string" json:"key"`
 }
 
 func NewUploadResponse() *UploadResponse {
@@ -1000,19 +1059,19 @@ func (p *UploadResponse) GetBase() (v *base.BaseResp) {
 	return p.Base
 }
 
-func (p *UploadResponse) GetSourceId() (v string) {
-	return p.SourceId
+func (p *UploadResponse) GetKey() (v string) {
+	return p.Key
 }
 func (p *UploadResponse) SetBase(val *base.BaseResp) {
 	p.Base = val
 }
-func (p *UploadResponse) SetSourceId(val string) {
-	p.SourceId = val
+func (p *UploadResponse) SetKey(val string) {
+	p.Key = val
 }
 
 var fieldIDToName_UploadResponse = map[int16]string{
 	1: "base",
-	2: "source_id",
+	2: "key",
 }
 
 func (p *UploadResponse) IsSetBase() bool {
@@ -1099,7 +1158,7 @@ func (p *UploadResponse) ReadField2(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.SourceId = _field
+	p.Key = _field
 	return nil
 }
 
@@ -1153,10 +1212,10 @@ WriteFieldEndError:
 }
 
 func (p *UploadResponse) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("source_id", thrift.STRING, 2); err != nil {
+	if err = oprot.WriteFieldBegin("key", thrift.STRING, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.SourceId); err != nil {
+	if err := oprot.WriteString(p.Key); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -1186,7 +1245,7 @@ func (p *UploadResponse) DeepEqual(ano *UploadResponse) bool {
 	if !p.Field1DeepEqual(ano.Base) {
 		return false
 	}
-	if !p.Field2DeepEqual(ano.SourceId) {
+	if !p.Field2DeepEqual(ano.Key) {
 		return false
 	}
 	return true
@@ -1201,7 +1260,7 @@ func (p *UploadResponse) Field1DeepEqual(src *base.BaseResp) bool {
 }
 func (p *UploadResponse) Field2DeepEqual(src string) bool {
 
-	if strings.Compare(p.SourceId, src) != 0 {
+	if strings.Compare(p.Key, src) != 0 {
 		return false
 	}
 	return true
@@ -1718,7 +1777,7 @@ func (p *PresignedUploadResponse) Field2DeepEqual(src string) bool {
 
 type GetItemRequest struct {
 	SourceCategory SourceCategory `thrift:"source_category,1" frugal:"1,default,SourceCategory" json:"source_category"`
-	ParentId       string         `thrift:"parent_id,2" frugal:"2,default,string" json:"parent_id"`
+	Key            string         `thrift:"key,2" frugal:"2,default,string" json:"key"`
 }
 
 func NewGetItemRequest() *GetItemRequest {
@@ -1732,19 +1791,19 @@ func (p *GetItemRequest) GetSourceCategory() (v SourceCategory) {
 	return p.SourceCategory
 }
 
-func (p *GetItemRequest) GetParentId() (v string) {
-	return p.ParentId
+func (p *GetItemRequest) GetKey() (v string) {
+	return p.Key
 }
 func (p *GetItemRequest) SetSourceCategory(val SourceCategory) {
 	p.SourceCategory = val
 }
-func (p *GetItemRequest) SetParentId(val string) {
-	p.ParentId = val
+func (p *GetItemRequest) SetKey(val string) {
+	p.Key = val
 }
 
 var fieldIDToName_GetItemRequest = map[int16]string{
 	1: "source_category",
-	2: "parent_id",
+	2: "key",
 }
 
 func (p *GetItemRequest) Read(iprot thrift.TProtocol) (err error) {
@@ -1830,7 +1889,7 @@ func (p *GetItemRequest) ReadField2(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.ParentId = _field
+	p.Key = _field
 	return nil
 }
 
@@ -1884,10 +1943,10 @@ WriteFieldEndError:
 }
 
 func (p *GetItemRequest) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("parent_id", thrift.STRING, 2); err != nil {
+	if err = oprot.WriteFieldBegin("key", thrift.STRING, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.ParentId); err != nil {
+	if err := oprot.WriteString(p.Key); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -1917,7 +1976,7 @@ func (p *GetItemRequest) DeepEqual(ano *GetItemRequest) bool {
 	if !p.Field1DeepEqual(ano.SourceCategory) {
 		return false
 	}
-	if !p.Field2DeepEqual(ano.ParentId) {
+	if !p.Field2DeepEqual(ano.Key) {
 		return false
 	}
 	return true
@@ -1932,7 +1991,7 @@ func (p *GetItemRequest) Field1DeepEqual(src SourceCategory) bool {
 }
 func (p *GetItemRequest) Field2DeepEqual(src string) bool {
 
-	if strings.Compare(p.ParentId, src) != 0 {
+	if strings.Compare(p.Key, src) != 0 {
 		return false
 	}
 	return true
@@ -1940,7 +1999,8 @@ func (p *GetItemRequest) Field2DeepEqual(src string) bool {
 
 type GetItemResponse struct {
 	Base  *base.BaseResp `thrift:"base,1" frugal:"1,default,base.BaseResp" json:"base"`
-	Items []*Item        `thrift:"items,2" frugal:"2,default,list<Item>" json:"items"`
+	Key   string         `thrift:"key,2,required" frugal:"2,required,string" json:"key"`
+	Items []*Item        `thrift:"items,3" frugal:"3,default,list<Item>" json:"items"`
 }
 
 func NewGetItemResponse() *GetItemResponse {
@@ -1959,11 +2019,18 @@ func (p *GetItemResponse) GetBase() (v *base.BaseResp) {
 	return p.Base
 }
 
+func (p *GetItemResponse) GetKey() (v string) {
+	return p.Key
+}
+
 func (p *GetItemResponse) GetItems() (v []*Item) {
 	return p.Items
 }
 func (p *GetItemResponse) SetBase(val *base.BaseResp) {
 	p.Base = val
+}
+func (p *GetItemResponse) SetKey(val string) {
+	p.Key = val
 }
 func (p *GetItemResponse) SetItems(val []*Item) {
 	p.Items = val
@@ -1971,7 +2038,8 @@ func (p *GetItemResponse) SetItems(val []*Item) {
 
 var fieldIDToName_GetItemResponse = map[int16]string{
 	1: "base",
-	2: "items",
+	2: "key",
+	3: "items",
 }
 
 func (p *GetItemResponse) IsSetBase() bool {
@@ -1982,6 +2050,7 @@ func (p *GetItemResponse) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
+	var issetKey bool = false
 
 	if _, err = iprot.ReadStructBegin(); err != nil {
 		goto ReadStructBeginError
@@ -2006,8 +2075,17 @@ func (p *GetItemResponse) Read(iprot thrift.TProtocol) (err error) {
 				goto SkipFieldError
 			}
 		case 2:
-			if fieldTypeId == thrift.LIST {
+			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetKey = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -2026,6 +2104,10 @@ func (p *GetItemResponse) Read(iprot thrift.TProtocol) (err error) {
 		goto ReadStructEndError
 	}
 
+	if !issetKey {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
 	return nil
 ReadStructBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
@@ -2040,6 +2122,8 @@ ReadFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
 ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_GetItemResponse[fieldId]))
 }
 
 func (p *GetItemResponse) ReadField1(iprot thrift.TProtocol) error {
@@ -2051,6 +2135,17 @@ func (p *GetItemResponse) ReadField1(iprot thrift.TProtocol) error {
 	return nil
 }
 func (p *GetItemResponse) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Key = _field
+	return nil
+}
+func (p *GetItemResponse) ReadField3(iprot thrift.TProtocol) error {
 	_, size, err := iprot.ReadListBegin()
 	if err != nil {
 		return err
@@ -2086,6 +2181,10 @@ func (p *GetItemResponse) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField2(oprot); err != nil {
 			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
 			goto WriteFieldError
 		}
 	}
@@ -2124,7 +2223,24 @@ WriteFieldEndError:
 }
 
 func (p *GetItemResponse) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("items", thrift.LIST, 2); err != nil {
+	if err = oprot.WriteFieldBegin("key", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Key); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *GetItemResponse) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("items", thrift.LIST, 3); err != nil {
 		goto WriteFieldBeginError
 	}
 	if err := oprot.WriteListBegin(thrift.STRUCT, len(p.Items)); err != nil {
@@ -2143,9 +2259,9 @@ func (p *GetItemResponse) writeField2(oprot thrift.TProtocol) (err error) {
 	}
 	return nil
 WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
 WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
 }
 
 func (p *GetItemResponse) String() string {
@@ -2165,7 +2281,10 @@ func (p *GetItemResponse) DeepEqual(ano *GetItemResponse) bool {
 	if !p.Field1DeepEqual(ano.Base) {
 		return false
 	}
-	if !p.Field2DeepEqual(ano.Items) {
+	if !p.Field2DeepEqual(ano.Key) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Items) {
 		return false
 	}
 	return true
@@ -2178,7 +2297,14 @@ func (p *GetItemResponse) Field1DeepEqual(src *base.BaseResp) bool {
 	}
 	return true
 }
-func (p *GetItemResponse) Field2DeepEqual(src []*Item) bool {
+func (p *GetItemResponse) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.Key, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *GetItemResponse) Field3DeepEqual(src []*Item) bool {
 
 	if len(p.Items) != len(src) {
 		return false
@@ -2194,7 +2320,7 @@ func (p *GetItemResponse) Field2DeepEqual(src []*Item) bool {
 
 type CreateFolderRequest struct {
 	SourceCategory SourceCategory `thrift:"source_category,1,required" frugal:"1,required,SourceCategory" json:"source_category"`
-	ParentId       string         `thrift:"parent_id,2,required" frugal:"2,required,string" json:"parent_id"`
+	Key            string         `thrift:"key,2,required" frugal:"2,required,string" json:"key"`
 	Name           string         `thrift:"name,3,required" frugal:"3,required,string" json:"name"`
 	Path           string         `thrift:"path,4,required" frugal:"4,required,string" json:"path"`
 }
@@ -2210,8 +2336,8 @@ func (p *CreateFolderRequest) GetSourceCategory() (v SourceCategory) {
 	return p.SourceCategory
 }
 
-func (p *CreateFolderRequest) GetParentId() (v string) {
-	return p.ParentId
+func (p *CreateFolderRequest) GetKey() (v string) {
+	return p.Key
 }
 
 func (p *CreateFolderRequest) GetName() (v string) {
@@ -2224,8 +2350,8 @@ func (p *CreateFolderRequest) GetPath() (v string) {
 func (p *CreateFolderRequest) SetSourceCategory(val SourceCategory) {
 	p.SourceCategory = val
 }
-func (p *CreateFolderRequest) SetParentId(val string) {
-	p.ParentId = val
+func (p *CreateFolderRequest) SetKey(val string) {
+	p.Key = val
 }
 func (p *CreateFolderRequest) SetName(val string) {
 	p.Name = val
@@ -2236,7 +2362,7 @@ func (p *CreateFolderRequest) SetPath(val string) {
 
 var fieldIDToName_CreateFolderRequest = map[int16]string{
 	1: "source_category",
-	2: "parent_id",
+	2: "key",
 	3: "name",
 	4: "path",
 }
@@ -2246,7 +2372,7 @@ func (p *CreateFolderRequest) Read(iprot thrift.TProtocol) (err error) {
 	var fieldTypeId thrift.TType
 	var fieldId int16
 	var issetSourceCategory bool = false
-	var issetParentId bool = false
+	var issetKey bool = false
 	var issetName bool = false
 	var issetPath bool = false
 
@@ -2278,7 +2404,7 @@ func (p *CreateFolderRequest) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
-				issetParentId = true
+				issetKey = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -2318,7 +2444,7 @@ func (p *CreateFolderRequest) Read(iprot thrift.TProtocol) (err error) {
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetParentId {
+	if !issetKey {
 		fieldId = 2
 		goto RequiredFieldNotSetError
 	}
@@ -2369,7 +2495,7 @@ func (p *CreateFolderRequest) ReadField2(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.ParentId = _field
+	p.Key = _field
 	return nil
 }
 func (p *CreateFolderRequest) ReadField3(iprot thrift.TProtocol) error {
@@ -2453,10 +2579,10 @@ WriteFieldEndError:
 }
 
 func (p *CreateFolderRequest) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("parent_id", thrift.STRING, 2); err != nil {
+	if err = oprot.WriteFieldBegin("key", thrift.STRING, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.ParentId); err != nil {
+	if err := oprot.WriteString(p.Key); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -2520,7 +2646,7 @@ func (p *CreateFolderRequest) DeepEqual(ano *CreateFolderRequest) bool {
 	if !p.Field1DeepEqual(ano.SourceCategory) {
 		return false
 	}
-	if !p.Field2DeepEqual(ano.ParentId) {
+	if !p.Field2DeepEqual(ano.Key) {
 		return false
 	}
 	if !p.Field3DeepEqual(ano.Name) {
@@ -2541,7 +2667,7 @@ func (p *CreateFolderRequest) Field1DeepEqual(src SourceCategory) bool {
 }
 func (p *CreateFolderRequest) Field2DeepEqual(src string) bool {
 
-	if strings.Compare(p.ParentId, src) != 0 {
+	if strings.Compare(p.Key, src) != 0 {
 		return false
 	}
 	return true

@@ -24,11 +24,12 @@ struct Item {
     4: i64 size,
     5: i64 modified_time,
     6: string path
+    7: string parent_key
 }
 
 struct UploadRequest{
     1: SourceCategory source_category,
-    2: string parent_id,
+    2: string key,
     3: string name,
     4: i64 size,
     5: binary file_data,
@@ -36,7 +37,7 @@ struct UploadRequest{
 
 struct UploadResponse{
     1: base.BaseResp base,
-    2: string source_id,
+    2: string key,
 }
 
 struct PresignedUploadResquest{
@@ -52,17 +53,18 @@ struct PresignedUploadResponse{
 
 struct GetItemRequest {
     1: SourceCategory source_category,
-    2: string parent_id
+    2: string key
 }
 
 struct GetItemResponse {
     1: base.BaseResp base,
-    2: list<Item> items
+    2: required string key
+    3: list<Item> items
 }
 
 struct CreateFolderRequest {
     1: required SourceCategory source_category,
-    2: required string parent_id,
+    2: required string key,
     3: required string name,
     4: required string path,
 }
@@ -88,7 +90,6 @@ struct AddItemResponse{
 }
 
 service SourceService{
-
     GetItemResponse GetItem(1:GetItemRequest req),
     DeleteItemResponse DeleteItem(1:DeleteItemRequest req),
     AddItemResponse AddItem(1:AddItemRequest req),

@@ -24,23 +24,26 @@ import (
 // @Success 200 {object} response.SuccessResponse{data=[]source.Item}
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /v1/source/{sourceType}/item [get]
+// @Router /v1/source/{sourceType}/items [get]
 func GetItems(ctx *fiber.Ctx) error {
 	category, err := validSourceCategory(ctx)
 	if err != nil {
 		return response.Fail(ctx, fmt.Sprintf("sourceType %s is unsupported", category))
 	}
-	key := ctx.Query("sourceId", "")
+	key := ctx.Query("key", "")
 
 	resp, err := sourceClient.GetItem(context.Background(), &source.GetItemRequest{
 		SourceCategory: category,
-		ParentId:       key,
+		Key:            key,
 	})
 	if err != nil {
 		return err
 	}
 
-	return response.Success(ctx, model.Items(resp.Items))
+	return response.Success(ctx, fiber.Map{
+		"key":   resp.Key,
+		"items": model.Items(resp.Items),
+	})
 }
 
 // AddItem godoc
@@ -130,7 +133,7 @@ func Upload(ctx *fiber.Ctx) error {
 
 	resp, err := sourceClient.Upload(context.Background(), &source.UploadRequest{
 		SourceCategory: category,
-		ParentId:       uploadReq.ParentId,
+		Key:            uploadReq.Key,
 		Name:           uploadReq.Name,
 		Size:           file.Size,
 		FileData:       readFile,
@@ -140,7 +143,7 @@ func Upload(ctx *fiber.Ctx) error {
 	}
 
 	return response.Success(ctx, fiber.Map{
-		"sourceId": resp.SourceId,
+		"key": resp.Key,
 	})
 }
 
@@ -169,12 +172,12 @@ func NewFolder(ctx *fiber.Ctx) error {
 
 	resp, err := sourceClient.CreateFolder(context.Background(), &source.CreateFolderRequest{
 		SourceCategory: category,
-		ParentId:       newFolderReq.ParentId,
+		Key:            newFolderReq.Key,
 		Name:           newFolderReq.Name,
 		Path:           newFolderReq.Path,
 	})
 	if err != nil || resp.Base.Code != base.Code_SUCCESS {
-		return response.Fail(ctx, "Failed to create folder")
+		return response.Fail(ctx, fmt.Sprintf("Failed to create folder,%s", resp.Base.Msg))
 	}
 
 	return response.Success(ctx, model.Item(resp.Item))

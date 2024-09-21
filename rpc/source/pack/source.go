@@ -20,6 +20,7 @@ func Storage(m *model.Storage) *source.Item {
 		return nil
 	}
 	return &source.Item{
+		ParentKey:    m.ParentKey,
 		Name:         m.Name,
 		ItemType:     source.ItemType(m.StorageCategory),
 		Key:          m.Key,

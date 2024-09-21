@@ -30,9 +30,9 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 	}
 
 	bucketName := strings.ToLower(req.SourceCategory.String())
-	path, err := s.SourceRepo.GetPathById(req.ParentId)
+	path, err := s.SourceRepo.GetPathByKey(req.Key)
 	newPath := fmt.Sprintf("%s/%s", path, req.Name)
-	sourceId := util.UuidV4()
+	Key := util.UuidV4()
 
 	errChan := make(chan error, 2)
 	var success bool
@@ -49,10 +49,10 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 	go func() {
 		// 添加到数据记录
 		var addItemErr error
-		success, addItemErr = s.SourceRepo.AddItem(req.SourceCategory, req.ParentId, &source.Item{
+		success, addItemErr = s.SourceRepo.AddItem(req.SourceCategory, req.Key, &source.Item{
 			Name:         req.Name,
 			ItemType:     source.ItemType_FILE,
-			Key:          sourceId,
+			Key:          Key,
 			Size:         req.Size,
 			ModifiedTime: time.Now().Unix(),
 			Path:         newPath,
@@ -80,7 +80,7 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 	default:
 		resp.Base.Code = base.Code_SUCCESS
 		resp.Base.Msg = "数据上传成功"
-		resp.SourceId = sourceId
+		resp.Key = Key
 		return resp, nil
 	}
 }
@@ -109,11 +109,12 @@ func (s *SourceServiceImpl) GetItem(ctx context.Context, req *source.GetItemRequ
 		Base: base.NewBaseResp(),
 	}
 	var items []*model.Storage
-
-	if req.ParentId == "" {
-		items, err = s.SourceRepo.GetTopItemsBySourceCategory(req.SourceCategory)
+	var key string
+	if req.Key == "" {
+		key, items, err = s.SourceRepo.GetTopItemsBySourceCategory(req.SourceCategory)
 	} else {
-		items, err = s.SourceRepo.GetItemById(req.ParentId)
+		key = req.Key
+		items, err = s.SourceRepo.GetItemByKey(req.Key)
 	}
 
 	if err != nil {
@@ -125,6 +126,7 @@ func (s *SourceServiceImpl) GetItem(ctx context.Context, req *source.GetItemRequ
 	resp.Base.Code = base.Code_SUCCESS
 	resp.Base.Msg = "返回成功"
 	resp.Items = pack.Storages(items)
+	resp.Key = key
 	return resp, nil
 }
 
@@ -134,7 +136,7 @@ func (s *SourceServiceImpl) CreateFolder(ctx context.Context, req *source.Create
 		Base: base.NewBaseResp(),
 	}
 
-	count, err := s.SourceRepo.GetCountByName(req.ParentId, req.Name, source.ItemType_FOLDER)
+	count, err := s.SourceRepo.GetCountByName(req.Key, req.Name, source.ItemType_FOLDER)
 	if err != nil {
 		resp.Base.Code = base.Code_SERVER_ERROR
 		resp.Base.Msg = "获取文件夹数量失败"
@@ -147,6 +149,7 @@ func (s *SourceServiceImpl) CreateFolder(ctx context.Context, req *source.Create
 	}
 
 	folder := &source.Item{
+		ParentKey:    req.Key,
 		Name:         req.Name,
 		ItemType:     source.ItemType_FOLDER,
 		Key:          util.UuidV4(),
@@ -155,22 +158,22 @@ func (s *SourceServiceImpl) CreateFolder(ctx context.Context, req *source.Create
 		Path:         req.Path,
 	}
 
-	success, err := s.SourceRepo.AddItem(req.SourceCategory, req.ParentId, folder)
+	success, err := s.SourceRepo.AddItem(req.SourceCategory, req.Key, folder)
 	if err != nil {
 		resp.Base.Code = base.Code_SERVER_ERROR
 		resp.Base.Msg = "创建文件夹失败"
-		return
+		return resp, err
 	}
 	if !success {
 		resp.Base.Code = base.Code_FAIL
 		resp.Base.Msg = "创建文件夹失败"
-		return
+		return resp, err
 	}
 
 	resp.Base.Code = base.Code_SUCCESS
 	resp.Base.Msg = "创建文件夹成功"
 	resp.Item = folder
-	return
+	return resp, nil
 }
 
 // DeleteItem implements the SourceServiceImpl interface.
@@ -187,15 +190,15 @@ func (s *SourceServiceImpl) AddItem(ctx context.Context, req *source.AddItemRequ
 	if err != nil {
 		resp.Base.Code = base.Code_SERVER_ERROR
 		resp.Base.Msg = "添加错误"
-		return
+		return resp, err
 	}
 	if !success {
 		resp.Base.Code = base.Code_FAIL
 		resp.Base.Msg = "添加失败"
-		return
+		return resp, err
 	}
 
 	resp.Base.Code = base.Code_SUCCESS
 	resp.Base.Msg = "添加成功"
-	return
+	return resp, nil
 }

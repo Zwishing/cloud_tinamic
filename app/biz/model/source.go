@@ -9,6 +9,7 @@ import (
 type AddRequest struct {
 }
 type SourceItemResponse struct {
+	ParentKey    string `json:"parentKey"`
 	ItemType     string `json:"type"`
 	Key          string `json:"key"`
 	Name         string `json:"name"`
@@ -19,14 +20,14 @@ type SourceItemResponse struct {
 
 type NewFolderRequest struct {
 	SourceCategory string `json:"sourceCategory" validate:"required,oneof= vector imagery"`
-	ParentId       string `json:"parentId" validate:"required"`
+	Key            string `json:"key" validate:"required"`
 	Name           string `json:"name" validate:"required"`
 	Path           string `json:"path" validate:"required"`
 }
 
 type UploadRequest struct {
-	ParentId string `json:"parentId"`
-	Name     string `json:"name"`
+	Key  string `json:"key"`
+	Name string `json:"name"`
 }
 
 // Items --------------------------------------------------------------
@@ -45,6 +46,7 @@ func Item(model *source.Item) *SourceItemResponse {
 		return nil
 	}
 	return &SourceItemResponse{
+		ParentKey:    model.ParentKey,
 		ItemType:     strings.ToLower(model.ItemType.String()),
 		Key:          model.Key,
 		Name:         model.Name,

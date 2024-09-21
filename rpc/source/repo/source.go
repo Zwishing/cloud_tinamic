@@ -15,14 +15,14 @@ import (
 )
 
 type DBRepo interface {
-	GetItemById(parentId string) ([]*model.Storage, error)
+	GetItemByKey(key string) ([]*model.Storage, error)
 	GetItemByPath(SourceCategory source.SourceCategory, path string) ([]*source.Item, error)
-	AddItem(SourceCategory source.SourceCategory, dest string, item *source.Item) (bool, error)
-	DeleteItem(SourceCategory source.SourceCategory, uuid string) (bool, error)
-	GetPathById(sourceId string) (string, error)
-	GetItemByName(parentId string, name string) ([]*model.Storage, error)
-	GetCountByName(parentId string, name string, itemType source.ItemType) (int64, error)
-	GetTopItemsBySourceCategory(sourceCateogry source.SourceCategory) ([]*model.Storage, error)
+	AddItem(SourceCategory source.SourceCategory, parentKey string, item *source.Item) (bool, error)
+	DeleteItem(SourceCategory source.SourceCategory, key string) (bool, error)
+	GetPathByKey(key string) (string, error)
+	GetItemByName(key string, name string) ([]*model.Storage, error)
+	GetCountByName(key string, name string, itemType source.ItemType) (int64, error)
+	GetTopItemsBySourceCategory(sourceCateogry source.SourceCategory) (string, []*model.Storage, error)
 }
 
 type MinioRepo interface {
@@ -54,10 +54,10 @@ func NewSourceRepoImpl(db *gorm.DB, minio *storage.Storage) SourceRepo {
 	}
 }
 
-func (s *SourceRepoImpl) GetItemById(sourceId string) ([]*model.Storage, error) {
+func (s *SourceRepoImpl) GetItemByKey(key string) ([]*model.Storage, error) {
 	var items []*model.Storage
 	err := s.DB.Table("data_source.storage").
-		Where("parent_id = ?", sourceId).
+		Where("parent_key = ?", key).
 		Find(&items).Error
 	if err != nil {
 		// Changed from Fatalf to Errorf to avoid program termination
@@ -66,7 +66,7 @@ func (s *SourceRepoImpl) GetItemById(sourceId string) ([]*model.Storage, error) 
 	}
 	// Added a check for empty result
 	if len(items) == 0 {
-		klog.Infof("no items found for parent_id: %s", sourceId)
+		klog.Infof("no items found for parent_key: %s", key)
 	}
 	return items, nil
 }
@@ -76,7 +76,7 @@ func (db *SourceRepoImpl) GetItemByPath(SourceCategory source.SourceCategory, pa
 	return nil, nil
 }
 
-func (db *SourceRepoImpl) AddItem(SourceCategory source.SourceCategory, parentId string, item *source.Item) (bool, error) {
+func (db *SourceRepoImpl) AddItem(SourceCategory source.SourceCategory, parentKey string, item *source.Item) (bool, error) {
 	// Parse the modified time outside of the transaction
 	modifiedTime := time.Unix(item.ModifiedTime, 0)
 
@@ -84,18 +84,17 @@ func (db *SourceRepoImpl) AddItem(SourceCategory source.SourceCategory, parentId
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
 		// Prepare base_info data
 		baseInfo := model.BaseInfo{
-			SourceId:       item.Key,
+			Key:            item.Key,
 			Name:           item.Name,
 			SourceCategory: int64(SourceCategory),
 		}
 
 		// Prepare storage data
 		store := model.Storage{
-			SourceId:        item.Key,
-			ParentId:        parentId,
+			Key:             item.Key,
+			ParentKey:       parentKey,
 			Name:            item.Name,
 			StorageCategory: int64(item.ItemType),
-			Key:             item.Key,
 			Size:            item.Size,
 			ModifiedTime:    modifiedTime,
 			Path:            item.Path,
@@ -144,7 +143,7 @@ func (db *SourceRepoImpl) DeleteItem(SourceCategory source.SourceCategory, uuid 
 	// Use GORM's transaction processing
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
 		// Delete from both base_info and storage tables in a single query
-		result := tx.Where("source_id = ?", uuid).Delete(&model.BaseInfo{}, &model.Storage{})
+		result := tx.Where("key = ?", uuid).Delete(&model.BaseInfo{}, &model.Storage{})
 		if result.Error != nil {
 			klog.Errorf("Failed to delete records for uuid %s: %v", uuid, result.Error)
 			return result.Error
@@ -167,11 +166,11 @@ func (db *SourceRepoImpl) DeleteItem(SourceCategory source.SourceCategory, uuid 
 	return true, nil
 }
 
-func (s *SourceRepoImpl) GetPathById(sourceId string) (string, error) {
+func (s *SourceRepoImpl) GetPathByKey(key string) (string, error) {
 	var path string
 	err := s.DB.Table("data_source.storage").
 		Select("path").
-		Where("source_id = ?", sourceId).
+		Where("key = ?", key).
 		Scan(&path).Error // 使用 Scan 以确保可以接收单个字段的值
 
 	if err != nil {
@@ -181,25 +180,25 @@ func (s *SourceRepoImpl) GetPathById(sourceId string) (string, error) {
 	return path, nil // 返回查询到的路径
 }
 
-func (s *SourceRepoImpl) GetItemByName(parentId string, name string) ([]*model.Storage, error) {
+func (s *SourceRepoImpl) GetItemByName(parentKey string, name string) ([]*model.Storage, error) {
 	var items []*model.Storage
 	err := s.DB.Table("data_source.storage").
-		Where("parent_id = ? AND name = ?", parentId, name).
+		Where("parent_key = ? AND name = ?", parentKey, name).
 		Find(&items).Error
 	if err != nil {
 		klog.Errorf("failed to query storage items: %v", err)
 		return nil, fmt.Errorf("failed to query storage items: %w", err)
 	}
 	if len(items) == 0 {
-		klog.Infof("no items found for parent_id: %s and name: %s", parentId, name)
+		klog.Infof("no items found for parent_key: %s and name: %s", parentKey, name)
 	}
 	return items, nil
 }
 
-func (s *SourceRepoImpl) GetCountByName(parentId string, name string, itemType source.ItemType) (int64, error) {
+func (s *SourceRepoImpl) GetCountByName(key string, name string, itemType source.ItemType) (int64, error) {
 	var count int64
 	err := s.DB.Table("data_source.storage").
-		Where("storage_category = ? AND parent_id = ? AND name = ?", itemType, parentId, name).
+		Where("storage_category = ? AND parent_key = ? AND name = ?", itemType, key, name).
 		Count(&count).Error
 	if err != nil {
 		err = fmt.Errorf("failed to get count: %w", err)
@@ -209,20 +208,37 @@ func (s *SourceRepoImpl) GetCountByName(parentId string, name string, itemType s
 	return count, nil
 }
 
-func (s *SourceRepoImpl) GetTopItemsBySourceCategory(sourceCateogry source.SourceCategory) ([]*model.Storage, error) {
+func (s *SourceRepoImpl) GetTopItemsBySourceCategory(sourceCateogry source.SourceCategory) (string, []*model.Storage, error) {
+	var key string
 	var storages []*model.Storage
-	err := s.DB.Table("data_source.storage AS s1").
-		Joins("JOIN data_source.storage AS s2 ON s1.parent_id = s2.source_id").
-		Joins("JOIN data_source.base_info AS b ON s2.source_id = b.source_id").
-		Where("s2.parent_id IS NULL").
-		Where("b.source_category = ?", sourceCateogry).
-		Find(&storages).Error
+
+	err := s.DB.Transaction(func(tx *gorm.DB) error {
+		// Query s2.key
+		if err := tx.Table("data_source.storage AS s2").
+			Joins("JOIN data_source.base_info AS b ON s2.key = b.key").
+			Where("s2.parent_key IS NULL AND b.source_category = ?", sourceCateogry).
+			Pluck("s2.key", &key).Limit(1).Error; err != nil {
+			return err
+		}
+
+		if key == "" {
+			return fmt.Errorf("no top-level key found for source category: %v", sourceCateogry)
+		}
+
+		// Query storages
+		return tx.Table("data_source.storage").
+			Where("parent_key = ?", key).
+			Find(&storages).Error
+	})
+
 	if err != nil {
 		klog.Errorf("Failed to get top items by source category: %v", err)
-		return nil, err
+		return "", nil, err
 	}
+
 	if len(storages) == 0 {
 		klog.Infof("No top items found for source category: %v", sourceCateogry)
 	}
-	return storages, nil
+
+	return key, storages, nil
 }
