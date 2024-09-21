@@ -15,5 +15,5 @@ func registerSource(api fiber.Router) {
 	source.Post("/publish", middleware.Protected(), middleware.AuthRoutePermission(), handler.Publish)
 	source.Post("/add", middleware.Protected(), handler.AddItem)
 
-	source.Post("new-folder", middleware.Protected(), handler.NewFolder)
+	source.Post("/new-folder", middleware.Protected(), handler.NewFolder)
 }

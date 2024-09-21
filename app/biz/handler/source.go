@@ -34,8 +34,7 @@ func GetItems(ctx *fiber.Ctx) error {
 
 	resp, err := sourceClient.GetItem(context.Background(), &source.GetItemRequest{
 		SourceCategory: category,
-		Path:           "",
-		Key:            key,
+		ParentId:       key,
 	})
 	if err != nil {
 		return err
@@ -94,23 +93,42 @@ func PresignedUpload(ctx *fiber.Ctx) error {
 	})
 }
 
+// Upload godoc
+// @Summary Upload a file to the source
+// @Description Uploads a file to the specified source type
+// @Tags source
+// @Accept multipart/form-data
+// @Produce json
+// @Param sourceType path string true "Source type"
+// @Param file formData file true "File to upload"
+// @Param parentId formData string false "Parent ID for the file"
+// @Param name formData string true "Name of the file"
+// @Success 200 {object} response.SuccessResponse{data=map[string]string{sourceId=string}}
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 503 {object} response.ErrorResponse
+// @Router /v1/source/{sourceType}/upload [post]
 func Upload(ctx *fiber.Ctx) error {
-	// 接收文件
 	category, err := validSourceCategory(ctx)
 	if err != nil {
 		return response.Fail(ctx, fmt.Sprintf("sourceType %s is unsupported", category))
 	}
+
 	file, err := ctx.FormFile("file")
+	if err != nil {
+		return response.Fail(ctx, "Failed to get file from form")
+	}
+
 	var uploadReq model.UploadRequest
 	if err := ctx.BodyParser(&uploadReq); err != nil {
 		return response.Fail(ctx, "Invalid request body")
 	}
+
 	readFile, err := util.ReadFile(file)
 	if err != nil {
-		// TODO
-		return err
+		return response.Fail(ctx, "Failed to read file")
 	}
-	_, err = sourceClient.Upload(context.Background(), &source.UploadRequest{
+
+	resp, err := sourceClient.Upload(context.Background(), &source.UploadRequest{
 		SourceCategory: category,
 		ParentId:       uploadReq.ParentId,
 		Name:           uploadReq.Name,
@@ -118,11 +136,26 @@ func Upload(ctx *fiber.Ctx) error {
 		FileData:       readFile,
 	})
 	if err != nil {
-		return err
+		return response.Fail(ctx, "Failed to upload file")
 	}
-	return response.Success(ctx, "")
+
+	return response.Success(ctx, fiber.Map{
+		"sourceId": resp.SourceId,
+	})
 }
 
+// NewFolder godoc
+// @Summary Create a new folder
+// @Description Creates a new folder in the specified source
+// @Tags source
+// @Accept json
+// @Produce json
+// @Param sourceType path string true "Source type"
+// @Param newFolder body model.NewFolderRequest true "New folder details"
+// @Success 200 {object} response.SuccessResponse{data=model.Item}
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 503 {object} response.ErrorResponse
+// @Router /v1/source/{sourceType}/folder [post]
 func NewFolder(ctx *fiber.Ctx) error {
 	category, err := validSourceCategory(ctx)
 	if err != nil {
@@ -140,12 +173,10 @@ func NewFolder(ctx *fiber.Ctx) error {
 		Name:           newFolderReq.Name,
 		Path:           newFolderReq.Path,
 	})
-	if err != nil {
+	if err != nil || resp.Base.Code != base.Code_SUCCESS {
 		return response.Fail(ctx, "Failed to create folder")
 	}
-	if resp.Base.Code != base.Code_SUCCESS {
-		return response.Fail(ctx, "Failed to create folder")
-	}
+
 	return response.Success(ctx, model.Item(resp.Item))
 }
 

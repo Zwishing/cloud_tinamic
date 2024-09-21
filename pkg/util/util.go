@@ -10,16 +10,12 @@ func UuidV4() string {
 	return utils.UUIDv4()
 }
 
-// ReadFile 读取文件内容
+// ReadFile reads the content of a file
 func ReadFile(file *multipart.FileHeader) ([]byte, error) {
 	f, err := file.Open()
 	if err != nil {
 		return nil, err
 	}
-	defer func(f multipart.File) {
-		err := f.Close()
-		if err != nil {
-		}
-	}(f)
+	defer f.Close()
 	return io.ReadAll(f)
 }

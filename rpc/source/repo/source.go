@@ -20,6 +20,9 @@ type DBRepo interface {
 	AddItem(SourceCategory source.SourceCategory, dest string, item *source.Item) (bool, error)
 	DeleteItem(SourceCategory source.SourceCategory, uuid string) (bool, error)
 	GetPathById(sourceId string) (string, error)
+	GetItemByName(parentId string, name string) ([]*model.Storage, error)
+	GetCountByName(parentId string, name string, itemType source.ItemType) (int64, error)
+	GetTopItemsBySourceCategory(sourceCateogry source.SourceCategory) ([]*model.Storage, error)
 }
 
 type MinioRepo interface {
@@ -176,4 +179,50 @@ func (s *SourceRepoImpl) GetPathById(sourceId string) (string, error) {
 	}
 
 	return path, nil // 返回查询到的路径
+}
+
+func (s *SourceRepoImpl) GetItemByName(parentId string, name string) ([]*model.Storage, error) {
+	var items []*model.Storage
+	err := s.DB.Table("data_source.storage").
+		Where("parent_id = ? AND name = ?", parentId, name).
+		Find(&items).Error
+	if err != nil {
+		klog.Errorf("failed to query storage items: %v", err)
+		return nil, fmt.Errorf("failed to query storage items: %w", err)
+	}
+	if len(items) == 0 {
+		klog.Infof("no items found for parent_id: %s and name: %s", parentId, name)
+	}
+	return items, nil
+}
+
+func (s *SourceRepoImpl) GetCountByName(parentId string, name string, itemType source.ItemType) (int64, error) {
+	var count int64
+	err := s.DB.Table("data_source.storage").
+		Where("storage_category = ? AND parent_id = ? AND name = ?", itemType, parentId, name).
+		Count(&count).Error
+	if err != nil {
+		err = fmt.Errorf("failed to get count: %w", err)
+		klog.Error(err)
+		return -1, err
+	}
+	return count, nil
+}
+
+func (s *SourceRepoImpl) GetTopItemsBySourceCategory(sourceCateogry source.SourceCategory) ([]*model.Storage, error) {
+	var storages []*model.Storage
+	err := s.DB.Table("data_source.storage AS s1").
+		Joins("JOIN data_source.storage AS s2 ON s1.parent_id = s2.source_id").
+		Joins("JOIN data_source.base_info AS b ON s2.source_id = b.source_id").
+		Where("s2.parent_id IS NULL").
+		Where("b.source_category = ?", sourceCateogry).
+		Find(&storages).Error
+	if err != nil {
+		klog.Errorf("Failed to get top items by source category: %v", err)
+		return nil, err
+	}
+	if len(storages) == 0 {
+		klog.Infof("No top items found for source category: %v", sourceCateogry)
+	}
+	return storages, nil
 }

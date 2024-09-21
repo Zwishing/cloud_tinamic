@@ -44,13 +44,12 @@ func Item(model *source.Item) *SourceItemResponse {
 	if model == nil {
 		return nil
 	}
-	t := time.Unix(model.ModifiedTime, 0)
 	return &SourceItemResponse{
 		ItemType:     strings.ToLower(model.ItemType.String()),
 		Key:          model.Key,
 		Name:         model.Name,
 		Path:         model.Path,
 		Size:         model.Size,
-		ModifiedTime: t.Format("2006-01-02 15:04:05"),
+		ModifiedTime: time.Unix(model.ModifiedTime, 0).Format("2006-01-02 15:04:05"),
 	}
 }

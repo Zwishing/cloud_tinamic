@@ -39,7 +39,7 @@ func (h *NSQHandler) HandleMessage(m *nsq.Message) error {
 		ItemType:     0, // Determine the appropriate ItemType
 		Key:          event.Key,
 		Size:         event.Size,
-		ModifiedTime: "", // Set the appropriate ModifiedTime
+		ModifiedTime: 0, // Set the appropriate ModifiedTime
 		Path:         event.Bucket + "/" + event.Key,
 	}
 

@@ -52,8 +52,7 @@ struct PresignedUploadResponse{
 
 struct GetItemRequest {
     1: SourceCategory source_category,
-    2: string path
-    3: string key
+    2: string parent_id
 }
 
 struct GetItemResponse {
