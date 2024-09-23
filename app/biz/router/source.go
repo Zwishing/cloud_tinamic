@@ -8,12 +8,15 @@ import (
 
 func registerSource(api fiber.Router) {
 	source := api.Group("/source/:sourceCategory")
+	source.Get("/homeItems", middleware.Protected(), handler.GetHomeItems)
+	source.Get("/nextItems", middleware.Protected(), handler.GetNextItems)
+	source.Get("/previousItems", middleware.Protected(), handler.GetPreviousItems)
 
-	source.Get("/items", middleware.Protected(), handler.GetItems)
-	source.Get("/presigned-upload", middleware.Protected(), middleware.AuthRoutePermission(), handler.PresignedUpload)
+	source.Get("/presignedUpload", middleware.Protected(), middleware.AuthRoutePermission(), handler.PresignedUpload)
 	source.Get("/upload", middleware.Protected(), handler.Upload)
-	source.Post("/publish", middleware.Protected(), middleware.AuthRoutePermission(), handler.Publish)
+	source.Post("/publish", handler.Publish)
 	source.Post("/add", middleware.Protected(), handler.AddItem)
 
-	source.Post("/new-folder", middleware.Protected(), handler.NewFolder)
+	source.Post("/newFolder", middleware.Protected(), handler.NewFolder)
+
 }

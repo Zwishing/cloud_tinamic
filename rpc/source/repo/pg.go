@@ -6,6 +6,9 @@ import (
 	"github.com/cloudwego/kitex/pkg/klog"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"log"
+	"os"
 	"sync"
 )
 
@@ -25,7 +28,16 @@ func NewDB() *gorm.DB {
 			cfg.GetString("database.postgresql.database"),
 			cfg.GetString("database.postgresql.sslmode"))
 		var err error
-		DB, err = gorm.Open(postgres.Open(constr), &gorm.Config{})
+		// 创建自定义 Logger
+		customLogger := logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags), // 日志输出位置
+			logger.Config{
+				LogLevel: logger.Info, // 日志级别
+			},
+		)
+		DB, err = gorm.Open(postgres.Open(constr), &gorm.Config{
+			Logger: customLogger,
+		})
 		if err != nil {
 			klog.Errorf("failed to connect to database: %v", err)
 			return

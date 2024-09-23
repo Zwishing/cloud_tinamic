@@ -15,14 +15,15 @@ import (
 )
 
 type DBRepo interface {
-	GetItemByKey(key string) ([]*model.Storage, error)
+	GetSiblingItemsByKey(key string) ([]*model.Storage, error)
+	GetChildrenItemsByKey(key string) ([]*model.Storage, error)
 	GetItemByPath(SourceCategory source.SourceCategory, path string) ([]*source.Item, error)
 	AddItem(SourceCategory source.SourceCategory, parentKey string, item *source.Item) (bool, error)
 	DeleteItem(SourceCategory source.SourceCategory, key string) (bool, error)
 	GetPathByKey(key string) (string, error)
 	GetItemByName(key string, name string) ([]*model.Storage, error)
 	GetCountByName(key string, name string, itemType source.ItemType) (int64, error)
-	GetTopItemsBySourceCategory(sourceCateogry source.SourceCategory) (string, []*model.Storage, error)
+	GetHomeItemsBySourceCategory(sourceCategory source.SourceCategory) (string, []*model.Storage, error)
 }
 
 type MinioRepo interface {
@@ -54,10 +55,11 @@ func NewSourceRepoImpl(db *gorm.DB, minio *storage.Storage) SourceRepo {
 	}
 }
 
-func (s *SourceRepoImpl) GetItemByKey(key string) ([]*model.Storage, error) {
+// GetChildrenItemsByKey 通过当前的key，查询所有属于当前的子类
+func (s *SourceRepoImpl) GetChildrenItemsByKey(key string) ([]*model.Storage, error) {
 	var items []*model.Storage
 	err := s.DB.Table("data_source.storage").
-		Where("parent_key = ?", key).
+		Where("storage_category= 2 AND parent_key = ? ", key).
 		Find(&items).Error
 	if err != nil {
 		// Changed from Fatalf to Errorf to avoid program termination
@@ -71,45 +73,64 @@ func (s *SourceRepoImpl) GetItemByKey(key string) ([]*model.Storage, error) {
 	return items, nil
 }
 
+// GetSiblingItemsByKey 通过当前的key找到同一父节点的数据
+func (s *SourceRepoImpl) GetSiblingItemsByKey(key string) ([]*model.Storage, error) {
+
+	var items []*model.Storage
+	err := s.DB.Where("parent_key = (?)",
+		s.DB.Model(&model.Storage{}).Select("parent_key").Where("key = ?", key)).
+		Find(&items).Error
+
+	if err != nil {
+		// Changed from Fatalf to Errorf to avoid program termination
+		klog.Errorf("failed to query storages: %v", err)
+		return nil, fmt.Errorf("database query error: %w", err)
+	}
+	// Added a check for empty result
+	if len(items) == 0 {
+		klog.Infof("no items found for parent_key: %s", key)
+	}
+	return items, nil
+
+}
+
 // GetItemByPath TODO
 func (db *SourceRepoImpl) GetItemByPath(SourceCategory source.SourceCategory, path string) ([]*source.Item, error) {
 	return nil, nil
 }
 
 func (db *SourceRepoImpl) AddItem(SourceCategory source.SourceCategory, parentKey string, item *source.Item) (bool, error) {
-	// Parse the modified time outside of the transaction
+	// 解析修改时间
 	modifiedTime := time.Unix(item.ModifiedTime, 0)
 
-	// Open a transaction
+	// 创建 baseInfo 和 store 对象
+	baseInfo := model.BaseInfo{
+		Key:            item.Key,
+		Name:           item.Name,
+		SourceCategory: int64(SourceCategory),
+	}
+	store := model.Storage{
+		Key:             item.Key,
+		ParentKey:       parentKey,
+		Name:            item.Name,
+		StorageCategory: int64(item.ItemType),
+		Size:            item.Size,
+		ModifiedTime:    modifiedTime,
+		Path:            item.Path,
+	}
+
+	// 打开事务
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
-		// Prepare base_info data
-		baseInfo := model.BaseInfo{
-			Key:            item.Key,
-			Name:           item.Name,
-			SourceCategory: int64(SourceCategory),
-		}
-
-		// Prepare storage data
-		store := model.Storage{
-			Key:             item.Key,
-			ParentKey:       parentKey,
-			Name:            item.Name,
-			StorageCategory: int64(item.ItemType),
-			Size:            item.Size,
-			ModifiedTime:    modifiedTime,
-			Path:            item.Path,
-		}
-
-		// Insert into base_info table
+		// 插入到 base_info 表
 		if err := tx.Create(&baseInfo).Error; err != nil {
-			return fmt.Errorf("failed to insert into base_info for uuid %s: %w", item.Key, err)
+			klog.Errorf("failed to insert into base_info for uuid %s: %v", item.Key, err)
+			return err
 		}
-
-		// Insert into storage table
+		// 插入到 storage 表
 		if err := tx.Create(&store).Error; err != nil {
-			return fmt.Errorf("failed to insert into storage for uuid %s: %w", item.Key, err)
+			klog.Errorf("failed to insert into storage for uuid %s: %v", item.Key, err)
+			return err
 		}
-
 		return nil
 	})
 
@@ -119,7 +140,6 @@ func (db *SourceRepoImpl) AddItem(SourceCategory source.SourceCategory, parentKe
 	}
 	return true, nil
 }
-
 func (db *SourceRepoImpl) PresignedUploadUrl(SourceCategory source.SourceCategory, path string, name string) (string, error) {
 	bucketName := strings.ToLower(SourceCategory.String())
 	if db.minio.ObjExist(bucketName, name) {
@@ -208,24 +228,28 @@ func (s *SourceRepoImpl) GetCountByName(key string, name string, itemType source
 	return count, nil
 }
 
-func (s *SourceRepoImpl) GetTopItemsBySourceCategory(sourceCateogry source.SourceCategory) (string, []*model.Storage, error) {
+func (s *SourceRepoImpl) GetHomeItemsBySourceCategory(sourceCategory source.SourceCategory) (string, []*model.Storage, error) {
 	var key string
 	var storages []*model.Storage
 
+	// 使用事务
 	err := s.DB.Transaction(func(tx *gorm.DB) error {
-		// Query s2.key
-		if err := tx.Table("data_source.storage AS s2").
+		// 查询顶级键
+		subQuery := tx.Table("data_source.storage AS s2").
 			Joins("JOIN data_source.base_info AS b ON s2.key = b.key").
-			Where("s2.parent_key IS NULL AND b.source_category = ?", sourceCateogry).
-			Pluck("s2.key", &key).Limit(1).Error; err != nil {
+			Select("s2.key").
+			Where("s2.parent_key IS NULL AND b.source_category = ?", sourceCategory).
+			Limit(1)
+
+		if err := subQuery.Scan(&key).Error; err != nil {
 			return err
 		}
 
 		if key == "" {
-			return fmt.Errorf("no top-level key found for source category: %v", sourceCateogry)
+			return fmt.Errorf("no top-level key found for source category: %v", sourceCategory)
 		}
 
-		// Query storages
+		// 查询子项
 		return tx.Table("data_source.storage").
 			Where("parent_key = ?", key).
 			Find(&storages).Error
@@ -237,7 +261,7 @@ func (s *SourceRepoImpl) GetTopItemsBySourceCategory(sourceCateogry source.Sourc
 	}
 
 	if len(storages) == 0 {
-		klog.Infof("No top items found for source category: %v", sourceCateogry)
+		klog.Infof("No top items found for source category: %v", sourceCategory)
 	}
 
 	return key, storages, nil

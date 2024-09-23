@@ -22,11 +22,11 @@ impl StoreService for S {
         let base = match store_vector(&url, &req.schema, &req.table).await {
             Ok(_) => BaseResp {
                 code: Code::SUCCESS,
-                msg: format!("success to store vector to postgis in {}.{}", req.schema, req.table),
+                msg: format!("success to store vector to postgis in {}.{}", req.schema, req.table).into(),
             },
             Err(e) => BaseResp {
                 code: Code::FAIL,
-                msg: e.to_string(),
+                msg: e.to_string().into(),
             },
         };
 

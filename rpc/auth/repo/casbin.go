@@ -24,9 +24,9 @@ var (
 func initModelPath() {
 	cwd, err := os.Getwd()
 	if err != nil {
-		klog.Fatalf("Failed to get current working directory: %v", err)
+		klog.Errorf("Failed to get current working directory: %v", err)
 	}
-	modelPath = filepath.Join(cwd, "repo", "model.conf")
+	modelPath = filepath.Join(cwd, "config", "model.conf")
 }
 
 func NewAdapter(pool *pg.PgPool) (*pgxadapter.Adapter, error) {

@@ -3,6 +3,7 @@ package repo
 import (
 	"cloud_tinamic/kitex_gen/base/user"
 	"cloud_tinamic/rpc/user/model"
+	"errors"
 	"github.com/cloudwego/kitex/pkg/klog"
 	"gorm.io/gorm"
 )
@@ -28,7 +29,7 @@ func (u *UserRepoImpl) QueryUserByAccount(account string, category user.UserCate
 		Where("user_info.account.user_account = ? AND user_info.account.category = ?", account, category).
 		First(&usr).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		klog.Errorf("failed to query user by account: %s, category: %d, error: %v", account, category, err)

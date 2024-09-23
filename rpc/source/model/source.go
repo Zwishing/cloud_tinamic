@@ -30,3 +30,34 @@ type Storage struct {
 func (s *Storage) TableName() string {
 	return "data_source.storage"
 }
+
+// AfterCreate 插入文件时，更新size
+func (s *Storage) AfterCreate(tx *gorm.DB) (err error) {
+	// 这里的1代表文件
+	if s.StorageCategory == 1 && s.ParentKey != "" {
+		parentKey := s.ParentKey
+		sizeToAdd := s.Size
+
+		// 使用 WITH RECURSIVE 递归查找父级文件夹并更新其大小
+		err = tx.Exec(`
+            WITH RECURSIVE parent_folders AS (
+                SELECT key, parent_key
+                FROM data_source.storage
+                WHERE key = ?
+                UNION ALL
+                SELECT s.key, s.parent_key
+                FROM data_source.storage s
+                INNER JOIN parent_folders pf ON s.key = pf.parent_key
+                WHERE s.storage_category = 2
+            )
+            UPDATE data_source.storage
+            SET size = size + ?
+            WHERE key IN (SELECT key FROM parent_folders);
+        `, parentKey, sizeToAdd).Error
+
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

@@ -5,12 +5,12 @@ import (
 	"cloud_tinamic/kitex_gen/base"
 	source "cloud_tinamic/kitex_gen/data/source"
 	"cloud_tinamic/pkg/util"
-	"cloud_tinamic/rpc/source/model"
 	"cloud_tinamic/rpc/source/pack"
 	"cloud_tinamic/rpc/source/repo"
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -31,25 +31,32 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 
 	bucketName := strings.ToLower(req.SourceCategory.String())
 	path, err := s.SourceRepo.GetPathByKey(req.Key)
+	if err != nil {
+		resp.Base.Code = base.Code_FAIL
+		resp.Base.Msg = "获取路径失败"
+		return resp, err
+	}
 	newPath := fmt.Sprintf("%s/%s", path, req.Name)
 	Key := util.UuidV4()
 
-	errChan := make(chan error, 2)
-	var success bool
+	errChan := make(chan error, 1) // 通道大小可以设置为1
+	var wg sync.WaitGroup
+	wg.Add(2)
+	doneChan := make(chan struct{}) // 新增一个通道用于表示任务完成
 
+	// Goroutine 1: 上传文件到 Minio
 	go func() {
-		// 上传到minio
-		// TODO 后续可以使用hash对重复的数据就可以不用在上传
+		defer wg.Done()
 		err := s.SourceRepo.UploadToMinio(bucketName, newPath, req.Name, bytes.NewReader(req.FileData), req.Size)
 		if err != nil {
 			errChan <- err
 		}
 	}()
 
+	// Goroutine 2: 添加文件元数据到数据库
 	go func() {
-		// 添加到数据记录
-		var addItemErr error
-		success, addItemErr = s.SourceRepo.AddItem(req.SourceCategory, req.Key, &source.Item{
+		defer wg.Done()
+		success, addItemErr := s.SourceRepo.AddItem(req.SourceCategory, req.Key, &source.Item{
 			Name:         req.Name,
 			ItemType:     source.ItemType_FILE,
 			Key:          Key,
@@ -62,27 +69,35 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 		}
 	}()
 
+	// 启动一个 goroutine 来等待所有任务完成
+	go func() {
+		wg.Wait()       // 等待所有 goroutine 完成
+		close(doneChan) // 完成后关闭 doneChan
+	}()
+
+	// 处理 select 语句
 	select {
-	case err := <-errChan:
+	case err := <-errChan: // 任何错误会立即触发
 		if strings.Contains(err.Error(), "添加到数据库失败") {
-			// TODO 为了保持数据一致性，需要删除已经上传到minio的数据
+			//_ = s.SourceRepo.DeleteFromMinio(bucketName, newPath) // 保持一致性，删除已上传文件
 			resp.Base.Code = base.Code_FAIL
 			resp.Base.Msg = "添加到数据库失败"
 		} else {
 			resp.Base.Code = base.Code_FAIL
-			resp.Base.Msg = "上传到minio失败"
+			resp.Base.Msg = "上传到 Minio 失败"
 		}
 		return resp, err
-	case <-time.After(300 * time.Second):
-		resp.Base.Code = base.Code_FAIL
-		resp.Base.Msg = "上传超时"
-		return resp, fmt.Errorf("上传超时")
-	default:
+	case <-doneChan: // 如果所有 goroutine 都完成，没有错误，立即返回成功
 		resp.Base.Code = base.Code_SUCCESS
 		resp.Base.Msg = "数据上传成功"
 		resp.Key = Key
 		return resp, nil
+	case <-time.After(300 * time.Second): // 超时处理
+		resp.Base.Code = base.Code_FAIL
+		resp.Base.Msg = "上传超时"
+		return resp, fmt.Errorf("上传超时")
 	}
+
 }
 
 // PresignedUpload implements the SourceServiceImpl interface.
@@ -103,19 +118,54 @@ func (s *SourceServiceImpl) PresignedUpload(ctx context.Context, req *source.Pre
 	return
 }
 
-// GetItem implements the SourceServiceImpl interface.
-func (s *SourceServiceImpl) GetItem(ctx context.Context, req *source.GetItemRequest) (resp *source.GetItemResponse, err error) {
-	resp = &source.GetItemResponse{
+// GetNextItems NextItems implements the SourceServiceImpl interface.
+func (s *SourceServiceImpl) GetNextItems(ctx context.Context, req *source.GetItemsRequest) (resp *source.GetItemsResponse, err error) {
+	resp = &source.GetItemsResponse{
 		Base: base.NewBaseResp(),
 	}
-	var items []*model.Storage
-	var key string
-	if req.Key == "" {
-		key, items, err = s.SourceRepo.GetTopItemsBySourceCategory(req.SourceCategory)
-	} else {
-		key = req.Key
-		items, err = s.SourceRepo.GetItemByKey(req.Key)
+
+	items, err := s.SourceRepo.GetChildrenItemsByKey(req.Key)
+
+	if err != nil {
+		resp.Base.Code = base.Code_FAIL
+		resp.Base.Msg = "获取记录失败"
+		return resp, err
 	}
+
+	resp.Base.Code = base.Code_SUCCESS
+	resp.Base.Msg = "返回成功"
+	resp.Items = pack.Storages(items)
+	resp.Key = req.Key
+	return resp, nil
+}
+
+func (s *SourceServiceImpl) GetPreviousItems(ctx context.Context, req *source.GetItemsRequest) (resp *source.GetItemsResponse, err error) {
+	resp = &source.GetItemsResponse{
+		Base: base.NewBaseResp(),
+	}
+	items, err := s.SourceRepo.GetSiblingItemsByKey(req.Key)
+
+	if err != nil {
+		resp.Base.Code = base.Code_FAIL
+		resp.Base.Msg = "获取记录失败"
+		return resp, err
+	}
+
+	resp.Base.Code = base.Code_SUCCESS
+	resp.Base.Msg = "返回成功"
+	resp.Items = pack.Storages(items)
+	if len(items) > 0 {
+		resp.Key = items[0].ParentKey
+	}
+	return resp, nil
+
+}
+
+func (s *SourceServiceImpl) GetHomeItems(ctx context.Context, req *source.GetHomeItemsRequest) (resp *source.GetItemsResponse, err error) {
+	resp = &source.GetItemsResponse{
+		Base: base.NewBaseResp(),
+	}
+	key, items, err := s.SourceRepo.GetHomeItemsBySourceCategory(req.SourceCategory)
 
 	if err != nil {
 		resp.Base.Code = base.Code_FAIL

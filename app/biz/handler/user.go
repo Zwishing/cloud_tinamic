@@ -6,7 +6,6 @@ import (
 	"cloud_tinamic/pkg/util/jwt"
 	"cloud_tinamic/pkg/util/response"
 	"cloud_tinamic/pkg/util/validate"
-	"context"
 	"github.com/gofiber/fiber/v2"
 	"strings"
 )
@@ -41,7 +40,7 @@ func Login(ctx *fiber.Ctx) error {
 	}
 
 	// Authenticate user
-	resp, err := userClient.Login(context.Background(), &user.LoginRequest{
+	resp, err := userClient.Login(ctx.Context(), &user.LoginRequest{
 		Username:     signin.UserAccount,
 		Password:     signin.Password,
 		UserCategory: category,
@@ -89,7 +88,7 @@ func Register(ctx *fiber.Ctx) error {
 		return response.Fail(ctx, "Invalid user category")
 	}
 
-	_, err = userClient.Register(context.Background(), &user.RegisterRequest{
+	_, err = userClient.Register(ctx.Context(), &user.RegisterRequest{
 		Username:     req.UserAccount,
 		Password:     req.Password,
 		UserCategory: category,
@@ -114,11 +113,11 @@ func Register(ctx *fiber.Ctx) error {
 // @Router /v1/user/current [get]
 func CurrentUser(ctx *fiber.Ctx) error {
 	userId := ctx.Query("userId", "")
-	if userId == ""{
+	if userId == "" {
 		userId = ctx.Locals("userId").(string)
 	}
-	
-	resp, err := userClient.Info(context.Background(), &user.InfoRequest{
+
+	resp, err := userClient.Info(ctx.Context(), &user.InfoRequest{
 		UserId: userId,
 	})
 	if err != nil {

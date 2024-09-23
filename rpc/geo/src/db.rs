@@ -36,20 +36,21 @@ impl Settings {
 
 lazy_static! {
     pub static ref POOL: Mutex<Pool> = {
+         // 从配置文件加载数据库连接信息
         let settings = Settings::new();
         let db = settings.database;
-
-        let cfg = tokio_postgres::Config::new()
-            .host(&db.host)
-            .user(&db.user)
-            .password(&db.password)
-            .dbname(&db.dbname);
+        // 创建连接池管理器
+        let mut cfg = tokio_postgres::Config::new();
+        cfg.host(&db.host);
+        cfg.user(&db.user);
+        cfg.password(&db.password);
+        cfg.dbname(&db.dbname);
 
         let manager = Manager::new(cfg, NoTls);
         let pool = Pool::builder(manager)
             .max_size(10)
             .build()
-            .expect("连接池创建失败");
+            .unwrap();
 
         Mutex::new(pool)
     };

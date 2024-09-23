@@ -51,16 +51,22 @@ struct PresignedUploadResponse{
     2: string url
 }
 
-struct GetItemRequest {
+struct GetItemsRequest {
     1: SourceCategory source_category,
     2: string key
 }
 
-struct GetItemResponse {
+struct GetItemsResponse {
     1: base.BaseResp base,
     2: required string key
-    3: list<Item> items
+    3: required string name
+    4: list<Item> items
 }
+
+struct GetHomeItemsRequest {
+    1: SourceCategory source_category,
+}
+
 
 struct CreateFolderRequest {
     1: required SourceCategory source_category,
@@ -90,7 +96,9 @@ struct AddItemResponse{
 }
 
 service SourceService{
-    GetItemResponse GetItem(1:GetItemRequest req),
+    GetItemsResponse GetNextItems(1:GetItemsRequest req),
+    GetItemsResponse GetPreviousItems(1:GetItemsRequest req),
+    GetItemsResponse GetHomeItems(1:GetHomeItemsRequest req),
     DeleteItemResponse DeleteItem(1:DeleteItemRequest req),
     AddItemResponse AddItem(1:AddItemRequest req),
     AddItemResponse CreateFolder(1:CreateFolderRequest req),

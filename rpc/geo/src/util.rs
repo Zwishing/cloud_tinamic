@@ -5,18 +5,25 @@ use crate::programs::vector::vector_translate;
 pub fn zipshp2sql(url: &str, out: &Path, schema: &str, table: &str) -> Result<(), Box<dyn std::error::Error>> {
     let schema = format!("SCHEMA={}", schema);
     let src = Dataset::open(url)?;
-    let opts = Some(vec![
-        "-f", "PGDump",
-        "-t_srs", "EPSG:4326",
-        "-nln", table,
-        "-lco", "GEOMETRY_NAME=geom",
-        "-lco", "FID=gid",
-        "-lco", &schema,
-        "-lco", "CREATE_SCHEMA=OFF",
-        "-lco", "GEOM_COLUMN_POSITION=END"
-    ]);
-    vector_translate(&[src], out, opts)?;
+    let opts = Some(
+        vec![
+            "-f", "PGDump",
+            "-t_srs", "EPSG:4326",
+            "-nln", table,
+            "-lco", "GEOMETRY_NAME=geom",
+            "-lco", "FID=gid",
+            "-lco", schema.as_str(),
+            "-lco", "CREATE_SCHEMA=OFF",
+            "-lco", "GEOM_COLUMN_POSITION=END"
+        ]
+            .try_into()?
+    );
+    vector_translate(&[src], out.try_into()?, opts)?;
     Ok(())
+}
+
+pub fn shp_to_pg(url: &str, out: &Path, schema: &str, table: &str){
+
 }
 
 pub fn add_prefix_from_ext(url: &str, ext: &str) -> String {

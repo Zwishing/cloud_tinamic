@@ -20,7 +20,7 @@ func main() {
 		klog.Fatal("Failed to create Consul registry: ", err)
 	}
 
-	svr := createAuthServer("auth.server",8818,r)
+	svr := createAuthServer("auth.server", 8818, r)
 
 	err = svr.Run()
 
@@ -30,15 +30,16 @@ func main() {
 }
 
 func createConsulRegistry() (registry.Registry, error) {
-	return consul.NewConsulRegister("39.101.164.253:8500", consul.WithCheck(&consulapi.AgentServiceCheck{
-		TCP:                            "127.0.0.1:8818",
+	//39.101.164.253:8500
+	return consul.NewConsulRegister("0.0.0.0:8500", consul.WithCheck(&consulapi.AgentServiceCheck{
+		TCP:                            "0.0.0.0:8818",
 		Interval:                       "7s",
 		Timeout:                        "5s",
 		DeregisterCriticalServiceAfter: "1m",
 	}))
 }
 
-func createAuthServer(serviceName string,port int,r registry.Registry) server.Server {
+func createAuthServer(serviceName string, port int, r registry.Registry) server.Server {
 	return auth.NewServer(InitAuthService(),
 		server.WithServiceAddr(&net.TCPAddr{
 			IP:   net.ParseIP("0.0.0.0"),
