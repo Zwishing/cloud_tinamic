@@ -226,10 +226,26 @@ func (s *SourceServiceImpl) CreateFolder(ctx context.Context, req *source.Create
 	return resp, nil
 }
 
-// DeleteItem implements the SourceServiceImpl interface.
-func (s *SourceServiceImpl) DeleteItem(ctx context.Context, req *source.DeleteItemRequest) (resp *source.DeleteItemResponse, err error) {
-	// TODO: Your code here...
-	return
+// DeleteItems implements the SourceServiceImpl interface.
+func (s *SourceServiceImpl) DeleteItems(ctx context.Context, req *source.DeleteItemsRequest) (resp *source.DeleteItemsResponse, err error) {
+	resp = &source.DeleteItemsResponse{
+		Base: base.NewBaseResp(),
+	}
+
+	isDeleted, err := s.SourceRepo.DeleteItems(req.Keys)
+	if err != nil {
+		resp.Base.Code = base.Code_FAIL
+		resp.Base.Msg = "删除发生错误，删除失败"
+		return resp, err
+	}
+	if !isDeleted {
+		resp.Base.Code = base.Code_FAIL
+		resp.Base.Msg = "删除失败"
+		return resp, nil
+	}
+	resp.Base.Code = base.Code_SUCCESS
+	resp.Base.Msg = "删除成功"
+	return resp, nil
 }
 
 func (s *SourceServiceImpl) AddItem(ctx context.Context, req *source.AddItemRequest) (resp *source.AddItemResponse, err error) {

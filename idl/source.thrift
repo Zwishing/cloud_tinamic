@@ -75,12 +75,11 @@ struct CreateFolderRequest {
     4: required string path,
 }
 
-struct DeleteItemRequest{
-    1: string key
-    2: string path
+struct DeleteItemsRequest{
+    1: list<string> keys
 }
 
-struct DeleteItemResponse{
+struct DeleteItemsResponse{
     1: base.BaseResp base,
 }
 
@@ -99,7 +98,7 @@ service SourceService{
     GetItemsResponse GetNextItems(1:GetItemsRequest req),
     GetItemsResponse GetPreviousItems(1:GetItemsRequest req),
     GetItemsResponse GetHomeItems(1:GetHomeItemsRequest req),
-    DeleteItemResponse DeleteItem(1:DeleteItemRequest req),
+    DeleteItemsResponse DeleteItems(1:DeleteItemsRequest req),
     AddItemResponse AddItem(1:AddItemRequest req),
     AddItemResponse CreateFolder(1:CreateFolderRequest req),
     UploadResponse Upload(1:UploadRequest req),

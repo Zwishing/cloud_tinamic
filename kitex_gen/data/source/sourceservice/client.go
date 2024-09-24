@@ -14,7 +14,7 @@ type Client interface {
 	GetNextItems(ctx context.Context, req *source.GetItemsRequest, callOptions ...callopt.Option) (r *source.GetItemsResponse, err error)
 	GetPreviousItems(ctx context.Context, req *source.GetItemsRequest, callOptions ...callopt.Option) (r *source.GetItemsResponse, err error)
 	GetHomeItems(ctx context.Context, req *source.GetHomeItemsRequest, callOptions ...callopt.Option) (r *source.GetItemsResponse, err error)
-	DeleteItem(ctx context.Context, req *source.DeleteItemRequest, callOptions ...callopt.Option) (r *source.DeleteItemResponse, err error)
+	DeleteItems(ctx context.Context, req *source.DeleteItemsRequest, callOptions ...callopt.Option) (r *source.DeleteItemsResponse, err error)
 	AddItem(ctx context.Context, req *source.AddItemRequest, callOptions ...callopt.Option) (r *source.AddItemResponse, err error)
 	CreateFolder(ctx context.Context, req *source.CreateFolderRequest, callOptions ...callopt.Option) (r *source.AddItemResponse, err error)
 	Upload(ctx context.Context, req *source.UploadRequest, callOptions ...callopt.Option) (r *source.UploadResponse, err error)
@@ -65,9 +65,9 @@ func (p *kSourceServiceClient) GetHomeItems(ctx context.Context, req *source.Get
 	return p.kClient.GetHomeItems(ctx, req)
 }
 
-func (p *kSourceServiceClient) DeleteItem(ctx context.Context, req *source.DeleteItemRequest, callOptions ...callopt.Option) (r *source.DeleteItemResponse, err error) {
+func (p *kSourceServiceClient) DeleteItems(ctx context.Context, req *source.DeleteItemsRequest, callOptions ...callopt.Option) (r *source.DeleteItemsResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.DeleteItem(ctx, req)
+	return p.kClient.DeleteItems(ctx, req)
 }
 
 func (p *kSourceServiceClient) AddItem(ctx context.Context, req *source.AddItemRequest, callOptions ...callopt.Option) (r *source.AddItemResponse, err error) {

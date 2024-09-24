@@ -251,6 +251,19 @@ func Publish(ctx *fiber.Ctx) error {
 	}
 }
 
+func DeleteItems(ctx *fiber.Ctx) error {
+	keys := strings.Split(ctx.Query("key", ""), ",")
+	resp, err := sourceClient.DeleteItems(ctx.Context(), &source.DeleteItemsRequest{Keys: keys})
+	if err != nil {
+		return err
+	}
+	if resp.Base.Code != base.Code_SUCCESS {
+		return response.Fail(ctx, resp.Base.Msg)
+	}
+	return response.Success(ctx, resp.Base.Msg)
+
+}
+
 // validSourceCategory is an internal function and doesn't need Swagger documentation
 func validSourceCategory(ctx *fiber.Ctx) (source.SourceCategory, error) {
 	category, err := source.SourceCategoryFromString(strings.ToUpper(ctx.Params("sourceCategory")))

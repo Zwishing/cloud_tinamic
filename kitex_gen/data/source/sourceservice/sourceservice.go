@@ -34,10 +34,10 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
-	"DeleteItem": kitex.NewMethodInfo(
-		deleteItemHandler,
-		newSourceServiceDeleteItemArgs,
-		newSourceServiceDeleteItemResult,
+	"DeleteItems": kitex.NewMethodInfo(
+		deleteItemsHandler,
+		newSourceServiceDeleteItemsArgs,
+		newSourceServiceDeleteItemsResult,
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
@@ -189,22 +189,22 @@ func newSourceServiceGetHomeItemsResult() interface{} {
 	return source.NewSourceServiceGetHomeItemsResult()
 }
 
-func deleteItemHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	realArg := arg.(*source.SourceServiceDeleteItemArgs)
-	realResult := result.(*source.SourceServiceDeleteItemResult)
-	success, err := handler.(source.SourceService).DeleteItem(ctx, realArg.Req)
+func deleteItemsHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*source.SourceServiceDeleteItemsArgs)
+	realResult := result.(*source.SourceServiceDeleteItemsResult)
+	success, err := handler.(source.SourceService).DeleteItems(ctx, realArg.Req)
 	if err != nil {
 		return err
 	}
 	realResult.Success = success
 	return nil
 }
-func newSourceServiceDeleteItemArgs() interface{} {
-	return source.NewSourceServiceDeleteItemArgs()
+func newSourceServiceDeleteItemsArgs() interface{} {
+	return source.NewSourceServiceDeleteItemsArgs()
 }
 
-func newSourceServiceDeleteItemResult() interface{} {
-	return source.NewSourceServiceDeleteItemResult()
+func newSourceServiceDeleteItemsResult() interface{} {
+	return source.NewSourceServiceDeleteItemsResult()
 }
 
 func addItemHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
@@ -319,11 +319,11 @@ func (p *kClient) GetHomeItems(ctx context.Context, req *source.GetHomeItemsRequ
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) DeleteItem(ctx context.Context, req *source.DeleteItemRequest) (r *source.DeleteItemResponse, err error) {
-	var _args source.SourceServiceDeleteItemArgs
+func (p *kClient) DeleteItems(ctx context.Context, req *source.DeleteItemsRequest) (r *source.DeleteItemsResponse, err error) {
+	var _args source.SourceServiceDeleteItemsArgs
 	_args.Req = req
-	var _result source.SourceServiceDeleteItemResult
-	if err = p.c.Call(ctx, "DeleteItem", &_args, &_result); err != nil {
+	var _result source.SourceServiceDeleteItemsResult
+	if err = p.c.Call(ctx, "DeleteItems", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

@@ -19,7 +19,7 @@ type DBRepo interface {
 	GetChildrenItemsByKey(key string) ([]*model.Storage, error)
 	GetItemByPath(SourceCategory source.SourceCategory, path string) ([]*source.Item, error)
 	AddItem(SourceCategory source.SourceCategory, parentKey string, item *source.Item) (bool, error)
-	DeleteItem(SourceCategory source.SourceCategory, key string) (bool, error)
+	DeleteItems(key []string) (bool, error)
 	GetPathByKey(key string) (string, error)
 	GetItemByName(key string, name string) ([]*model.Storage, error)
 	GetCountByName(key string, name string, itemType source.ItemType) (int64, error)
@@ -59,7 +59,7 @@ func NewSourceRepoImpl(db *gorm.DB, minio *storage.Storage) SourceRepo {
 func (s *SourceRepoImpl) GetChildrenItemsByKey(key string) ([]*model.Storage, error) {
 	var items []*model.Storage
 	err := s.DB.Table("data_source.storage").
-		Where("storage_category= 2 AND parent_key = ? ", key).
+		Where("parent_key = ? ", key).
 		Find(&items).Error
 	if err != nil {
 		// Changed from Fatalf to Errorf to avoid program termination
@@ -159,19 +159,25 @@ func (db *SourceRepoImpl) PresignedUploadUrl(SourceCategory source.SourceCategor
 	return presignedURL, nil
 }
 
-func (db *SourceRepoImpl) DeleteItem(SourceCategory source.SourceCategory, uuid string) (bool, error) {
+func (db *SourceRepoImpl) DeleteItems(keys []string) (bool, error) {
 	// Use GORM's transaction processing
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
-		// Delete from both base_info and storage tables in a single query
-		result := tx.Where("key = ?", uuid).Delete(&model.BaseInfo{}, &model.Storage{})
+		// Delete from both base_info and storage tables using IN clause
+		result := tx.Where("key IN ?", keys).Delete(&model.BaseInfo{})
 		if result.Error != nil {
-			klog.Errorf("Failed to delete records for uuid %s: %v", uuid, result.Error)
+			klog.Errorf("Failed to delete records for keys %v: %v", keys, result.Error)
+			return result.Error
+		}
+
+		result = tx.Where("key IN ?", keys).Delete(&model.Storage{})
+		if result.Error != nil {
+			klog.Errorf("Failed to delete records from storage for keys %v: %v", keys, result.Error)
 			return result.Error
 		}
 
 		// Check if any records were affected
 		if result.RowsAffected == 0 {
-			klog.Warnf("No records found for deletion with uuid %s", uuid)
+			klog.Warnf("No records found for deletion with keys %v", keys)
 			return fmt.Errorf("no records found for deletion")
 		}
 
@@ -179,7 +185,7 @@ func (db *SourceRepoImpl) DeleteItem(SourceCategory source.SourceCategory, uuid 
 	})
 
 	if err != nil {
-		klog.Errorf("Transaction failed for uuid %s: %v", uuid, err)
+		klog.Errorf("Transaction failed for keys %v: %v", keys, err)
 		return false, err
 	}
 
