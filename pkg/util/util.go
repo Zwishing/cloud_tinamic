@@ -9,8 +9,6 @@ import (
 	"time"
 )
 
-const Duration = 5 * time.Minute
-
 // UuidV4 生成一个 UUID
 func UuidV4() string {
 	return utils.UUIDv4()

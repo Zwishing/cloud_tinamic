@@ -5,6 +5,7 @@ import (
 	"cloud_tinamic/app/logger"
 	conf "cloud_tinamic/config"
 	"fmt"
+	"time"
 
 	"github.com/gofiber/contrib/fiberzerolog"
 	"github.com/gofiber/fiber/v2"
@@ -54,7 +55,10 @@ type App struct {
 func InitApp() *App {
 	return &App{
 		App: fiber.New(fiber.Config{
-			// Add any custom Fiber configurations here
+			ReadTimeout:  3 * time.Minute, // 设置超时时间
+			WriteTimeout: 3 * time.Minute,
+			// 可以设置大文件上传的最大 body size，比如 100 MB
+			BodyLimit: 300 * 1024 * 1024, // 100MB
 		}),
 		// Initialize Hasher if needed
 		// Hasher: hashing.New(config.Conf.GetHasherConfig()),
