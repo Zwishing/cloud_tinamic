@@ -236,9 +236,9 @@ func Publish(ctx *fiber.Ctx) error {
 	// TODO: Implement record addition logic
 	resp, err := geoClient.VectorStorage(ctx.Context(), &storage.StoreRequest{
 		Schema: "public",
-		Table:  "sandy",
-		Name:   "aa",
-		Url:    "http://39.101.164.253:9000/vector/石漠化监测数据.zip",
+		Table:  "sandy1234567890",
+		Name:   "aa12121212121212",
+		Url:    "http://172.18.32.1/石漠化监测数据.zip",
 		Ext:    "zip",
 	})
 	if err != nil {

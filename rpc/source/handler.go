@@ -30,6 +30,11 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 	}
 
 	bucketName := strings.ToLower(req.SourceCategory.String())
+
+	if req.Key == "" {
+		req.Key, err = s.SourceRepo.GetHomeKeyBySourceCategory(req.SourceCategory)
+	}
+
 	path, err := s.SourceRepo.GetPathByKey(req.Key)
 	if err != nil {
 		resp.Base.Code = base.Code_FAIL

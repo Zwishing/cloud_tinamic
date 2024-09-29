@@ -19,6 +19,7 @@ pub fn zipshp2sql(url: &str, out: &Path, schema: &str, table: &str) -> Result<()
             .try_into()?
     );
     vector_translate(&[src], out.try_into()?, opts)?;
+    println!("333333");
     Ok(())
 }
 

@@ -18,7 +18,7 @@ impl StoreService for S {
         volo_thrift::ServerError,
     > {
         let url = util::add_prefix_from_ext(&req.url, &req.ext);
-
+        println!("111111");
         let base = match store_vector(&url, &req.schema, &req.table).await {
             Ok(_) => BaseResp {
                 code: Code::SUCCESS,

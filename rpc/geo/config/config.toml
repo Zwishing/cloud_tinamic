@@ -2,4 +2,11 @@
 host = "1.92.113.25"
 user = "postgres"
 password = "admin321"
+port=5432
 dbname = "tinamic"
+#[database]
+#host = "172.18.32.1"
+#user = "postgres"
+#password = "admin"
+#port=5433
+#dbname = "tinamic"

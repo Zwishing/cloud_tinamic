@@ -3,5 +3,7 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/rpc/source/model/source.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/rpc/user/model/user.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/rpc/vector_service/model/collections.sql" dialect="GenericSQL" />
+    <file url="PROJECT" dialect="PostgreSQL" />
   </component>
 </project>

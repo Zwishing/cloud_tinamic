@@ -24,6 +24,7 @@ type DBRepo interface {
 	GetItemByName(key string, name string) ([]*model.Storage, error)
 	GetCountByName(key string, name string, itemType source.ItemType) (int64, error)
 	GetHomeItemsBySourceCategory(sourceCategory source.SourceCategory) (string, []*model.Storage, error)
+	GetHomeKeyBySourceCategory(sourceCategory source.SourceCategory) (string, error)
 }
 
 type MinioRepo interface {
@@ -271,4 +272,25 @@ func (s *SourceRepoImpl) GetHomeItemsBySourceCategory(sourceCategory source.Sour
 	}
 
 	return key, storages, nil
+}
+
+func (s *SourceRepoImpl) GetHomeKeyBySourceCategory(sourceCategory source.SourceCategory) (string, error) {
+	var key string
+
+	err := s.DB.Model(&model.BaseInfo{}).
+		Select("s.key").
+		Joins("JOIN data_source.storage AS s ON s.key = base_info.key").
+		Where("s.parent_key IS NULL AND base_info.source_category = ?", sourceCategory).
+		Limit(1).
+		Scan(&key).Error
+
+	if err != nil {
+		return "", err
+	}
+
+	if key == "" {
+		return "", fmt.Errorf("no key found for the given source category")
+	}
+
+	return key, nil
 }

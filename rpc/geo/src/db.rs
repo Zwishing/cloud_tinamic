@@ -5,6 +5,7 @@ use deadpool_postgres::{Manager, Pool, tokio_postgres};
 use serde::Deserialize;
 use tokio_postgres::NoTls;
 use config::{Config, File, FileFormat};
+use volo_thrift::transport::pool;
 
 #[derive(Debug, Deserialize)]
 struct Settings {
@@ -17,6 +18,7 @@ struct DatabaseSettings {
     user: String,
     password: String,
     dbname: String,
+    port:u16,
 }
 
 impl Settings {
@@ -45,13 +47,14 @@ lazy_static! {
         cfg.user(&db.user);
         cfg.password(&db.password);
         cfg.dbname(&db.dbname);
+        cfg.port(db.port);
 
         let manager = Manager::new(cfg, NoTls);
         let pool = Pool::builder(manager)
             .max_size(10)
             .build()
             .unwrap();
-
+        println!("{:?}",pool.status());
         Mutex::new(pool)
     };
 }
