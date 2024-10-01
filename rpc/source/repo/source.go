@@ -102,7 +102,7 @@ func (db *SourceRepoImpl) GetItemByPath(SourceCategory source.SourceCategory, pa
 
 func (db *SourceRepoImpl) AddItem(SourceCategory source.SourceCategory, parentKey string, item *source.Item) (bool, error) {
 	// 解析修改时间
-	modifiedTime := time.Unix(item.ModifiedTime, 0)
+	modifiedTime := time.Unix(item.ModifiedTime, 0).Local()
 
 	// 创建 baseInfo 和 store 对象
 	baseInfo := model.BaseInfo{

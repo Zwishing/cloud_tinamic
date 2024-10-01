@@ -209,7 +209,7 @@ func (s *SourceServiceImpl) CreateFolder(ctx context.Context, req *source.Create
 		ItemType:     source.ItemType_FOLDER,
 		Key:          util.UuidV4(),
 		Size:         0,
-		ModifiedTime: time.Now().Unix(),
+		ModifiedTime: time.Now().Local().Unix(),
 		Path:         req.Path,
 	}
 
