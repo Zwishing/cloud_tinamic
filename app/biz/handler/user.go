@@ -26,17 +26,17 @@ func Login(ctx *fiber.Ctx) error {
 
 	// Parse and validate request body
 	if err := ctx.BodyParser(&signin); err != nil {
-		return response.Fail(ctx, "Invalid request body")
+		return response.FailWithBadRequest(ctx, "Invalid request body")
 	}
 
 	if err := validate.ValidateRequestBody(signin); err != nil {
-		return response.Fail(ctx, err.Error())
+		return response.FailWithBadRequest(ctx, err.Error())
 	}
 
 	// Convert and validate user category
 	category, err := user.UserCategoryFromString(strings.ToUpper(signin.Category))
 	if err != nil {
-		return response.Fail(ctx, "Invalid user category")
+		return response.FailWithBadRequest(ctx, "Invalid user category")
 	}
 
 	// Authenticate user
@@ -46,17 +46,17 @@ func Login(ctx *fiber.Ctx) error {
 		UserCategory: category,
 	})
 	if err != nil {
-		return response.Fail(ctx, "Authentication failed")
+		return response.FailWithNonAuthoritativeInformation(ctx, "Authentication failed")
 	}
 
 	// Generate JWT token
 	token, err := jwt.ReleaseToken(resp.UserId)
 	if err != nil {
-		return response.Fail(ctx, "Failed to generate token")
+		return response.FailWithExpectation(ctx, "Failed to generate token")
 	}
 
 	// Return success response with user ID and token
-	return response.Success(ctx, fiber.Map{
+	return response.SuccessWithOK(ctx, fiber.Map{
 		"userId": resp.UserId,
 		"token":  token,
 	})
@@ -76,16 +76,16 @@ func Login(ctx *fiber.Ctx) error {
 func Register(ctx *fiber.Ctx) error {
 	var req model.RegisterRequest
 	if err := ctx.BodyParser(&req); err != nil {
-		return response.Fail(ctx, "Invalid request body")
+		return response.FailWithBadRequest(ctx, "Invalid request body")
 	}
 
 	if err := validate.ValidateRequestBody(req); err != nil {
-		return response.Fail(ctx, err.Error())
+		return response.FailWithBadRequest(ctx, err.Error())
 	}
 
 	category, err := user.UserCategoryFromString(strings.ToUpper(req.Category))
 	if err != nil {
-		return response.Fail(ctx, "Invalid user category")
+		return response.FailWithBadRequest(ctx, "Invalid user category")
 	}
 
 	_, err = userClient.Register(ctx.Context(), &user.RegisterRequest{
@@ -94,10 +94,10 @@ func Register(ctx *fiber.Ctx) error {
 		UserCategory: category,
 	})
 	if err != nil {
-		return response.Fail(ctx, "Registration failed")
+		return response.FailWithBadRequest(ctx, "Registration failed")
 	}
 
-	return response.Success(ctx, "Registration successful")
+	return response.SuccessWithOK(ctx, "Registration successful")
 }
 
 // CurrentUser godoc
@@ -121,7 +121,7 @@ func CurrentUser(ctx *fiber.Ctx) error {
 		UserId: userId,
 	})
 	if err != nil {
-		return response.Fail(ctx, "Failed to fetch user information")
+		return response.FailWithExpectation(ctx, "Failed to fetch user information")
 	}
-	return response.Success(ctx, resp.User)
+	return response.SuccessWithOK(ctx, resp.User)
 }

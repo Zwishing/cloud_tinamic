@@ -17,7 +17,7 @@ import (
 func GetHomeItems(ctx *fiber.Ctx) error {
 	category, err := validSourceCategory(ctx)
 	if err != nil {
-		return response.Fail(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
+		return response.FailWithBadRequest(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
 	}
 
 	resp, err := sourceClient.GetHomeItems(ctx.Context(), &source.GetHomeItemsRequest{
@@ -26,7 +26,7 @@ func GetHomeItems(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return response.Success(ctx, fiber.Map{
+	return response.SuccessWithOK(ctx, fiber.Map{
 		"key":   resp.Key,
 		"items": model.Items(resp.Items),
 	})
@@ -48,7 +48,7 @@ func GetHomeItems(ctx *fiber.Ctx) error {
 func GetNextItems(ctx *fiber.Ctx) error {
 	category, err := validSourceCategory(ctx)
 	if err != nil {
-		return response.Fail(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
+		return response.FailWithBadRequest(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
 	}
 	key := ctx.Query("key", "")
 
@@ -60,7 +60,7 @@ func GetNextItems(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return response.Success(ctx, fiber.Map{
+	return response.SuccessWithOK(ctx, fiber.Map{
 		"key":   resp.Key,
 		"items": model.Items(resp.Items),
 	})
@@ -69,7 +69,7 @@ func GetNextItems(ctx *fiber.Ctx) error {
 func GetPreviousItems(ctx *fiber.Ctx) error {
 	category, err := validSourceCategory(ctx)
 	if err != nil {
-		return response.Fail(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
+		return response.FailWithBadRequest(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
 	}
 	key := ctx.Query("key", "")
 
@@ -80,7 +80,7 @@ func GetPreviousItems(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return response.Success(ctx, fiber.Map{
+	return response.SuccessWithOK(ctx, fiber.Map{
 		"key":   resp.Key,
 		"items": model.Items(resp.Items),
 	})
@@ -101,7 +101,7 @@ func GetPreviousItems(ctx *fiber.Ctx) error {
 // @Router /v1/source/{sourceCategory}/add [post]
 func AddItem(ctx *fiber.Ctx) error {
 	// TODO: Implement item addition logic
-	return response.Success(ctx, "")
+	return response.SuccessWithOK(ctx, "")
 }
 
 // PresignedUpload godoc
@@ -120,7 +120,7 @@ func AddItem(ctx *fiber.Ctx) error {
 func PresignedUpload(ctx *fiber.Ctx) error {
 	category, err := validSourceCategory(ctx)
 	if err != nil {
-		return response.Fail(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
+		return response.FailWithBadRequest(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
 	}
 	path := ctx.Query("path", "")
 	name := ctx.Query("name", "")
@@ -130,9 +130,9 @@ func PresignedUpload(ctx *fiber.Ctx) error {
 		Name:           name,
 	})
 	if err != nil {
-		return response.Fail(ctx, err.Error())
+		return response.FailWithExpectation(ctx, err.Error())
 	}
-	return response.Success(ctx, fiber.Map{
+	return response.SuccessWithOK(ctx, fiber.Map{
 		"uploadURL": resp.Url,
 	})
 }
@@ -154,19 +154,19 @@ func PresignedUpload(ctx *fiber.Ctx) error {
 func Upload(ctx *fiber.Ctx) error {
 	category, err := validSourceCategory(ctx)
 	if err != nil {
-		return response.Fail(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
+		return response.FailWithBadRequest(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
 	}
 	var uploadReq model.UploadRequest
 	if err = ctx.BodyParser(&uploadReq); err != nil {
-		return response.Fail(ctx, "请求体无效")
+		return response.FailWithBadRequest(ctx, "请求体无效")
 	}
 	file, err := ctx.FormFile("file")
 	if err != nil {
-		return response.Fail(ctx, "无法从表单获取文件")
+		return response.FailWithBadRequest(ctx, "无法从表单获取文件")
 	}
 	readFile, err := util.ReadFileWithTimeout(file, 1*time.Minute)
 	if err != nil {
-		return response.Fail(ctx, "读取文件失败")
+		return response.FailWithExpectation(ctx, "读取文件失败")
 	}
 	resp, err := sourceClient.Upload(ctx.Context(), &source.UploadRequest{
 		SourceCategory: category,
@@ -176,9 +176,9 @@ func Upload(ctx *fiber.Ctx) error {
 		FileData:       readFile,
 	})
 	if err != nil {
-		return response.Fail(ctx, "文件上传失败")
+		return response.FailWithExpectation(ctx, "文件上传失败")
 	}
-	return response.Success(ctx, fiber.Map{
+	return response.SuccessWithOK(ctx, fiber.Map{
 		"key": resp.Key,
 	})
 }
@@ -198,12 +198,12 @@ func Upload(ctx *fiber.Ctx) error {
 func NewFolder(ctx *fiber.Ctx) error {
 	category, err := validSourceCategory(ctx)
 	if err != nil {
-		return response.Fail(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
+		return response.FailWithBadRequest(ctx, fmt.Sprintf("sourceCategory %s is unsupported", category))
 	}
 
 	var newFolderReq model.NewFolderRequest
 	if err := ctx.BodyParser(&newFolderReq); err != nil {
-		return response.Fail(ctx, "Invalid request body")
+		return response.FailWithBadRequest(ctx, "Invalid request body")
 	}
 
 	resp, err := sourceClient.CreateFolder(ctx.Context(), &source.CreateFolderRequest{
@@ -213,10 +213,10 @@ func NewFolder(ctx *fiber.Ctx) error {
 		Path:           newFolderReq.Path,
 	})
 	if err != nil || resp.Base.Code != base.Code_SUCCESS {
-		return response.Fail(ctx, fmt.Sprintf("Failed to create folder,%s", resp.Base.Msg))
+		return response.FailWithExpectation(ctx, fmt.Sprintf("Failed to create folder,%s", resp.Base.Msg))
 	}
 
-	return response.Success(ctx, model.Item(resp.Item))
+	return response.SuccessWithOK(ctx, model.Item(resp.Item))
 }
 
 // Publish godoc
@@ -245,9 +245,9 @@ func Publish(ctx *fiber.Ctx) error {
 		return err
 	}
 	if resp.Base.Code == base.Code_SUCCESS {
-		return response.Success(ctx, resp.Base.Msg)
+		return response.SuccessWithOK(ctx, resp.Base.Msg)
 	} else {
-		return response.Fail(ctx, resp.Base.Msg)
+		return response.FailWithExpectation(ctx, resp.Base.Msg)
 	}
 }
 
@@ -258,9 +258,9 @@ func DeleteItems(ctx *fiber.Ctx) error {
 		return err
 	}
 	if resp.Base.Code != base.Code_SUCCESS {
-		return response.Fail(ctx, resp.Base.Msg)
+		return response.FailWithExpectation(ctx, resp.Base.Msg)
 	}
-	return response.Success(ctx, resp.Base.Msg)
+	return response.SuccessWithNoContent(ctx, resp.Base.Msg)
 
 }
 
