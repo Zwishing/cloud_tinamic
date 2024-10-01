@@ -13,6 +13,13 @@ import (
 var errInvalidMessageType = errors.New("invalid message type for service method handler")
 
 var serviceMethods = map[string]kitex.MethodInfo{
+	"GetCollections": kitex.NewMethodInfo(
+		getCollectionsHandler,
+		newVectorServiceGetCollectionsArgs,
+		newVectorServiceGetCollectionsResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 	"Publish": kitex.NewMethodInfo(
 		publishHandler,
 		newVectorServicePublishArgs,
@@ -93,6 +100,24 @@ func newServiceInfo(hasStreaming bool, keepStreamingMethods bool, keepNonStreami
 	return svcInfo
 }
 
+func getCollectionsHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*vector.VectorServiceGetCollectionsArgs)
+	realResult := result.(*vector.VectorServiceGetCollectionsResult)
+	success, err := handler.(vector.VectorService).GetCollections(ctx, realArg.PageSize, realArg.Page)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newVectorServiceGetCollectionsArgs() interface{} {
+	return vector.NewVectorServiceGetCollectionsArgs()
+}
+
+func newVectorServiceGetCollectionsResult() interface{} {
+	return vector.NewVectorServiceGetCollectionsResult()
+}
+
 func publishHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*vector.VectorServicePublishArgs)
 
@@ -114,7 +139,7 @@ func newVectorServicePublishResult() interface{} {
 func getTileHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*vector.VectorServiceGetTileArgs)
 	realResult := result.(*vector.VectorServiceGetTileResult)
-	success, err := handler.(vector.VectorService).GetTile(ctx, realArg.Req)
+	success, err := handler.(vector.VectorService).GetTile(ctx, realArg.ServiceKey, realArg.X, realArg.Y, realArg.Zoom, realArg.Ext, realArg.Params)
 	if err != nil {
 		return err
 	}
@@ -139,6 +164,17 @@ func newServiceClient(c client.Client) *kClient {
 	}
 }
 
+func (p *kClient) GetCollections(ctx context.Context, pageSize int64, page int64) (r *vector.GetCollectionsResponse, err error) {
+	var _args vector.VectorServiceGetCollectionsArgs
+	_args.PageSize = pageSize
+	_args.Page = page
+	var _result vector.VectorServiceGetCollectionsResult
+	if err = p.c.Call(ctx, "GetCollections", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
 func (p *kClient) Publish(ctx context.Context, req string) (err error) {
 	var _args vector.VectorServicePublishArgs
 	_args.Req = req
@@ -149,9 +185,14 @@ func (p *kClient) Publish(ctx context.Context, req string) (err error) {
 	return nil
 }
 
-func (p *kClient) GetTile(ctx context.Context, req *vector.GetTileRequest) (r []byte, err error) {
+func (p *kClient) GetTile(ctx context.Context, serviceKey string, x int32, y int32, zoom int8, ext string, params *vector.QueryParameters) (r []byte, err error) {
 	var _args vector.VectorServiceGetTileArgs
-	_args.Req = req
+	_args.ServiceKey = serviceKey
+	_args.X = x
+	_args.Y = y
+	_args.Zoom = zoom
+	_args.Ext = ext
+	_args.Params = params
 	var _result vector.VectorServiceGetTileResult
 	if err = p.c.Call(ctx, "GetTile", &_args, &_result); err != nil {
 		return

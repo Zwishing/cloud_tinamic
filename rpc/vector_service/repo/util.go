@@ -1,4 +1,4 @@
-package main
+package repo
 
 import (
 	"bytes"
@@ -138,9 +138,9 @@ func renderSQLTemplate(name string, tmpl string, data interface{}) (string, erro
 
 func getServerBounds() (b *Bounds, e error) {
 
-	if globalServerBounds != nil {
-		return globalServerBounds, nil
-	}
+	//if globalServerBounds != nil {
+	//	return globalServerBounds, nil
+	//}
 
 	srid := viper.GetInt("CoordinateSystem.SRID")
 	xmin := viper.GetFloat64("CoordinateSystem.Xmin")
@@ -169,16 +169,16 @@ func getServerBounds() (b *Bounds, e error) {
 	xmax = cx + size/2
 	ymax = cy + size/2
 
-	globalServerBounds = &Bounds{srid, xmin, ymin, xmax, ymax}
+	globalServerBounds := &Bounds{srid, xmin, ymin, xmax, ymax}
 	return globalServerBounds, nil
 }
 
-func getTTL() (ttl int) {
-	if globalTimeToLive < 0 {
-		globalTimeToLive = viper.GetInt("CacheTTL")
-	}
-	return globalTimeToLive
-}
+//func getTTL() (ttl int) {
+//	if globalTimeToLive < 0 {
+//		globalTimeToLive = viper.GetInt("CacheTTL")
+//	}
+//	return globalTimeToLive
+//}
 
 /*****************************************************************************/
 //Prometheus metrics collection

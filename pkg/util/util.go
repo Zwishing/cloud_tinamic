@@ -54,3 +54,15 @@ func ReadFileWithTimeout(file *multipart.FileHeader, duration time.Duration) ([]
 		return data, nil // 返回读取的文件内容
 	}
 }
+
+func TileIsValid(x, y int32, zoom int8) bool {
+	if zoom > 32 || zoom < 0 {
+		return false
+	}
+	worldTileSize := int32(1) << uint32(zoom)
+	if x < 0 || x >= worldTileSize ||
+		y < 0 || y >= worldTileSize {
+		return false
+	}
+	return true
+}
