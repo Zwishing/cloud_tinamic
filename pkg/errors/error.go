@@ -2,8 +2,9 @@ package errors
 
 import (
 	"fmt"
-	"github.com/cloudwego/kitex/pkg/kerrors"
 	"strings"
+
+	"github.com/cloudwego/kitex/pkg/kerrors"
 )
 
 type ErrorCode = int32
@@ -37,14 +38,13 @@ var errorMessages = map[ErrorCode]string{
 	QueryFailedCode:        "查询失败",
 	ResourceExistsCode:     "资源已存在",
 	OperationFailedCode:    "操作失败",
-	UnknownCode:            "未知错误",
 }
 
 // Kerror 根据错误代码和消息返回相应的错误
 func Kerror(code ErrorCode, msg string) error {
 	errMsg, exists := errorMessages[code]
 	if !exists {
-		return ErrUnknown
+		return kerrors.NewBizStatusError(UnknownCode, "未知错误")
 	}
 	var builder strings.Builder
 	builder.WriteString(errMsg)
@@ -56,7 +56,7 @@ func Kerror(code ErrorCode, msg string) error {
 func Kerrorf(code ErrorCode, msg string, args ...any) error {
 	errMsg, exists := errorMessages[code]
 	if !exists {
-		return ErrUnknown
+		return kerrors.NewBizStatusError(UnknownCode, "未知错误")
 	}
 
 	var builder strings.Builder
@@ -80,5 +80,4 @@ var (
 	ErrQueryFailed        = Kerror(QueryFailedCode, "查询失败")
 	ErrResourceExists     = Kerror(ResourceExistsCode, "资源已存在")
 	ErrOperationFailed    = Kerror(OperationFailedCode, "操作失败")
-	ErrUnknown            = Kerror(UnknownCode, "未知错误")
 )
