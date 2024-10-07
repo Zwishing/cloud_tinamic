@@ -29,6 +29,8 @@ deadpool-postgres = "0.13.2"
 config = "0.14.0"
 tempfile = "3.10.1"
 tracing = "0.1.40"
+geo="0.28.0"
+image="0.25.1"
 
 
 [profile.release]

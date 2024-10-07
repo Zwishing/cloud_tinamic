@@ -1,5 +1,5 @@
 use std::borrow::Borrow;
-use std::ffi::{CString};
+use std::ffi::CString;
 use std::ptr::{null, null_mut};
 
 use gdal::{
@@ -38,6 +38,10 @@ impl VectorTranslateOptions{
                 c_options: gdal_sys::GDALVectorTranslateOptionsNew(c_args.as_mut_ptr(), null_mut()),
             })
         }
+    }
+
+    pub fn c_options(&self) -> *mut GDALVectorTranslateOptions{
+        self.c_options
     }
     
 }
