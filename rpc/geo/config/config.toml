@@ -5,7 +5,7 @@ password = "admin321"
 port=5432
 dbname = "tinamic"
 #[database]
-#host = "172.18.32.1"
+#host = "172.29.160.1"
 #user = "postgres"
 #password = "admin"
 #port=5433

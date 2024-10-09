@@ -8,10 +8,11 @@ import (
 	"cloud_tinamic/pkg/util/response"
 	"context"
 	"fmt"
-	"github.com/cloudwego/kitex/client"
-	"github.com/gofiber/fiber/v2"
 	"strings"
 	"sync"
+
+	"github.com/cloudwego/kitex/client"
+	"github.com/gofiber/fiber/v2"
 )
 
 var (
@@ -86,10 +87,10 @@ func AuthRoutePermission() fiber.Handler {
 			Act: ctx.Method(),
 		})
 		if err != nil {
-			return response.Fail(ctx, fmt.Sprintf("Authorization error: %v", err))
+			return response.FailWithNonAuthoritativeInformation(ctx, fmt.Sprintf("Authorization error: %v", err))
 		}
 		if !resp.Allow {
-			return response.Fail(ctx, "Access denied")
+			return response.FailWithNonAuthoritativeInformation(ctx, "Access denied")
 		}
 
 		return ctx.Next()
