@@ -4,53 +4,47 @@ package vector
 
 import (
 	"bytes"
+	"cloud_tinamic/kitex_gen/base"
+	"cloud_tinamic/kitex_gen/data/source"
+	"cloud_tinamic/kitex_gen/service"
 	"context"
 	"fmt"
 	thrift "github.com/cloudwego/kitex/pkg/protocol/bthrift/apache"
 	"strings"
 )
 
-type Tile struct {
-	X int64 `thrift:"x,1" frugal:"1,default,i64" json:"x"`
-	Y int64 `thrift:"y,2" frugal:"2,default,i64" json:"y"`
-	Z int8  `thrift:"z,3" frugal:"3,default,i8" json:"z"`
+type SpatialExtent struct {
+	Bbox []float64 `thrift:"bbox,1" frugal:"1,default,list<double>" json:"bbox"`
+	Crs  string    `thrift:"crs,2" frugal:"2,default,string" json:"crs"`
 }
 
-func NewTile() *Tile {
-	return &Tile{}
+func NewSpatialExtent() *SpatialExtent {
+	return &SpatialExtent{}
 }
 
-func (p *Tile) InitDefault() {
+func (p *SpatialExtent) InitDefault() {
 }
 
-func (p *Tile) GetX() (v int64) {
-	return p.X
+func (p *SpatialExtent) GetBbox() (v []float64) {
+	return p.Bbox
 }
 
-func (p *Tile) GetY() (v int64) {
-	return p.Y
+func (p *SpatialExtent) GetCrs() (v string) {
+	return p.Crs
+}
+func (p *SpatialExtent) SetBbox(val []float64) {
+	p.Bbox = val
+}
+func (p *SpatialExtent) SetCrs(val string) {
+	p.Crs = val
 }
 
-func (p *Tile) GetZ() (v int8) {
-	return p.Z
-}
-func (p *Tile) SetX(val int64) {
-	p.X = val
-}
-func (p *Tile) SetY(val int64) {
-	p.Y = val
-}
-func (p *Tile) SetZ(val int8) {
-	p.Z = val
+var fieldIDToName_SpatialExtent = map[int16]string{
+	1: "bbox",
+	2: "crs",
 }
 
-var fieldIDToName_Tile = map[int16]string{
-	1: "x",
-	2: "y",
-	3: "z",
-}
-
-func (p *Tile) Read(iprot thrift.TProtocol) (err error) {
+func (p *SpatialExtent) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
@@ -70,7 +64,7 @@ func (p *Tile) Read(iprot thrift.TProtocol) (err error) {
 
 		switch fieldId {
 		case 1:
-			if fieldTypeId == thrift.I64 {
+			if fieldTypeId == thrift.LIST {
 				if err = p.ReadField1(iprot); err != nil {
 					goto ReadFieldError
 				}
@@ -78,7 +72,478 @@ func (p *Tile) Read(iprot thrift.TProtocol) (err error) {
 				goto SkipFieldError
 			}
 		case 2:
-			if fieldTypeId == thrift.I64 {
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SpatialExtent[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *SpatialExtent) ReadField1(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]float64, 0, size)
+	for i := 0; i < size; i++ {
+
+		var _elem float64
+		if v, err := iprot.ReadDouble(); err != nil {
+			return err
+		} else {
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.Bbox = _field
+	return nil
+}
+func (p *SpatialExtent) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Crs = _field
+	return nil
+}
+
+func (p *SpatialExtent) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("SpatialExtent"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *SpatialExtent) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("bbox", thrift.LIST, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteListBegin(thrift.DOUBLE, len(p.Bbox)); err != nil {
+		return err
+	}
+	for _, v := range p.Bbox {
+		if err := oprot.WriteDouble(v); err != nil {
+			return err
+		}
+	}
+	if err := oprot.WriteListEnd(); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *SpatialExtent) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("crs", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Crs); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *SpatialExtent) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("SpatialExtent(%+v)", *p)
+
+}
+
+func (p *SpatialExtent) DeepEqual(ano *SpatialExtent) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Bbox) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.Crs) {
+		return false
+	}
+	return true
+}
+
+func (p *SpatialExtent) Field1DeepEqual(src []float64) bool {
+
+	if len(p.Bbox) != len(src) {
+		return false
+	}
+	for i, v := range p.Bbox {
+		_src := src[i]
+		if v != _src {
+			return false
+		}
+	}
+	return true
+}
+func (p *SpatialExtent) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.Crs, src) != 0 {
+		return false
+	}
+	return true
+}
+
+type Extent struct {
+	SpatialExtent *SpatialExtent `thrift:"spatial_extent,1" frugal:"1,default,SpatialExtent" json:"spatial_extent"`
+}
+
+func NewExtent() *Extent {
+	return &Extent{}
+}
+
+func (p *Extent) InitDefault() {
+}
+
+var Extent_SpatialExtent_DEFAULT *SpatialExtent
+
+func (p *Extent) GetSpatialExtent() (v *SpatialExtent) {
+	if !p.IsSetSpatialExtent() {
+		return Extent_SpatialExtent_DEFAULT
+	}
+	return p.SpatialExtent
+}
+func (p *Extent) SetSpatialExtent(val *SpatialExtent) {
+	p.SpatialExtent = val
+}
+
+var fieldIDToName_Extent = map[int16]string{
+	1: "spatial_extent",
+}
+
+func (p *Extent) IsSetSpatialExtent() bool {
+	return p.SpatialExtent != nil
+}
+
+func (p *Extent) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_Extent[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *Extent) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewSpatialExtent()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.SpatialExtent = _field
+	return nil
+}
+
+func (p *Extent) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("Extent"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *Extent) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("spatial_extent", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.SpatialExtent.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *Extent) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("Extent(%+v)", *p)
+
+}
+
+func (p *Extent) DeepEqual(ano *Extent) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.SpatialExtent) {
+		return false
+	}
+	return true
+}
+
+func (p *Extent) Field1DeepEqual(src *SpatialExtent) bool {
+
+	if !p.SpatialExtent.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type Collection struct {
+	ServiceKey      string                  `thrift:"service_key,1" frugal:"1,default,string" json:"service_key"`
+	Title           string                  `thrift:"title,2" frugal:"2,default,string" json:"title"`
+	SourceCategory  source.SourceCategory   `thrift:"source_category,3" frugal:"3,default,SourceCategory" json:"source_category"`
+	ServiceCategory service.ServiceCategory `thrift:"service_category,4" frugal:"4,default,ServiceCategory" json:"service_category"`
+	Crs             string                  `thrift:"crs,5" frugal:"5,default,string" json:"crs"`
+	Extent          *Extent                 `thrift:"extent,6" frugal:"6,default,Extent" json:"extent"`
+	Thumbnail       []byte                  `thrift:"thumbnail,7" frugal:"7,default,binary" json:"thumbnail"`
+}
+
+func NewCollection() *Collection {
+	return &Collection{}
+}
+
+func (p *Collection) InitDefault() {
+}
+
+func (p *Collection) GetServiceKey() (v string) {
+	return p.ServiceKey
+}
+
+func (p *Collection) GetTitle() (v string) {
+	return p.Title
+}
+
+func (p *Collection) GetSourceCategory() (v source.SourceCategory) {
+	return p.SourceCategory
+}
+
+func (p *Collection) GetServiceCategory() (v service.ServiceCategory) {
+	return p.ServiceCategory
+}
+
+func (p *Collection) GetCrs() (v string) {
+	return p.Crs
+}
+
+var Collection_Extent_DEFAULT *Extent
+
+func (p *Collection) GetExtent() (v *Extent) {
+	if !p.IsSetExtent() {
+		return Collection_Extent_DEFAULT
+	}
+	return p.Extent
+}
+
+func (p *Collection) GetThumbnail() (v []byte) {
+	return p.Thumbnail
+}
+func (p *Collection) SetServiceKey(val string) {
+	p.ServiceKey = val
+}
+func (p *Collection) SetTitle(val string) {
+	p.Title = val
+}
+func (p *Collection) SetSourceCategory(val source.SourceCategory) {
+	p.SourceCategory = val
+}
+func (p *Collection) SetServiceCategory(val service.ServiceCategory) {
+	p.ServiceCategory = val
+}
+func (p *Collection) SetCrs(val string) {
+	p.Crs = val
+}
+func (p *Collection) SetExtent(val *Extent) {
+	p.Extent = val
+}
+func (p *Collection) SetThumbnail(val []byte) {
+	p.Thumbnail = val
+}
+
+var fieldIDToName_Collection = map[int16]string{
+	1: "service_key",
+	2: "title",
+	3: "source_category",
+	4: "service_category",
+	5: "crs",
+	6: "extent",
+	7: "thumbnail",
+}
+
+func (p *Collection) IsSetExtent() bool {
+	return p.Extent != nil
+}
+
+func (p *Collection) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
@@ -86,7 +551,978 @@ func (p *Tile) Read(iprot thrift.TProtocol) (err error) {
 				goto SkipFieldError
 			}
 		case 3:
-			if fieldTypeId == thrift.BYTE {
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 6:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 7:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField7(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_Collection[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *Collection) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ServiceKey = _field
+	return nil
+}
+func (p *Collection) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Title = _field
+	return nil
+}
+func (p *Collection) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field source.SourceCategory
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = source.SourceCategory(v)
+	}
+	p.SourceCategory = _field
+	return nil
+}
+func (p *Collection) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field service.ServiceCategory
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = service.ServiceCategory(v)
+	}
+	p.ServiceCategory = _field
+	return nil
+}
+func (p *Collection) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Crs = _field
+	return nil
+}
+func (p *Collection) ReadField6(iprot thrift.TProtocol) error {
+	_field := NewExtent()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Extent = _field
+	return nil
+}
+func (p *Collection) ReadField7(iprot thrift.TProtocol) error {
+
+	var _field []byte
+	if v, err := iprot.ReadBinary(); err != nil {
+		return err
+	} else {
+		_field = []byte(v)
+	}
+	p.Thumbnail = _field
+	return nil
+}
+
+func (p *Collection) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("Collection"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField6(oprot); err != nil {
+			fieldId = 6
+			goto WriteFieldError
+		}
+		if err = p.writeField7(oprot); err != nil {
+			fieldId = 7
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *Collection) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("service_key", thrift.STRING, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.ServiceKey); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *Collection) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("title", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Title); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *Collection) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("source_category", thrift.I32, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(int32(p.SourceCategory)); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *Collection) writeField4(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("service_category", thrift.I32, 4); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(int32(p.ServiceCategory)); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+
+func (p *Collection) writeField5(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("crs", thrift.STRING, 5); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Crs); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+
+func (p *Collection) writeField6(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("extent", thrift.STRUCT, 6); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Extent.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
+}
+
+func (p *Collection) writeField7(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("thumbnail", thrift.STRING, 7); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteBinary([]byte(p.Thumbnail)); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 7 end error: ", p), err)
+}
+
+func (p *Collection) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("Collection(%+v)", *p)
+
+}
+
+func (p *Collection) DeepEqual(ano *Collection) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.ServiceKey) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.Title) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.SourceCategory) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.ServiceCategory) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.Crs) {
+		return false
+	}
+	if !p.Field6DeepEqual(ano.Extent) {
+		return false
+	}
+	if !p.Field7DeepEqual(ano.Thumbnail) {
+		return false
+	}
+	return true
+}
+
+func (p *Collection) Field1DeepEqual(src string) bool {
+
+	if strings.Compare(p.ServiceKey, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *Collection) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.Title, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *Collection) Field3DeepEqual(src source.SourceCategory) bool {
+
+	if p.SourceCategory != src {
+		return false
+	}
+	return true
+}
+func (p *Collection) Field4DeepEqual(src service.ServiceCategory) bool {
+
+	if p.ServiceCategory != src {
+		return false
+	}
+	return true
+}
+func (p *Collection) Field5DeepEqual(src string) bool {
+
+	if strings.Compare(p.Crs, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *Collection) Field6DeepEqual(src *Extent) bool {
+
+	if !p.Extent.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *Collection) Field7DeepEqual(src []byte) bool {
+
+	if bytes.Compare(p.Thumbnail, src) != 0 {
+		return false
+	}
+	return true
+}
+
+type QueryParameters struct {
+	Limit      int32    `thrift:"limit,1" frugal:"1,default,i32" json:"limit"`
+	Properties []string `thrift:"properties,2" frugal:"2,default,list<string>" json:"properties"`
+	Resolution int32    `thrift:"resolution,3" frugal:"3,default,i32" json:"resolution"`
+	Buffer     int32    `thrift:"buffer,4" frugal:"4,default,i32" json:"buffer"`
+	Filter     string   `thrift:"filter,5" frugal:"5,default,string" json:"filter"`
+	FilterCrs  int32    `thrift:"filterCrs,6" frugal:"6,default,i32" json:"filterCrs"`
+}
+
+func NewQueryParameters() *QueryParameters {
+	return &QueryParameters{}
+}
+
+func (p *QueryParameters) InitDefault() {
+}
+
+func (p *QueryParameters) GetLimit() (v int32) {
+	return p.Limit
+}
+
+func (p *QueryParameters) GetProperties() (v []string) {
+	return p.Properties
+}
+
+func (p *QueryParameters) GetResolution() (v int32) {
+	return p.Resolution
+}
+
+func (p *QueryParameters) GetBuffer() (v int32) {
+	return p.Buffer
+}
+
+func (p *QueryParameters) GetFilter() (v string) {
+	return p.Filter
+}
+
+func (p *QueryParameters) GetFilterCrs() (v int32) {
+	return p.FilterCrs
+}
+func (p *QueryParameters) SetLimit(val int32) {
+	p.Limit = val
+}
+func (p *QueryParameters) SetProperties(val []string) {
+	p.Properties = val
+}
+func (p *QueryParameters) SetResolution(val int32) {
+	p.Resolution = val
+}
+func (p *QueryParameters) SetBuffer(val int32) {
+	p.Buffer = val
+}
+func (p *QueryParameters) SetFilter(val string) {
+	p.Filter = val
+}
+func (p *QueryParameters) SetFilterCrs(val int32) {
+	p.FilterCrs = val
+}
+
+var fieldIDToName_QueryParameters = map[int16]string{
+	1: "limit",
+	2: "properties",
+	3: "resolution",
+	4: "buffer",
+	5: "filter",
+	6: "filterCrs",
+}
+
+func (p *QueryParameters) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 6:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField6(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_QueryParameters[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *QueryParameters) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Limit = _field
+	return nil
+}
+func (p *QueryParameters) ReadField2(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]string, 0, size)
+	for i := 0; i < size; i++ {
+
+		var _elem string
+		if v, err := iprot.ReadString(); err != nil {
+			return err
+		} else {
+			_elem = v
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.Properties = _field
+	return nil
+}
+func (p *QueryParameters) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Resolution = _field
+	return nil
+}
+func (p *QueryParameters) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Buffer = _field
+	return nil
+}
+func (p *QueryParameters) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Filter = _field
+	return nil
+}
+func (p *QueryParameters) ReadField6(iprot thrift.TProtocol) error {
+
+	var _field int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.FilterCrs = _field
+	return nil
+}
+
+func (p *QueryParameters) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("QueryParameters"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField6(oprot); err != nil {
+			fieldId = 6
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *QueryParameters) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("limit", thrift.I32, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(p.Limit); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *QueryParameters) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("properties", thrift.LIST, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteListBegin(thrift.STRING, len(p.Properties)); err != nil {
+		return err
+	}
+	for _, v := range p.Properties {
+		if err := oprot.WriteString(v); err != nil {
+			return err
+		}
+	}
+	if err := oprot.WriteListEnd(); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *QueryParameters) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("resolution", thrift.I32, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(p.Resolution); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *QueryParameters) writeField4(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("buffer", thrift.I32, 4); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(p.Buffer); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+
+func (p *QueryParameters) writeField5(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("filter", thrift.STRING, 5); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Filter); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+
+func (p *QueryParameters) writeField6(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("filterCrs", thrift.I32, 6); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(p.FilterCrs); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
+}
+
+func (p *QueryParameters) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("QueryParameters(%+v)", *p)
+
+}
+
+func (p *QueryParameters) DeepEqual(ano *QueryParameters) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Limit) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.Properties) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Resolution) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.Buffer) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.Filter) {
+		return false
+	}
+	if !p.Field6DeepEqual(ano.FilterCrs) {
+		return false
+	}
+	return true
+}
+
+func (p *QueryParameters) Field1DeepEqual(src int32) bool {
+
+	if p.Limit != src {
+		return false
+	}
+	return true
+}
+func (p *QueryParameters) Field2DeepEqual(src []string) bool {
+
+	if len(p.Properties) != len(src) {
+		return false
+	}
+	for i, v := range p.Properties {
+		_src := src[i]
+		if strings.Compare(v, _src) != 0 {
+			return false
+		}
+	}
+	return true
+}
+func (p *QueryParameters) Field3DeepEqual(src int32) bool {
+
+	if p.Resolution != src {
+		return false
+	}
+	return true
+}
+func (p *QueryParameters) Field4DeepEqual(src int32) bool {
+
+	if p.Buffer != src {
+		return false
+	}
+	return true
+}
+func (p *QueryParameters) Field5DeepEqual(src string) bool {
+
+	if strings.Compare(p.Filter, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *QueryParameters) Field6DeepEqual(src int32) bool {
+
+	if p.FilterCrs != src {
+		return false
+	}
+	return true
+}
+
+type GetCollectionsResponse struct {
+	Base           *base.BaseResp `thrift:"base,1" frugal:"1,default,base.BaseResp" json:"base"`
+	Collections    []*Collection  `thrift:"collections,2" frugal:"2,default,list<Collection>" json:"collections"`
+	NumberReturned int64          `thrift:"number_returned,3" frugal:"3,default,i64" json:"number_returned"`
+}
+
+func NewGetCollectionsResponse() *GetCollectionsResponse {
+	return &GetCollectionsResponse{}
+}
+
+func (p *GetCollectionsResponse) InitDefault() {
+}
+
+var GetCollectionsResponse_Base_DEFAULT *base.BaseResp
+
+func (p *GetCollectionsResponse) GetBase() (v *base.BaseResp) {
+	if !p.IsSetBase() {
+		return GetCollectionsResponse_Base_DEFAULT
+	}
+	return p.Base
+}
+
+func (p *GetCollectionsResponse) GetCollections() (v []*Collection) {
+	return p.Collections
+}
+
+func (p *GetCollectionsResponse) GetNumberReturned() (v int64) {
+	return p.NumberReturned
+}
+func (p *GetCollectionsResponse) SetBase(val *base.BaseResp) {
+	p.Base = val
+}
+func (p *GetCollectionsResponse) SetCollections(val []*Collection) {
+	p.Collections = val
+}
+func (p *GetCollectionsResponse) SetNumberReturned(val int64) {
+	p.NumberReturned = val
+}
+
+var fieldIDToName_GetCollectionsResponse = map[int16]string{
+	1: "base",
+	2: "collections",
+	3: "number_returned",
+}
+
+func (p *GetCollectionsResponse) IsSetBase() bool {
+	return p.Base != nil
+}
+
+func (p *GetCollectionsResponse) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.LIST {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
 				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
@@ -112,7 +1548,7 @@ ReadStructBeginError:
 ReadFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_Tile[fieldId]), err)
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetCollectionsResponse[fieldId]), err)
 SkipFieldError:
 	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 
@@ -122,7 +1558,38 @@ ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
 }
 
-func (p *Tile) ReadField1(iprot thrift.TProtocol) error {
+func (p *GetCollectionsResponse) ReadField1(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Base = _field
+	return nil
+}
+func (p *GetCollectionsResponse) ReadField2(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
+		return err
+	}
+	_field := make([]*Collection, 0, size)
+	values := make([]Collection, size)
+	for i := 0; i < size; i++ {
+		_elem := &values[i]
+		_elem.InitDefault()
+
+		if err := _elem.Read(iprot); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
+	}
+	p.Collections = _field
+	return nil
+}
+func (p *GetCollectionsResponse) ReadField3(iprot thrift.TProtocol) error {
 
 	var _field int64
 	if v, err := iprot.ReadI64(); err != nil {
@@ -130,35 +1597,13 @@ func (p *Tile) ReadField1(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.X = _field
-	return nil
-}
-func (p *Tile) ReadField2(iprot thrift.TProtocol) error {
-
-	var _field int64
-	if v, err := iprot.ReadI64(); err != nil {
-		return err
-	} else {
-		_field = v
-	}
-	p.Y = _field
-	return nil
-}
-func (p *Tile) ReadField3(iprot thrift.TProtocol) error {
-
-	var _field int8
-	if v, err := iprot.ReadByte(); err != nil {
-		return err
-	} else {
-		_field = v
-	}
-	p.Z = _field
+	p.NumberReturned = _field
 	return nil
 }
 
-func (p *Tile) Write(oprot thrift.TProtocol) (err error) {
+func (p *GetCollectionsResponse) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
-	if err = oprot.WriteStructBegin("Tile"); err != nil {
+	if err = oprot.WriteStructBegin("GetCollectionsResponse"); err != nil {
 		goto WriteStructBeginError
 	}
 	if p != nil {
@@ -192,11 +1637,11 @@ WriteStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
 }
 
-func (p *Tile) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("x", thrift.I64, 1); err != nil {
+func (p *GetCollectionsResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("base", thrift.STRUCT, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteI64(p.X); err != nil {
+	if err := p.Base.Write(oprot); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -209,11 +1654,19 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
-func (p *Tile) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("y", thrift.I64, 2); err != nil {
+func (p *GetCollectionsResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("collections", thrift.LIST, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteI64(p.Y); err != nil {
+	if err := oprot.WriteListBegin(thrift.STRUCT, len(p.Collections)); err != nil {
+		return err
+	}
+	for _, v := range p.Collections {
+		if err := v.Write(oprot); err != nil {
+			return err
+		}
+	}
+	if err := oprot.WriteListEnd(); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -226,11 +1679,11 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 
-func (p *Tile) writeField3(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("z", thrift.BYTE, 3); err != nil {
+func (p *GetCollectionsResponse) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("number_returned", thrift.I64, 3); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteByte(p.Z); err != nil {
+	if err := oprot.WriteI64(p.NumberReturned); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -243,95 +1696,100 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
 }
 
-func (p *Tile) String() string {
+func (p *GetCollectionsResponse) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("Tile(%+v)", *p)
+	return fmt.Sprintf("GetCollectionsResponse(%+v)", *p)
 
 }
 
-func (p *Tile) DeepEqual(ano *Tile) bool {
+func (p *GetCollectionsResponse) DeepEqual(ano *GetCollectionsResponse) bool {
 	if p == ano {
 		return true
 	} else if p == nil || ano == nil {
 		return false
 	}
-	if !p.Field1DeepEqual(ano.X) {
+	if !p.Field1DeepEqual(ano.Base) {
 		return false
 	}
-	if !p.Field2DeepEqual(ano.Y) {
+	if !p.Field2DeepEqual(ano.Collections) {
 		return false
 	}
-	if !p.Field3DeepEqual(ano.Z) {
-		return false
-	}
-	return true
-}
-
-func (p *Tile) Field1DeepEqual(src int64) bool {
-
-	if p.X != src {
-		return false
-	}
-	return true
-}
-func (p *Tile) Field2DeepEqual(src int64) bool {
-
-	if p.Y != src {
-		return false
-	}
-	return true
-}
-func (p *Tile) Field3DeepEqual(src int8) bool {
-
-	if p.Z != src {
+	if !p.Field3DeepEqual(ano.NumberReturned) {
 		return false
 	}
 	return true
 }
 
-type GetTileRequest struct {
-	ServiceId string `thrift:"service_id,1" frugal:"1,default,string" json:"service_id"`
-	Tile      *Tile  `thrift:"tile,2" frugal:"2,default,Tile" json:"tile"`
-}
+func (p *GetCollectionsResponse) Field1DeepEqual(src *base.BaseResp) bool {
 
-func NewGetTileRequest() *GetTileRequest {
-	return &GetTileRequest{}
-}
-
-func (p *GetTileRequest) InitDefault() {
-}
-
-func (p *GetTileRequest) GetServiceId() (v string) {
-	return p.ServiceId
-}
-
-var GetTileRequest_Tile_DEFAULT *Tile
-
-func (p *GetTileRequest) GetTile() (v *Tile) {
-	if !p.IsSetTile() {
-		return GetTileRequest_Tile_DEFAULT
+	if !p.Base.DeepEqual(src) {
+		return false
 	}
-	return p.Tile
+	return true
 }
-func (p *GetTileRequest) SetServiceId(val string) {
-	p.ServiceId = val
+func (p *GetCollectionsResponse) Field2DeepEqual(src []*Collection) bool {
+
+	if len(p.Collections) != len(src) {
+		return false
+	}
+	for i, v := range p.Collections {
+		_src := src[i]
+		if !v.DeepEqual(_src) {
+			return false
+		}
+	}
+	return true
 }
-func (p *GetTileRequest) SetTile(val *Tile) {
-	p.Tile = val
+func (p *GetCollectionsResponse) Field3DeepEqual(src int64) bool {
+
+	if p.NumberReturned != src {
+		return false
+	}
+	return true
 }
 
-var fieldIDToName_GetTileRequest = map[int16]string{
-	1: "service_id",
-	2: "tile",
+type VectorService interface {
+	GetCollections(ctx context.Context, pageSize int64, page int64) (r *GetCollectionsResponse, err error)
+
+	Publish(ctx context.Context, req string) (err error)
+
+	GetTile(ctx context.Context, serviceKey string, x int32, y int32, zoom int8, ext string, params *QueryParameters) (r []byte, err error)
 }
 
-func (p *GetTileRequest) IsSetTile() bool {
-	return p.Tile != nil
+type VectorServiceGetCollectionsArgs struct {
+	PageSize int64 `thrift:"pageSize,1" frugal:"1,default,i64" json:"pageSize"`
+	Page     int64 `thrift:"page,2" frugal:"2,default,i64" json:"page"`
 }
 
-func (p *GetTileRequest) Read(iprot thrift.TProtocol) (err error) {
+func NewVectorServiceGetCollectionsArgs() *VectorServiceGetCollectionsArgs {
+	return &VectorServiceGetCollectionsArgs{}
+}
+
+func (p *VectorServiceGetCollectionsArgs) InitDefault() {
+}
+
+func (p *VectorServiceGetCollectionsArgs) GetPageSize() (v int64) {
+	return p.PageSize
+}
+
+func (p *VectorServiceGetCollectionsArgs) GetPage() (v int64) {
+	return p.Page
+}
+func (p *VectorServiceGetCollectionsArgs) SetPageSize(val int64) {
+	p.PageSize = val
+}
+func (p *VectorServiceGetCollectionsArgs) SetPage(val int64) {
+	p.Page = val
+}
+
+var fieldIDToName_VectorServiceGetCollectionsArgs = map[int16]string{
+	1: "pageSize",
+	2: "page",
+}
+
+func (p *VectorServiceGetCollectionsArgs) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
@@ -351,7 +1809,7 @@ func (p *GetTileRequest) Read(iprot thrift.TProtocol) (err error) {
 
 		switch fieldId {
 		case 1:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.I64 {
 				if err = p.ReadField1(iprot); err != nil {
 					goto ReadFieldError
 				}
@@ -359,7 +1817,7 @@ func (p *GetTileRequest) Read(iprot thrift.TProtocol) (err error) {
 				goto SkipFieldError
 			}
 		case 2:
-			if fieldTypeId == thrift.STRUCT {
+			if fieldTypeId == thrift.I64 {
 				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
@@ -385,7 +1843,7 @@ ReadStructBeginError:
 ReadFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_GetTileRequest[fieldId]), err)
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_VectorServiceGetCollectionsArgs[fieldId]), err)
 SkipFieldError:
 	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 
@@ -395,29 +1853,32 @@ ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
 }
 
-func (p *GetTileRequest) ReadField1(iprot thrift.TProtocol) error {
+func (p *VectorServiceGetCollectionsArgs) ReadField1(iprot thrift.TProtocol) error {
 
-	var _field string
-	if v, err := iprot.ReadString(); err != nil {
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
 		return err
 	} else {
 		_field = v
 	}
-	p.ServiceId = _field
+	p.PageSize = _field
 	return nil
 }
-func (p *GetTileRequest) ReadField2(iprot thrift.TProtocol) error {
-	_field := NewTile()
-	if err := _field.Read(iprot); err != nil {
+func (p *VectorServiceGetCollectionsArgs) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
 		return err
+	} else {
+		_field = v
 	}
-	p.Tile = _field
+	p.Page = _field
 	return nil
 }
 
-func (p *GetTileRequest) Write(oprot thrift.TProtocol) (err error) {
+func (p *VectorServiceGetCollectionsArgs) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
-	if err = oprot.WriteStructBegin("GetTileRequest"); err != nil {
+	if err = oprot.WriteStructBegin("GetCollections_args"); err != nil {
 		goto WriteStructBeginError
 	}
 	if p != nil {
@@ -447,11 +1908,11 @@ WriteStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
 }
 
-func (p *GetTileRequest) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("service_id", thrift.STRING, 1); err != nil {
+func (p *VectorServiceGetCollectionsArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("pageSize", thrift.I64, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.ServiceId); err != nil {
+	if err := oprot.WriteI64(p.PageSize); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -464,11 +1925,11 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
-func (p *GetTileRequest) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("tile", thrift.STRUCT, 2); err != nil {
+func (p *VectorServiceGetCollectionsArgs) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("page", thrift.I64, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := p.Tile.Write(oprot); err != nil {
+	if err := oprot.WriteI64(p.Page); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -481,48 +1942,213 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 
-func (p *GetTileRequest) String() string {
+func (p *VectorServiceGetCollectionsArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("GetTileRequest(%+v)", *p)
+	return fmt.Sprintf("VectorServiceGetCollectionsArgs(%+v)", *p)
 
 }
 
-func (p *GetTileRequest) DeepEqual(ano *GetTileRequest) bool {
+func (p *VectorServiceGetCollectionsArgs) DeepEqual(ano *VectorServiceGetCollectionsArgs) bool {
 	if p == ano {
 		return true
 	} else if p == nil || ano == nil {
 		return false
 	}
-	if !p.Field1DeepEqual(ano.ServiceId) {
+	if !p.Field1DeepEqual(ano.PageSize) {
 		return false
 	}
-	if !p.Field2DeepEqual(ano.Tile) {
-		return false
-	}
-	return true
-}
-
-func (p *GetTileRequest) Field1DeepEqual(src string) bool {
-
-	if strings.Compare(p.ServiceId, src) != 0 {
-		return false
-	}
-	return true
-}
-func (p *GetTileRequest) Field2DeepEqual(src *Tile) bool {
-
-	if !p.Tile.DeepEqual(src) {
+	if !p.Field2DeepEqual(ano.Page) {
 		return false
 	}
 	return true
 }
 
-type VectorService interface {
-	Publish(ctx context.Context, req string) (err error)
+func (p *VectorServiceGetCollectionsArgs) Field1DeepEqual(src int64) bool {
 
-	GetTile(ctx context.Context, req *GetTileRequest) (r []byte, err error)
+	if p.PageSize != src {
+		return false
+	}
+	return true
+}
+func (p *VectorServiceGetCollectionsArgs) Field2DeepEqual(src int64) bool {
+
+	if p.Page != src {
+		return false
+	}
+	return true
+}
+
+type VectorServiceGetCollectionsResult struct {
+	Success *GetCollectionsResponse `thrift:"success,0,optional" frugal:"0,optional,GetCollectionsResponse" json:"success,omitempty"`
+}
+
+func NewVectorServiceGetCollectionsResult() *VectorServiceGetCollectionsResult {
+	return &VectorServiceGetCollectionsResult{}
+}
+
+func (p *VectorServiceGetCollectionsResult) InitDefault() {
+}
+
+var VectorServiceGetCollectionsResult_Success_DEFAULT *GetCollectionsResponse
+
+func (p *VectorServiceGetCollectionsResult) GetSuccess() (v *GetCollectionsResponse) {
+	if !p.IsSetSuccess() {
+		return VectorServiceGetCollectionsResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *VectorServiceGetCollectionsResult) SetSuccess(x interface{}) {
+	p.Success = x.(*GetCollectionsResponse)
+}
+
+var fieldIDToName_VectorServiceGetCollectionsResult = map[int16]string{
+	0: "success",
+}
+
+func (p *VectorServiceGetCollectionsResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *VectorServiceGetCollectionsResult) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_VectorServiceGetCollectionsResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *VectorServiceGetCollectionsResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewGetCollectionsResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *VectorServiceGetCollectionsResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("GetCollections_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *VectorServiceGetCollectionsResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *VectorServiceGetCollectionsResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("VectorServiceGetCollectionsResult(%+v)", *p)
+
+}
+
+func (p *VectorServiceGetCollectionsResult) DeepEqual(ano *VectorServiceGetCollectionsResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *VectorServiceGetCollectionsResult) Field0DeepEqual(src *GetCollectionsResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
 }
 
 type VectorServicePublishArgs struct {
@@ -781,7 +2407,12 @@ func (p *VectorServicePublishResult) DeepEqual(ano *VectorServicePublishResult) 
 }
 
 type VectorServiceGetTileArgs struct {
-	Req *GetTileRequest `thrift:"req,1" frugal:"1,default,GetTileRequest" json:"req"`
+	ServiceKey string           `thrift:"service_key,1" frugal:"1,default,string" json:"service_key"`
+	X          int32            `thrift:"x,2" frugal:"2,default,i32" json:"x"`
+	Y          int32            `thrift:"y,3" frugal:"3,default,i32" json:"y"`
+	Zoom       int8             `thrift:"zoom,4" frugal:"4,default,i8" json:"zoom"`
+	Ext        string           `thrift:"ext,5" frugal:"5,default,string" json:"ext"`
+	Params     *QueryParameters `thrift:"params,6" frugal:"6,default,QueryParameters" json:"params"`
 }
 
 func NewVectorServiceGetTileArgs() *VectorServiceGetTileArgs {
@@ -791,24 +2422,64 @@ func NewVectorServiceGetTileArgs() *VectorServiceGetTileArgs {
 func (p *VectorServiceGetTileArgs) InitDefault() {
 }
 
-var VectorServiceGetTileArgs_Req_DEFAULT *GetTileRequest
-
-func (p *VectorServiceGetTileArgs) GetReq() (v *GetTileRequest) {
-	if !p.IsSetReq() {
-		return VectorServiceGetTileArgs_Req_DEFAULT
-	}
-	return p.Req
+func (p *VectorServiceGetTileArgs) GetServiceKey() (v string) {
+	return p.ServiceKey
 }
-func (p *VectorServiceGetTileArgs) SetReq(val *GetTileRequest) {
-	p.Req = val
+
+func (p *VectorServiceGetTileArgs) GetX() (v int32) {
+	return p.X
+}
+
+func (p *VectorServiceGetTileArgs) GetY() (v int32) {
+	return p.Y
+}
+
+func (p *VectorServiceGetTileArgs) GetZoom() (v int8) {
+	return p.Zoom
+}
+
+func (p *VectorServiceGetTileArgs) GetExt() (v string) {
+	return p.Ext
+}
+
+var VectorServiceGetTileArgs_Params_DEFAULT *QueryParameters
+
+func (p *VectorServiceGetTileArgs) GetParams() (v *QueryParameters) {
+	if !p.IsSetParams() {
+		return VectorServiceGetTileArgs_Params_DEFAULT
+	}
+	return p.Params
+}
+func (p *VectorServiceGetTileArgs) SetServiceKey(val string) {
+	p.ServiceKey = val
+}
+func (p *VectorServiceGetTileArgs) SetX(val int32) {
+	p.X = val
+}
+func (p *VectorServiceGetTileArgs) SetY(val int32) {
+	p.Y = val
+}
+func (p *VectorServiceGetTileArgs) SetZoom(val int8) {
+	p.Zoom = val
+}
+func (p *VectorServiceGetTileArgs) SetExt(val string) {
+	p.Ext = val
+}
+func (p *VectorServiceGetTileArgs) SetParams(val *QueryParameters) {
+	p.Params = val
 }
 
 var fieldIDToName_VectorServiceGetTileArgs = map[int16]string{
-	1: "req",
+	1: "service_key",
+	2: "x",
+	3: "y",
+	4: "zoom",
+	5: "ext",
+	6: "params",
 }
 
-func (p *VectorServiceGetTileArgs) IsSetReq() bool {
-	return p.Req != nil
+func (p *VectorServiceGetTileArgs) IsSetParams() bool {
+	return p.Params != nil
 }
 
 func (p *VectorServiceGetTileArgs) Read(iprot thrift.TProtocol) (err error) {
@@ -831,8 +2502,48 @@ func (p *VectorServiceGetTileArgs) Read(iprot thrift.TProtocol) (err error) {
 
 		switch fieldId {
 		case 1:
-			if fieldTypeId == thrift.STRUCT {
+			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.BYTE {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 5:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField5(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 6:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField6(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -868,11 +2579,66 @@ ReadStructEndError:
 }
 
 func (p *VectorServiceGetTileArgs) ReadField1(iprot thrift.TProtocol) error {
-	_field := NewGetTileRequest()
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.ServiceKey = _field
+	return nil
+}
+func (p *VectorServiceGetTileArgs) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.X = _field
+	return nil
+}
+func (p *VectorServiceGetTileArgs) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field int32
+	if v, err := iprot.ReadI32(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Y = _field
+	return nil
+}
+func (p *VectorServiceGetTileArgs) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field int8
+	if v, err := iprot.ReadByte(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Zoom = _field
+	return nil
+}
+func (p *VectorServiceGetTileArgs) ReadField5(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Ext = _field
+	return nil
+}
+func (p *VectorServiceGetTileArgs) ReadField6(iprot thrift.TProtocol) error {
+	_field := NewQueryParameters()
 	if err := _field.Read(iprot); err != nil {
 		return err
 	}
-	p.Req = _field
+	p.Params = _field
 	return nil
 }
 
@@ -884,6 +2650,26 @@ func (p *VectorServiceGetTileArgs) Write(oprot thrift.TProtocol) (err error) {
 	if p != nil {
 		if err = p.writeField1(oprot); err != nil {
 			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
+		if err = p.writeField5(oprot); err != nil {
+			fieldId = 5
+			goto WriteFieldError
+		}
+		if err = p.writeField6(oprot); err != nil {
+			fieldId = 6
 			goto WriteFieldError
 		}
 	}
@@ -905,10 +2691,10 @@ WriteStructEndError:
 }
 
 func (p *VectorServiceGetTileArgs) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+	if err = oprot.WriteFieldBegin("service_key", thrift.STRING, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := p.Req.Write(oprot); err != nil {
+	if err := oprot.WriteString(p.ServiceKey); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -919,6 +2705,91 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *VectorServiceGetTileArgs) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("x", thrift.I32, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(p.X); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *VectorServiceGetTileArgs) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("y", thrift.I32, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(p.Y); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *VectorServiceGetTileArgs) writeField4(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("zoom", thrift.BYTE, 4); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteByte(p.Zoom); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
+}
+
+func (p *VectorServiceGetTileArgs) writeField5(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("ext", thrift.STRING, 5); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.Ext); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
+}
+
+func (p *VectorServiceGetTileArgs) writeField6(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("params", thrift.STRUCT, 6); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Params.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 6 end error: ", p), err)
 }
 
 func (p *VectorServiceGetTileArgs) String() string {
@@ -935,15 +2806,65 @@ func (p *VectorServiceGetTileArgs) DeepEqual(ano *VectorServiceGetTileArgs) bool
 	} else if p == nil || ano == nil {
 		return false
 	}
-	if !p.Field1DeepEqual(ano.Req) {
+	if !p.Field1DeepEqual(ano.ServiceKey) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.X) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Y) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.Zoom) {
+		return false
+	}
+	if !p.Field5DeepEqual(ano.Ext) {
+		return false
+	}
+	if !p.Field6DeepEqual(ano.Params) {
 		return false
 	}
 	return true
 }
 
-func (p *VectorServiceGetTileArgs) Field1DeepEqual(src *GetTileRequest) bool {
+func (p *VectorServiceGetTileArgs) Field1DeepEqual(src string) bool {
 
-	if !p.Req.DeepEqual(src) {
+	if strings.Compare(p.ServiceKey, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *VectorServiceGetTileArgs) Field2DeepEqual(src int32) bool {
+
+	if p.X != src {
+		return false
+	}
+	return true
+}
+func (p *VectorServiceGetTileArgs) Field3DeepEqual(src int32) bool {
+
+	if p.Y != src {
+		return false
+	}
+	return true
+}
+func (p *VectorServiceGetTileArgs) Field4DeepEqual(src int8) bool {
+
+	if p.Zoom != src {
+		return false
+	}
+	return true
+}
+func (p *VectorServiceGetTileArgs) Field5DeepEqual(src string) bool {
+
+	if strings.Compare(p.Ext, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *VectorServiceGetTileArgs) Field6DeepEqual(src *QueryParameters) bool {
+
+	if !p.Params.DeepEqual(src) {
 		return false
 	}
 	return true

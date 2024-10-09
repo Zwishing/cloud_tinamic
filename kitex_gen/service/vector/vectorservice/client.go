@@ -11,8 +11,9 @@ import (
 
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.
 type Client interface {
+	GetCollections(ctx context.Context, pageSize int64, page int64, callOptions ...callopt.Option) (r *vector.GetCollectionsResponse, err error)
 	Publish(ctx context.Context, req string, callOptions ...callopt.Option) (err error)
-	GetTile(ctx context.Context, req *vector.GetTileRequest, callOptions ...callopt.Option) (r []byte, err error)
+	GetTile(ctx context.Context, serviceKey string, x int32, y int32, zoom int8, ext string, params *vector.QueryParameters, callOptions ...callopt.Option) (r []byte, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -44,12 +45,17 @@ type kVectorServiceClient struct {
 	*kClient
 }
 
+func (p *kVectorServiceClient) GetCollections(ctx context.Context, pageSize int64, page int64, callOptions ...callopt.Option) (r *vector.GetCollectionsResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetCollections(ctx, pageSize, page)
+}
+
 func (p *kVectorServiceClient) Publish(ctx context.Context, req string, callOptions ...callopt.Option) (err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.Publish(ctx, req)
 }
 
-func (p *kVectorServiceClient) GetTile(ctx context.Context, req *vector.GetTileRequest, callOptions ...callopt.Option) (r []byte, err error) {
+func (p *kVectorServiceClient) GetTile(ctx context.Context, serviceKey string, x int32, y int32, zoom int8, ext string, params *vector.QueryParameters, callOptions ...callopt.Option) (r []byte, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.GetTile(ctx, req)
+	return p.kClient.GetTile(ctx, serviceKey, x, y, zoom, ext, params)
 }

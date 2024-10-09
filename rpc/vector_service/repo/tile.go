@@ -1,18 +1,17 @@
-package main
+package repo
 
 import (
 	"fmt"
 	"math"
-	"strconv"
 )
 
 // Tile represents a single tile in a tile
 // pyramid, usually referenced in a URL path
 // of the form "Zoom/X/Y.Ext"
 type Tile struct {
-	Zoom   int    `json:"zoom"`
-	X      int    `json:"x"`
-	Y      int    `json:"y"`
+	Zoom   int8   `json:"zoom"`
+	X      int32  `json:"x"`
+	Y      int32  `json:"y"`
 	Ext    string `json:"ext"`
 	Bounds Bounds `json:"bounds"`
 }
@@ -20,22 +19,10 @@ type Tile struct {
 // makeTile uses the map populated by the mux.Router
 // containing x, y and z keys, and extracts integers
 // from them
-func makeTile(vars map[string]string) (Tile, error) {
-	// Router path restriction ensures
-	// these are always numbers
-	x, _ := strconv.Atoi(vars["x"])
-	y, _ := strconv.Atoi(vars["y"])
-	zoom, _ := strconv.Atoi(vars["z"])
-	tile := Tile{Zoom: zoom, X: x, Y: y, Ext: vars["ext"]}
-
-	if !tile.IsValid() {
-		return tile, tileAppError{
-			HTTPCode: 400,
-			SrcErr:   fmt.Errorf("invalid tile address %s", tile.String()),
-		}
-	}
-
-	return tile, tile.CalculateBounds()
+func MakeTile(x, y int32, zoom int8, ext string) (Tile, error) {
+	tile := Tile{Zoom: zoom, X: x, Y: y, Ext: ext}
+	e := tile.CalculateBounds()
+	return tile, e
 }
 
 func (tile *Tile) width() float64 {
@@ -47,33 +34,35 @@ func (tile *Tile) width() float64 {
 // zoom level, and that the zoom level is
 // not crazy large
 func (tile *Tile) IsValid() bool {
-	if tile.Zoom < 0 || tile.Zoom > 32 {
+	if tile.Zoom > 32 || tile.Zoom < 0 {
 		return false
 	}
-	worldTileSize := 1 << uint(tile.Zoom)
-	return tile.X >= 0 && tile.X < worldTileSize &&
-		tile.Y >= 0 && tile.Y < worldTileSize
+	worldTileSize := int32(1) << uint32(tile.Zoom)
+	if tile.X < 0 || tile.X >= worldTileSize ||
+		tile.Y < 0 || tile.Y >= worldTileSize {
+		return false
+	}
+	return true
 }
 
 // CalculateBounds calculates the cartesian bounds that
 // correspond to this tile
-func (tile *Tile) CalculateBounds() error {
-	serverBounds, err := getServerBounds()
-	if err != nil {
-		return err
+func (tile *Tile) CalculateBounds() (e error) {
+	serverBounds, e := getServerBounds()
+	if e != nil {
+		return e
 	}
 
-	worldWidthInTiles := float64(1 << uint(tile.Zoom))
-	tileWidth := (serverBounds.Xmax - serverBounds.Xmin) / worldWidthInTiles
+	worldWidthInTiles := float64(int(1) << uint(tile.Zoom))
+	tileWidth := math.Abs(serverBounds.Xmax-serverBounds.Xmin) / worldWidthInTiles
 
 	// Calculate geographic bounds from tile coordinates
 	// XYZ tile coordinates are in "image space" so origin is
 	// top-left, not bottom right
 	xmin := serverBounds.Xmin + (tileWidth * float64(tile.X))
-	xmax := xmin + tileWidth
+	xmax := serverBounds.Xmin + (tileWidth * float64(tile.X+1))
+	ymin := serverBounds.Ymax - (tileWidth * float64(tile.Y+1))
 	ymax := serverBounds.Ymax - (tileWidth * float64(tile.Y))
-	ymin := ymax - tileWidth
-
 	tile.Bounds = Bounds{serverBounds.SRID, xmin, ymin, xmax, ymax}
 
 	return nil

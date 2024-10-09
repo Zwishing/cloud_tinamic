@@ -1,10 +1,8 @@
-package main
+package repo
 
 import (
-	"fmt"
-
-	"net/http"
-	"net/url"
+	"cloud_tinamic/kitex_gen/service/vector"
+	. "cloud_tinamic/pkg/errors"
 )
 
 // LayerType is the table/function type of a layer
@@ -38,8 +36,7 @@ type Layer interface {
 	GetDescription() string
 	GetName() string
 	GetSchema() string
-	GetTileRequest(tile Tile, r *http.Request) TileRequest
-	WriteLayerJSON(w http.ResponseWriter, req *http.Request) error
+	GetTileRequest(tile Tile, params *vector.QueryParameters) TileRequest
 }
 
 // A TileRequest specifies what to fetch from the database for a single tile
@@ -50,39 +47,12 @@ type TileRequest struct {
 	Args    []interface{}
 }
 
-func getLayer(lyrID string) (Layer, error) {
-	lyr, ok := globalLayers[lyrID]
+func GetLayer(lyrID string) (Layer, error) {
+	lyr, ok := c.Get(lyrID)
 	if ok {
-		return lyr, nil
+		return lyr.(Layer), nil
 	}
-	return lyr, fmt.Errorf("Unable to get layer '%s'", lyrID)
-}
-
-func loadLayers() error {
-	_, errBnd := getServerBounds()
-	if errBnd != nil {
-		return errBnd
-	}
-	tableLayers, errTl := getTableLayers()
-	if errTl != nil {
-		return errTl
-	}
-	functionLayers, errFl := getFunctionLayers()
-	if errFl != nil {
-		return errFl
-	}
-	// Empty the global layer map
-	globalLayersMutex.Lock()
-	globalLayers = make(map[string]Layer)
-	for _, lyr := range tableLayers {
-		globalLayers[lyr.GetID()] = lyr
-	}
-	for _, lyr := range functionLayers {
-		globalLayers[lyr.GetID()] = lyr
-	}
-	globalLayersMutex.Unlock()
-
-	return nil
+	return lyr.(Layer), Kerrorf(NotFoundCode, "Unable to get layer '%s'", lyrID)
 }
 
 type layerJSON struct {
@@ -92,22 +62,4 @@ type layerJSON struct {
 	Schema      string `json:"schema"`
 	Description string `json:"description"`
 	DetailURL   string `json:"detailurl"`
-}
-
-func getJSONLayers(r *http.Request) map[string]layerJSON {
-	json := make(map[string]layerJSON)
-	urlBase := serverURLBase(r)
-	globalLayersMutex.Lock()
-	for k, v := range globalLayers {
-		json[k] = layerJSON{
-			Type:        v.GetType().String(),
-			ID:          v.GetID(),
-			Name:        v.GetName(),
-			Schema:      v.GetSchema(),
-			Description: v.GetDescription(),
-			DetailURL:   fmt.Sprintf("%s/%s.json", urlBase, url.PathEscape(v.GetID())),
-		}
-	}
-	globalLayersMutex.Unlock()
-	return json
 }

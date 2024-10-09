@@ -44,9 +44,7 @@ impl Settings {
         cfg.port(db.port);
         cfg
     }
-
     // to_connection_string(): string{
-    //
     pub fn to_connection_string(&self) -> String {  
         format!(
             "postgresql://{}:{}@{}:{}/{}",

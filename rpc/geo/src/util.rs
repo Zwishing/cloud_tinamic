@@ -40,6 +40,7 @@ pub async fn vector_to_pg(url: &str, schema: &str, table: &str)->Result<(), anyh
             "-lco", "GEOMETRY_NAME=geom",
             "-lco", "FID=gid",
             "-lco", schema.as_str(),
+            "-makevalid",
             // "-lco", "CREATE_SCHEMA=OFF",
             // "-lco", "GEOM_COLUMN_POSITION=END",
         ]
@@ -113,8 +114,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_vector_to_pg() {
-        let path = "/vsizip//vsicurl/http://39.101.164.253:9000/vector/九段线.zip";
-        // TODO: Implement actual test
-        let _ = vector_to_pg(path, "public", "line").await;
+        //let path = "/vsizip//vsicurl/http://39.101.164.253:9000/vector/九段线.zip";
+        // let path = "/vsizip//vsicurl/http://39.101.164.253:9000/vector/九段线.zip";
+        let path = "/mnt/d/U盘文件/石漠化监测数据/石漠化一期数据2005_2_fix.shp";
+        // let path = "/mnt/d/U盘文件/断陷盆地/断陷盆地轮廓.shp";
+        
+        let err = vector_to_pg(path, "public", "sandy2").await;
+        println!("{:?}", err.err())
     }
 }
