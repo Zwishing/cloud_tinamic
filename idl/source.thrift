@@ -103,4 +103,5 @@ service SourceService{
     AddItemResponse CreateFolder(1:CreateFolderRequest req),
     UploadResponse Upload(1:UploadRequest req),
     PresignedUploadResponse PresignedUpload(1:PresignedUploadResquest req),
+    string GetSourcePath(1:string key),
 }

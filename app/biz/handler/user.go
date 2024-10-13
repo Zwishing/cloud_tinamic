@@ -17,7 +17,7 @@ import (
 // @Accept json
 // @Produce json
 // @Param requestBody body model.LoginRequest true "Login credentials"
-// @Success 200 {object} response.SuccessResponse{data=map[string]interface{userId=string,token=string}} "Returns user ID and JWT Token"
+// @Success 200 {object} response.SuccessResponse{data=processor.thrift[string]interface{userId=string,token=string}} "Returns user ID and JWT Token"
 // @Failure 400 {object} response.ErrorResponse "Invalid request parameters or login failure"
 // @Failure 500 {object} response.ErrorResponse "Internal server error"
 // @Router /v1/user/login [post]

@@ -4,14 +4,14 @@ import (
 	"cloud_tinamic/app/logger"
 	"cloud_tinamic/kitex_gen/base/user/userservice"
 	"cloud_tinamic/kitex_gen/data/source/sourceservice"
-	"cloud_tinamic/kitex_gen/data/storage/storeservice"
+	"cloud_tinamic/kitex_gen/service/collection/servicecollection"
 	"github.com/cloudwego/kitex/client"
 )
 
 var (
-	userClient   userservice.Client
-	geoClient    storeservice.Client
-	sourceClient sourceservice.Client
+	userClient       userservice.Client
+	collectionClient servicecollection.Client
+	sourceClient     sourceservice.Client
 )
 
 func init() {
@@ -24,7 +24,7 @@ func init() {
 		client interface{}
 	}{
 		{"base.user.userservice", "0.0.0.0:8810", &userClient},
-		{"geo.data.storeservice", "0.0.0.0:8089", &geoClient},
+		{"collectionservice", "0.0.0.0:8089", &collectionClient},
 		{"data.source.sourceservice", "0.0.0.0:8813", &sourceClient},
 	}
 
@@ -32,8 +32,8 @@ func init() {
 		switch clientPtr := c.client.(type) {
 		case *userservice.Client:
 			*clientPtr, err = userservice.NewClient(c.name, client.WithHostPorts(c.port))
-		case *storeservice.Client:
-			*clientPtr, err = storeservice.NewClient(c.name, client.WithHostPorts(c.port))
+		case *servicecollection.Client:
+			*clientPtr, err = servicecollection.NewClient(c.name, client.WithHostPorts(c.port))
 		case *sourceservice.Client:
 			*clientPtr, err = sourceservice.NewClient(c.name, client.WithHostPorts(c.port))
 		}

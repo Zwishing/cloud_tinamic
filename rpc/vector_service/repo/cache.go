@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"sync"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -9,15 +8,11 @@ import (
 
 var (
 	c         *cache.Cache
-	cacheOnce sync.Once
 )
 
 // Initialize initializes the cache
 func InitCache() *cache.Cache {
-	cacheOnce.Do(func() {
-		c = cache.New(5*time.Minute, 10*time.Minute)
-	})
-	return c
+	return cache.New(5*time.Minute, 10*time.Minute)
 }
 
 // Get retrieves a value from the cache

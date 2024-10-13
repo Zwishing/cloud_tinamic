@@ -12,9 +12,12 @@ pub async fn store_vector(url: &str, schema: &str, table: &str) -> Result<()> {
     let mut sql = String::new();
     temp.read_to_string(&mut sql)
         .map_err(|e| anyhow!(e.to_string()))?;
+    
     tracing::info!("successfully read {} to sql",url);
+    
     service::store_postgis(&sql).await
         .map_err(|e| anyhow!(e.to_string()))?;
+    
     tracing::info!("Successfully stored vector to postgis in {}.{}", schema, table);
     Ok(())
 }

@@ -4,7 +4,6 @@ import (
 	"cloud_tinamic/app/biz/model"
 	"cloud_tinamic/kitex_gen/base"
 	"cloud_tinamic/kitex_gen/data/source"
-	"cloud_tinamic/kitex_gen/data/storage"
 	"cloud_tinamic/pkg/util"
 	"cloud_tinamic/pkg/util/response"
 	"fmt"
@@ -113,7 +112,7 @@ func AddItem(ctx *fiber.Ctx) error {
 // @Param sourceCategory path string true "Source type"
 // @Param path query string false "Path for the item"
 // @Param name query string true "Name of the item"
-// @Success 200 {object} response.SuccessResponse{data=map[string]string{uploadURL=string}}
+// @Success 200 {object} response.SuccessResponse{data=processor.thrift[string]string{uploadURL=string}}
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
 // @Router /v1/source/{sourceCategory}/presignedUpload [post]
@@ -147,7 +146,7 @@ func PresignedUpload(ctx *fiber.Ctx) error {
 // @Param file formData file true "File to upload"
 // @Param parentId formData string false "Parent ID for the file"
 // @Param name formData string true "Name of the file"
-// @Success 200 {object} response.SuccessResponse{data=map[string]string{sourceId=string}}
+// @Success 200 {object} response.SuccessResponse{data=processor.thrift[string]string{sourceId=string}}
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
 // @Router /v1/source/{sourceCategory}/upload [post]
@@ -231,25 +230,25 @@ func NewFolder(ctx *fiber.Ctx) error {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
 // @Router /v1/source/{sourceCategory}/publish [post]
-func Publish(ctx *fiber.Ctx) error {
-	// TODO: Implement database insertion logic
-	// TODO: Implement record addition logic
-	resp, err := geoClient.VectorStorage(ctx.Context(), &storage.StoreRequest{
-		Schema: "public",
-		Table:  "sandy1234567890",
-		Name:   "aa12121212121212",
-		Url:    "http://172.18.32.1/石漠化监测数据.zip",
-		Ext:    "zip",
-	})
-	if err != nil {
-		return err
-	}
-	if resp.Base.Code == base.Code_SUCCESS {
-		return response.SuccessWithOK(ctx, resp.Base.Msg)
-	} else {
-		return response.FailWithExpectation(ctx, resp.Base.Msg)
-	}
-}
+//func Publish(ctx *fiber.Ctx) error {
+//	// TODO: Implement database insertion logic
+//	// TODO: Implement record addition logic
+//	resp, err := geoClient.VectorStorage(ctx.Context(), &storage.StoreRequest{
+//		Schema: "public",
+//		Table:  "sandy1234567890",
+//		Name:   "aa12121212121212",
+//		Url:    "http://172.18.32.1/石漠化监测数据.zip",
+//		Ext:    "zip",
+//	})
+//	if err != nil {
+//		return err
+//	}
+//	if resp.Base.Code == base.Code_SUCCESS {
+//		return response.SuccessWithOK(ctx, resp.Base.Msg)
+//	} else {
+//		return response.FailWithExpectation(ctx, resp.Base.Msg)
+//	}
+//}
 
 func DeleteItems(ctx *fiber.Ctx) error {
 	keys := strings.Split(ctx.Query("key", ""), ",")

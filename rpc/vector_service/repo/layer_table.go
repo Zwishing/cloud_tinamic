@@ -4,13 +4,16 @@ import (
 	"cloud_tinamic/kitex_gen/service/vector"
 	"context"
 	"fmt"
-	"github.com/cloudwego/kitex/pkg/klog"
 	"net/url"
-	"strconv"
+	"regexp"
 	"strings"
+	"time"
+
+	"github.com/cloudwego/kitex/pkg/klog"
 
 	// Database
 	"cloud_tinamic/rpc/vector_service/repo/cql"
+
 	"github.com/jackc/pgtype"
 )
 
@@ -41,38 +44,38 @@ type TableProperty struct {
  */
 
 // GetType disambiguates between function and table layers
-func (lyr LayerTable) GetType() LayerType {
+func (lyr *LayerTable) GetType() LayerType {
 	return LayerTypeTable
 }
 
 // GetID returns the complete ID (schema.name) by which to reference a given layer
-func (lyr LayerTable) GetID() string {
+func (lyr *LayerTable) GetID() string {
 	return lyr.ID
 }
 
 // GetDescription returns the text description for a layer
 // or an empty string if no description is set
-func (lyr LayerTable) GetDescription() string {
+func (lyr *LayerTable) GetDescription() string {
 	return lyr.Description
 }
 
 // GetName returns just the name of a given layer
-func (lyr LayerTable) GetName() string {
+func (lyr *LayerTable) GetName() string {
 	return lyr.Table
 }
 
 // GetSchema returns just the schema for a given layer
-func (lyr LayerTable) GetSchema() string {
+func (lyr *LayerTable) GetSchema() string {
 	return lyr.Schema
 }
 
-// GetTileRequest takes tile and request parameters as input and returns a TileRequest
+// GetTileQuery GetTileRequest takes tile and request parameters as input and returns a TileRequest
 // specifying the SQL to fetch appropriate data
-func (lyr LayerTable) GetTileRequest(tile Tile, params *vector.QueryParameters) TileRequest {
+func (lyr *LayerTable) GetTileQuery(tile Tile, params *vector.QueryParameters) TileQuery {
 	ReviseQueryParameters(params)
 	sql, _ := lyr.requestSQL(&tile, params)
 
-	tr := TileRequest{
+	tr := TileQuery{
 		LayerID: lyr.ID,
 		Tile:    tile,
 		SQL:     sql,
@@ -90,36 +93,6 @@ type queryParameters struct {
 	Buffer     int
 	Filter     string
 	FilterCrs  int
-}
-
-// getRequestIntParameter ignores missing parameters and non-integer parameters,
-// returning the "unknown integer" value for this case, which is -1
-func getQueryIntParameter(q url.Values, param string) int {
-	ok := false
-	sParam := make([]string, 0)
-
-	for k, v := range q {
-		if strings.EqualFold(k, param) {
-			sParam = v
-			ok = true
-			break
-		}
-	}
-	if ok {
-		iParam, err := strconv.Atoi(sParam[0])
-		if err == nil {
-			return iParam
-		}
-	}
-	return -1
-}
-
-func getQueryStringParameter(q url.Values, param string) string {
-	vals := q[param]
-	if vals != nil {
-		return vals[0]
-	}
-	return ""
 }
 
 // getRequestPropertiesParameter compares the properties in the request
@@ -171,7 +144,7 @@ func (lyr *LayerTable) getQueryPropertiesParameter(q url.Values) []string {
 	return queryAtts
 }
 
-// getRequestParameters reads user-settables parameters
+// ReviseQueryParameters getRequestParameters reads user-settables parameters
 // from the request URL, or uses the system defaults
 // if the parameters are not set
 func ReviseQueryParameters(params *vector.QueryParameters) {
@@ -376,15 +349,41 @@ func (lyr *LayerTable) requestSQL(tile *Tile, qp *vector.QueryParameters) (strin
 	}
 	return sql, err
 }
+
 func (lyr *LayerTable) filterSQL(qp *vector.QueryParameters) (string, error) {
-	//filter := "pop_est < 2000000"
 	filter := qp.Filter
-	sql, err := cql.TranspileToSQL(filter, int(qp.FilterCrs), lyr.Srid)
-	if err != nil {
+
+	// 直接创建一个新的 strings.Builder 实例
+	sqlBuilder := new(strings.Builder)
+
+	// 使用预编译的正则表达式来优化字符串处理
+	var filterRegex = regexp.MustCompile(`\s+`)
+	filter = filterRegex.ReplaceAllString(filter, " ")
+
+	// 使用并发处理来加速SQL转换
+	errChan := make(chan error, 1)
+	sqlChan := make(chan string, 1)
+
+	go func() {
+		sql, err := cql.TranspileToSQL(filter, int(qp.FilterCrs), lyr.Srid)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		sqlChan <- sql
+	}()
+
+	select {
+	case err := <-errChan:
+		close(sqlChan) // 关闭sqlChan以避免泄漏
 		return "", err
+	case sql := <-sqlChan:
+		if sql != "" {
+			sqlBuilder.WriteString("AND ")
+			sqlBuilder.WriteString(sql)
+		}
+		return sqlBuilder.String(), nil // 返回构建的 SQL 字符串
+	case <-time.After(5 * time.Second):
+		return "", fmt.Errorf("filterSQL operation timed out")
 	}
-	if sql != "" {
-		sql = "AND " + sql
-	}
-	return sql, nil
 }

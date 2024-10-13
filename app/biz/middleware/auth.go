@@ -36,17 +36,17 @@ func Protected() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		authHeader := ctx.Get("Authorization")
 		if authHeader == "" {
-			return response.Fail(ctx, "Missing Authorization header")
+			return response.FailWithNonAuthoritativeInformation(ctx, "Missing Authorization header")
 		}
 
 		tokenParts := strings.SplitN(authHeader, " ", 2)
 		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			return response.Fail(ctx, "Invalid Authorization header format")
+			return response.FailWithNonAuthoritativeInformation(ctx, "Invalid Authorization header format")
 		}
 
 		claims, err := jwt.ValidateToken(tokenParts[1])
 		if err != nil {
-			return response.Fail(ctx, "Invalid or expired token")
+			return response.FailWithNonAuthoritativeInformation(ctx, "Invalid or expired token")
 		}
 
 		ctx.Locals("userId", claims["userId"])
@@ -78,7 +78,7 @@ func AuthRoutePermission() fiber.Handler {
 
 		sub, ok := ctx.Locals("userId").(string)
 		if !ok {
-			return response.Fail(ctx, "User ID not found in context")
+			return response.FailWithNonAuthoritativeInformation(ctx, "User ID not found in context")
 		}
 
 		resp, err := authClient.Auth(context.Background(), &auth.AuthResquest{

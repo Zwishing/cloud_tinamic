@@ -40,3 +40,7 @@ func FailWithNonAuthoritativeInformation(ctx *fiber.Ctx, msg string) error {
 func FailWithExpectation(ctx *fiber.Ctx, msg string) error {
 	return Fail(ctx, fiber.StatusExpectationFailed, msg)
 }
+
+func FailWithInternalServerError(ctx *fiber.Ctx, msg string)error{
+	return Fail(ctx, fiber.StatusInternalServerError, msg)
+}

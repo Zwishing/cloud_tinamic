@@ -2,7 +2,6 @@ package repo
 
 import (
 	"cloud_tinamic/kitex_gen/service/vector"
-	. "cloud_tinamic/pkg/errors"
 )
 
 // LayerType is the table/function type of a layer
@@ -36,26 +35,18 @@ type Layer interface {
 	GetDescription() string
 	GetName() string
 	GetSchema() string
-	GetTileRequest(tile Tile, params *vector.QueryParameters) TileRequest
+	GetTileQuery(tile Tile, params *vector.QueryParameters) TileQuery
 }
 
-// A TileRequest specifies what to fetch from the database for a single tile
-type TileRequest struct {
+// A TileQuery specifies what to fetch from the database for a single tile
+type TileQuery struct {
 	LayerID string
 	Tile    Tile
 	SQL     string
 	Args    []interface{}
 }
 
-func GetLayer(lyrID string) (Layer, error) {
-	lyr, ok := c.Get(lyrID)
-	if ok {
-		return lyr.(Layer), nil
-	}
-	return lyr.(Layer), Kerrorf(NotFoundCode, "Unable to get layer '%s'", lyrID)
-}
-
-type layerJSON struct {
+type LayerJSON struct {
 	Type        string `json:"type"`
 	ID          string `json:"id"`
 	Name        string `json:"name"`

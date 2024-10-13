@@ -12,6 +12,7 @@ type ErrorCode = int32
 // 定义错误类型
 const (
 	InvalidInputCode       ErrorCode = 4001
+	InvalidParametersCode  ErrorCode = 4002
 	InternalServerCode     ErrorCode = 5001
 	NetworkIssueCode       ErrorCode = 6001
 	NotFoundCode           ErrorCode = 7001
@@ -20,6 +21,7 @@ const (
 	ServiceUnavailableCode ErrorCode = 9001
 	TimeoutCode            ErrorCode = 10001
 	QueryFailedCode        ErrorCode = 11001
+	DatabaseErrorCode      ErrorCode = 11002
 	ResourceExistsCode     ErrorCode = 12001
 	OperationFailedCode    ErrorCode = 13001
 	UnknownCode            ErrorCode = 14001

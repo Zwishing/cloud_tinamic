@@ -1,13 +1,13 @@
 CREATE SCHEMA IF NOT EXISTS service;
 
--- 创建信息表
+-- 创建源信息表
 CREATE TABLE IF NOT EXISTS service.info (
     id SERIAL PRIMARY KEY, -- 每个服务信息条目的唯一标识符
     service_key UUID NOT NULL UNIQUE, -- 服务的唯一键
     title VARCHAR(255) NOT NULL, -- 数据名称
     source_key UUID NOT NULL UNIQUE, -- 源数据的唯一键
     source_schema VARCHAR(255) NOT NULL, -- 源数据所在的模式
-    source_category VARCHAR(255) NOT NULL, -- 源数据的类型
+    source_category integer NOT NULL, -- 源数据的类型
     sird INT, -- 空间参考标识符
     created_at TIMESTAMP DEFAULT NOW(), -- 创建时间戳
     updated_at TIMESTAMP DEFAULT NOW(), -- 最后更新时间戳

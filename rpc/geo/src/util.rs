@@ -1,10 +1,10 @@
-use std::{borrow::Borrow, ffi::CString, path::Path, ptr::{self, null, null_mut}};
+use std::{ffi::CString, path::Path, ptr::{self, null, null_mut}};
 use gdal::Dataset;
 use gdal_sys::{GDALVectorTranslate,GDALVectorTranslateOptions};
 use crate::programs::vector::vector_translate::{vector_translate,VectorTranslateOptions};
 use crate::db::get_settings;
 
-pub fn zipshp2sql(url: &str, out: &Path, schema: &str, table: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn zipshp2sql(url: &str, out: &Path, schema: &str, table: &str) -> Result<(), anyhow::Error> {
     let schema = format!("SCHEMA={}", schema);
     let src = Dataset::open(url)?;
     let opts = Some(

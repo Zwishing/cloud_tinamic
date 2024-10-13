@@ -18,41 +18,58 @@ import (
 	"github.com/cloudwego/kitex/pkg/klog"
 	"strings"
 
-	"github.com/antlr/antlr4/runtime/Go/antlr"
+	"github.com/antlr4-go/antlr/v4"
 )
 
 func TranspileToSQL(cqlStr string, filterSRID int, sourceSRID int) (string, error) {
-	if len(cqlStr) < 1 {
+	if len(cqlStr) == 0 {
 		return "", nil
 	}
-	// Setup the input
+
+	// 创建输入流
 	is := antlr.NewInputStream(cqlStr)
 
+	// 初始化错误监听器
 	parseErrors := &CqlErrorListener{}
 
-	// Create the Lexer
+	// 创建词法分析器
 	lexer := NewCqlLexer(is)
 	lexer.RemoveErrorListeners()
 	lexer.AddErrorListener(parseErrors)
 
-	//-- create parser
+	// 创建语法分析器
 	stream := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 	parser := NewCQLParser(stream)
 	parser.RemoveErrorListeners()
 	parser.AddErrorListener(parseErrors)
 
+	// 解析CQL表达式
 	tree := parser.CqlFilter()
-	//-- parse the CQL expression
+	if tree == nil {
+		err := fmt.Errorf("无法解析CQL表达式")
+		return "", err
+	}
+
+	// 监听解析树
 	listener := NewCqlListener(filterSRID, sourceSRID)
 	antlr.ParseTreeWalkerDefault.Walk(listener, tree)
 
+	// 检查是否有解析错误
 	if parseErrors.errorCount > 0 {
 		klog.Debug("CQL parser error = " + parseErrors.msg)
 		msg := syntaxErrorMsg(cqlStr, parseErrors.col)
-		err := fmt.Errorf("CQL syntax error: %s", msg)
+		err := fmt.Errorf("CQL syntax error at column %d: %s", parseErrors.col, msg)
 		return "", err
 	}
-	return listener.GetSQL(), nil
+
+	// 获取转换后的SQL
+	sql := listener.GetSQL()
+	if sql == "" {
+		err := fmt.Errorf("无法生成SQL语句")
+		return "", err
+	}
+
+	return sql, nil
 }
 
 func syntaxErrorMsg(input string, col int) string {
@@ -97,13 +114,14 @@ func (l *CqlErrorListener) SyntaxError(recognizer antlr.Recognizer, offendingSym
 	l.msg = msg
 }
 
-func (l *CqlErrorListener) ReportAmbiguity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex, stopIndex int, exact bool, ambigAlts *antlr.BitSet, configs antlr.ATNConfigSet) {
+func (l *CqlErrorListener) ReportAmbiguity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex, stopIndex int, exact bool, ambigAlts *antlr.BitSet, configs *antlr.ATNConfigSet) {
 	l.errorCount += 1
 }
-func (l *CqlErrorListener) ReportAttemptingFullContext(recognizer antlr.Parser, dfa *antlr.DFA, startIndex, stopIndex int, conflictingAlts *antlr.BitSet, configs antlr.ATNConfigSet) {
+
+func (l *CqlErrorListener) ReportAttemptingFullContext(recognizer antlr.Parser, dfa *antlr.DFA, startIndex, stopIndex int, conflictingAlts *antlr.BitSet, configs *antlr.ATNConfigSet) {
 	l.errorCount += 1
 }
-func (l *CqlErrorListener) ReportContextSensitivity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex, stopIndex, prediction int, configs antlr.ATNConfigSet) {
+func (l *CqlErrorListener) ReportContextSensitivity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex, stopIndex, prediction int, configs *antlr.ATNConfigSet) {
 	l.errorCount += 1
 }
 

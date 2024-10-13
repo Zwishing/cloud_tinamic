@@ -1,7 +1,7 @@
-// Generated from CQLParser.g4 by ANTLR 4.7.
+// Code generated from CQLParser.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
 package cql // CQLParser
-import "github.com/antlr/antlr4/runtime/Go/antlr"
+import "github.com/antlr4-go/antlr/v4"
 
 // BaseCQLParserListener is a complete listener for a parse tree produced by CQLParser.
 type BaseCQLParserListener struct{}

@@ -273,3 +273,11 @@ func (s *SourceServiceImpl) AddItem(ctx context.Context, req *source.AddItemRequ
 	resp.Base.Msg = "添加成功"
 	return resp, nil
 }
+
+func (s *SourceServiceImpl) GetSourcePath(ctx context.Context, key string) (string, error) {
+	path, err := s.SourceRepo.GetPathByKey(key)
+	if err != nil {
+		return "", err
+	}
+	return path, nil
+}

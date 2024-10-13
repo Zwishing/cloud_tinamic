@@ -6,6 +6,10 @@ import (
 	"github.com/gofiber/fiber/v2/utils"
 	"io"
 	"mime/multipart"
+	"net/url"
+	"path"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -65,4 +69,49 @@ func TileIsValid(x, y int32, zoom int8) bool {
 		return false
 	}
 	return true
+}
+
+// GetFileExtension 处理本地文件路径和 HTTP URL，根据 needDot 参数控制是否带点返回文件后缀
+func GetFileExtension(filePath string, needDot bool) string {
+	var ext string
+
+	// 尝试解析是否是 URL
+	parsedUrl, err := url.Parse(filePath)
+	if err == nil && parsedUrl.Scheme != "" {
+		// 是一个 URL，使用 path.Ext 提取后缀
+		ext = path.Ext(parsedUrl.Path)
+	} else {
+		// 否则，认为是本地文件路径，使用 filepath.Ext
+		ext = filepath.Ext(filePath)
+	}
+
+	if !needDot {
+		// 如果不需要点，去掉前面的点
+		ext = strings.TrimPrefix(ext, ".")
+	}
+
+	return ext
+}
+
+// GetFileName 处理本地文件路径和 HTTP URL，提取文件名，并根据 needExt 控制是否带后缀
+func GetFileName(filePath string, needExt bool) string {
+	var fileName string
+
+	// 尝试解析是否是 URL
+	parsedUrl, err := url.Parse(filePath)
+	if err == nil && parsedUrl.Scheme != "" {
+		// 是一个 URL，使用 path.Base 提取文件名
+		fileName = path.Base(parsedUrl.Path)
+	} else {
+		// 否则，认为是本地文件路径，使用 filepath.Base
+		fileName = filepath.Base(filePath)
+	}
+
+	if !needExt {
+		// 如果不需要后缀，去掉扩展名
+		ext := filepath.Ext(fileName)                // 提取扩展名
+		fileName = strings.TrimSuffix(fileName, ext) // 去掉后缀
+	}
+
+	return fileName
 }

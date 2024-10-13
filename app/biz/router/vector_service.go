@@ -7,7 +7,9 @@ import (
 )
 
 func registerVectorService(api fiber.Router) {
-	service := api.Group("/service/:sourceCategory", middleware.Protected())
+	service := api.Group("/service/:sourceCategory", middleware.Protected(), middleware.ValidSourceCateogry())
+
+	service.Post("/publish", handler.Publish)
 
 	service.Get("/collections", handler.GetCollections)
 	service.Get("/collections/:collectionId")

@@ -16,7 +16,7 @@ type Tile struct {
 	Bounds Bounds `json:"bounds"`
 }
 
-// makeTile uses the map populated by the mux.Router
+// makeTile uses the processor.thrift populated by the mux.Router
 // containing x, y and z keys, and extracts integers
 // from them
 func MakeTile(x, y int32, zoom int8, ext string) (Tile, error) {
