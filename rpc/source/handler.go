@@ -274,6 +274,14 @@ func (s *SourceServiceImpl) AddItem(ctx context.Context, req *source.AddItemRequ
 	return resp, nil
 }
 
+func (s *SourceServiceImpl) GetUnifiedSourcePath(ctx context.Context, key string) (string, error) {
+	path, err := s.SourceRepo.GetPathByKey(key)
+	if err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
 func (s *SourceServiceImpl) GetSourcePath(ctx context.Context, key string) (string, error) {
 	path, err := s.SourceRepo.GetPathByKey(key)
 	if err != nil {

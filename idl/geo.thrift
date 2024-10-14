@@ -15,6 +15,19 @@ struct StoreResponse {
     1: required base.BaseResp base,
 }
 
+struct ToGeoParquetStorageRequest{
+    1:string source_path,
+    2:string storage_name,
+}
+
+struct ToGeoParquetStorageResponse {
+    1: required base.BaseResp base,
+    2: string dest_path,
+}
+
+
+
 service StoreService {
     StoreResponse VectorStorage(1:StoreRequest req),
+    ToGeoParquetStorageResponse ToGeoParquetStorage(1:ToGeoParquetStorageRequest req),
 }

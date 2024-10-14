@@ -1,4 +1,4 @@
-use crate::db::get_pool;
+use crate::config::get_pool;
 
 pub async fn store_postgis(sql: &str) -> Result<(), anyhow::Error> {
     let pool = get_pool().await.lock().await;

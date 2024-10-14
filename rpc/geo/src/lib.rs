@@ -3,8 +3,12 @@ mod handler;
 mod util;
 mod service;
 mod programs;
+mod config;
+mod minio;
 
-use volo_gen::data::storage::{StoreService,StoreRequest,StoreResponse};
+use std::future::Future;
+use volo_thrift::ServerError;
+use volo_gen::data::storage::{StoreService, StoreRequest, StoreResponse, ToGeoParquetStorageRequest, ToGeoParquetStorageResponse};
 use volo_gen::base::{BaseResp,Code};
 use crate::handler::store_vector;
 pub struct S;
@@ -30,6 +34,10 @@ impl StoreService for S {
         };
 
         Ok(StoreResponse { base })
+    }
+
+    fn to_geo_parquet_storage(&self, req: ToGeoParquetStorageRequest) -> impl Future<Output=Result<ToGeoParquetStorageResponse, ServerError>> + Send {
+        todo!()
     }
 }
 

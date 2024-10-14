@@ -51,8 +51,40 @@ CREATE INDEX storage_id_index ON data_source.storage(id);
 CREATE INDEX storage_uuid_index ON data_source.storage(key);
 CREATE INDEX storage_parent_uuid_index ON data_source.storage(parent_key);
 
+CREATE TABLE IF NOT EXISTS data_source.unified(
+    id serial PRIMARY KEY,
+    key uuid NOT NULL UNIQUE,
+    source_key uuid NOT NULL UNIQUE,
+    source_category integer NOT NULL,
+    size bigint default 0,
+    path varchar(255) NOT NULL,
+    modified_time timestamp,
+    created_at timestamp default now(),
+    updated_at timestamp default now(),
+    deleted_at timestamp DEFAULT NULL
+);
+
+COMMENT ON TABLE data_source.unified IS '统一数据存储表';
+
+COMMENT ON COLUMN data_source.unified.id IS '自增ID';
+COMMENT ON COLUMN data_source.unified.key IS '数据的唯一标识';
+COMMENT ON COLUMN data_source.unified.source_key IS '数据源的唯一标识';
+COMMENT ON COLUMN data_source.unified.source_category IS '数据源的数据类型：1-矢量，2-影像';
+COMMENT ON COLUMN data_source.unified.size IS '文件大小，单位kb';
+COMMENT ON COLUMN data_source.unified.path IS '存储路径';
+COMMENT ON COLUMN data_source.unified.modified_time IS '修改时间';
+COMMENT ON COLUMN data_source.unified.created_at IS '创建时间';
+COMMENT ON COLUMN data_source.unified.updated_at IS '更新时间';
+COMMENT ON COLUMN data_source.unified.deleted_at IS '删除时间';
+
+CREATE INDEX unified_id_index ON data_source.unified(id);
+CREATE INDEX unified_key_index ON data_source.unified(key);
+CREATE INDEX unified_source_key_index ON data_source.unified(source_key);
+CREATE INDEX unified_source_category_index ON data_source.unified(source_category);
+
+
 INSERT INTO data_source.base_info("key","name","source_category")VALUES ('9269d343-c2c9-b175-a9ac-c6f668ebfc78','矢量',1);
 
 INSERT INTO data_source.storage(key, name, storage_category,
-                                 path)
+                                path)
 VALUES ('9269d343-c2c9-b175-a9ac-c6f668ebfc78','矢量',2,'/vector');

@@ -17,7 +17,7 @@ func (b *BaseInfo) TableName() string {
 }
 
 type Storage struct {
-	gorm.Model      `json:"gorm_._model"`
+	gorm.Model
 	Key             string    `json:"key" column:"key"`
 	ParentKey       string    `json:"parent_key" column:"parent_key"`
 	Name            string    `json:"name" column:"name"`
@@ -29,4 +29,18 @@ type Storage struct {
 
 func (s *Storage) TableName() string {
 	return "data_source.storage"
+}
+
+type Unified struct {
+	gorm.Model
+	key            string
+	SourceKey      string
+	SourceCategory int64     `json:"source_category" column:"source_category"`
+	Size           int64     `json:"size" column:"size"`
+	Path           string    `json:"path" column:"path"`
+	ModifiedTime   time.Time `json:"modified_time" column:"modified_time"`
+}
+
+func (s *Unified) TableName() string {
+	return "data_source.unified"
 }

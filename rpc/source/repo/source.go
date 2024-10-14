@@ -21,6 +21,7 @@ type DBRepo interface {
 	AddItem(SourceCategory source.SourceCategory, parentKey string, item *source.Item) (bool, error)
 	DeleteItems(key []string) (bool, error)
 	GetPathByKey(key string) (string, error)
+	GetUnifiedSourcePathByKey(sourceKey string) ([]string, error)
 	GetItemByName(key string, name string) ([]*model.Storage, error)
 	GetCountByName(key string, name string, itemType source.ItemType) (int64, error)
 	GetHomeItemsBySourceCategory(sourceCategory source.SourceCategory) (string, []*model.Storage, error)
@@ -205,6 +206,24 @@ func (s *SourceRepoImpl) GetPathByKey(key string) (string, error) {
 	}
 
 	return path, nil // 返回查询到的路径
+}
+
+func (s *SourceRepoImpl) GetUnifiedSourcePathByKey(sourceKey string) ([]string, error) {
+	var paths []string
+	err := s.DB.Model(&model.Unified{}).
+		Select("path").
+		Where("source_key = ?", sourceKey).
+		Pluck("path", &paths).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to query unified paths: %w", err)
+	}
+
+	if len(paths) == 0 {
+		return nil, fmt.Errorf("no paths found for source key: %s", sourceKey)
+	}
+
+	return paths, nil
 }
 
 func (s *SourceRepoImpl) GetItemByName(parentKey string, name string) ([]*model.Storage, error) {
