@@ -2,9 +2,9 @@ use std::{ffi::CString, path::Path, ptr::{self, null, null_mut}};
 use gdal::Dataset;
 use gdal_sys::{GDALVectorTranslate,GDALVectorTranslateOptions};
 use crate::programs::vector::vector_translate::{vector_translate,VectorTranslateOptions};
-use crate::db::get_settings;
+use crate::config::get_settings;
 
-pub fn zipshp2sql(url: &str, out: &Path, schema: &str, table: &str) -> Result<(), anyhow::Error> {
+pub fn zipshp2sql<P: AsRef<Path>>(url: P, out: &Path, schema: &str, table: &str) -> Result<(), anyhow::Error> {
     let schema = format!("SCHEMA={}", schema);
     let src = Dataset::open(url)?;
     let opts = Some(
@@ -17,6 +17,20 @@ pub fn zipshp2sql(url: &str, out: &Path, schema: &str, table: &str) -> Result<()
             "-lco", schema.as_str(),
             "-lco", "CREATE_SCHEMA=OFF",
             "-lco", "GEOM_COLUMN_POSITION=END"
+        ]
+            .try_into()?
+    );
+    vector_translate(&[src], out.try_into()?, opts)?;
+    Ok(())
+}
+
+pub fn to_geoparquet<P: AsRef<Path>>(url: P, out: &Path)-> Result<(), anyhow::Error>{
+    let src = Dataset::open(url)?;
+    let opts = Some(
+        vec![
+            "-f", "Parquet",
+            "-t_srs", "EPSG:4326",
+            "-lco", "FID=gid",
         ]
             .try_into()?
     );
@@ -80,10 +94,13 @@ pub async fn vector_to_pg(url: &str, schema: &str, table: &str)->Result<(), anyh
     Ok(())
 }
 
-pub fn add_prefix_from_ext(url: &str, ext: &str) -> String {
-    let prefix = match ext.to_lowercase().as_str() {
-        "shp" => "/vsicurl/",
-        "zip" => "/vsizip//vsicurl/",
+pub fn add_prefix_from_ext(url: &str, ext: Option<&str>) -> String {
+    let ext = ext.map(|e| e.to_lowercase())
+        .or_else(|| url.split('.').last().map(|s| s.to_lowercase()));
+
+    let prefix = match ext.as_deref() {
+        Some("shp") => "/vsicurl/",
+        Some("zip") => "/vsizip//vsicurl/",
         _ => "/vsicurl/",
     };
     format!("{}{}", prefix, url)
@@ -91,6 +108,7 @@ pub fn add_prefix_from_ext(url: &str, ext: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::path;
     use super::*;
 
     #[test]
@@ -103,7 +121,7 @@ mod tests {
     fn test_add_prefix_from_ext() {
         let url = "http://example.com/data";
         let ext = "SHP";
-        let result = add_prefix_from_ext(url, ext);
+        let result = add_prefix_from_ext(url, Some(ext));
         assert_eq!("/vsicurl/http://example.com/data", result);
     }
     // #[test]
@@ -121,5 +139,10 @@ mod tests {
         
         let err = vector_to_pg(path, "public", "sandy2").await;
         println!("{:?}", err.err())
+    }
+    #[tokio::test]
+    async fn test_to_geoparquet(){
+        let path = "/vsizip//vsicurl/http://39.101.164.253:9000/vector/city.zip";
+        to_geoparquet(path, Path::new("city.parquet")).expect("TODO: panic message");
     }
 }

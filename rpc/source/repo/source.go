@@ -14,18 +14,25 @@ import (
 	"gorm.io/gorm"
 )
 
-type DBRepo interface {
+type ItemRepo interface {
 	GetSiblingItemsByKey(key string) ([]*model.Storage, error)
 	GetChildrenItemsByKey(key string) ([]*model.Storage, error)
 	GetItemByPath(SourceCategory source.SourceCategory, path string) ([]*source.Item, error)
+	GetItemByName(key string, name string) ([]*model.Storage, error)
+	GetCountByName(key string, name string, itemType source.ItemType) (int64, error)
+}
+
+type StorageRepo interface {
 	AddItem(SourceCategory source.SourceCategory, parentKey string, item *source.Item) (bool, error)
 	DeleteItems(key []string) (bool, error)
 	GetPathByKey(key string) (string, error)
-	GetUnifiedSourcePathByKey(sourceKey string) ([]string, error)
-	GetItemByName(key string, name string) ([]*model.Storage, error)
-	GetCountByName(key string, name string, itemType source.ItemType) (int64, error)
 	GetHomeItemsBySourceCategory(sourceCategory source.SourceCategory) (string, []*model.Storage, error)
 	GetHomeKeyBySourceCategory(sourceCategory source.SourceCategory) (string, error)
+}
+
+type UnifiedRepo interface {
+	GetUnifiedSourcePathByKey(sourceKey string) ([]string, error)
+	AddUnifiedItem(sourceCategory source.SourceCategory, sourceKey string, unifiedKey string, path string, size int64) (bool, error)
 }
 
 type MinioRepo interface {
@@ -34,7 +41,9 @@ type MinioRepo interface {
 }
 
 type SourceRepo interface {
-	DBRepo
+	ItemRepo
+	StorageRepo
+	UnifiedRepo
 	MinioRepo
 }
 
@@ -312,4 +321,23 @@ func (s *SourceRepoImpl) GetHomeKeyBySourceCategory(sourceCategory source.Source
 	}
 
 	return key, nil
+}
+
+func (s *SourceRepoImpl) AddUnifiedItem(sourceCategory source.SourceCategory, sourceKey string, unifiedKey string, path string, size int64) (bool, error) {
+	unified := model.Unified{
+		SourceKey:      sourceKey,
+		Key:            unifiedKey,
+		SourceCategory: int64(sourceCategory),
+		Size:           size,
+		Path:           path,
+		ModifiedTime:   time.Now(), // 使用当前时间作为修改时间
+	}
+
+	result := s.DB.Create(&unified)
+	if result.Error != nil {
+		klog.Errorf("Failed to add unified item: %v", result.Error)
+		return false, result.Error
+	}
+
+	return true, nil
 }

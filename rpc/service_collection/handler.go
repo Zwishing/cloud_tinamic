@@ -48,7 +48,7 @@ func (s *ServiceCollectionImpl) AddCollection(ctx context.Context, sourceKey str
 // Publish implements the ServiceCollection interface.
 func (s *ServiceCollectionImpl) Publish(ctx context.Context, req *collection.PublishRequest) (err error) {
 	// 查询出数据的路径通过key
-	path, err := s.sourceClient.GetSourcePath(ctx, req.SourceKey)
+	path, err := s.sourceClient.GetUnifiedSourcePath(ctx, req.SourceKey)
 	if err != nil {
 		err = errors.Kerrorf(errors.DatabaseErrorCode, "获取源路径失败: %v", err)
 		klog.Error(err)

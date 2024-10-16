@@ -51,6 +51,7 @@ CREATE INDEX storage_id_index ON data_source.storage(id);
 CREATE INDEX storage_uuid_index ON data_source.storage(key);
 CREATE INDEX storage_parent_uuid_index ON data_source.storage(parent_key);
 
+-- cloud_optimized_source
 CREATE TABLE IF NOT EXISTS data_source.unified(
     id serial PRIMARY KEY,
     key uuid NOT NULL UNIQUE,

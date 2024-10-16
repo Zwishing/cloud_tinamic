@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"cloud_tinamic/kitex_gen/base"
 	source "cloud_tinamic/kitex_gen/data/source"
+	"cloud_tinamic/kitex_gen/data/storage"
+	"cloud_tinamic/kitex_gen/data/storage/storeservice"
 	"cloud_tinamic/pkg/util"
 	"cloud_tinamic/rpc/source/pack"
 	"cloud_tinamic/rpc/source/repo"
@@ -17,10 +19,11 @@ import (
 // SourceServiceImpl implements the last service interface defined in the IDL.
 type SourceServiceImpl struct {
 	SourceRepo repo.SourceRepo
+	geoClient  storeservice.Client
 }
 
-func NewSourceServiceImpl(repo repo.SourceRepo) *SourceServiceImpl {
-	return &SourceServiceImpl{SourceRepo: repo}
+func NewSourceServiceImpl(repo repo.SourceRepo, geoClient storeservice.Client) *SourceServiceImpl {
+	return &SourceServiceImpl{SourceRepo: repo, geoClient: geoClient}
 }
 
 // Upload implements the SourceServiceImpl interface.
@@ -31,18 +34,22 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 
 	bucketName := strings.ToLower(req.SourceCategory.String())
 
+	// 处理key为空时，默认上传到根目录
 	if req.Key == "" {
 		req.Key, err = s.SourceRepo.GetHomeKeyBySourceCategory(req.SourceCategory)
 	}
 
+	// 获取指定目录的路径
 	path, err := s.SourceRepo.GetPathByKey(req.Key)
 	if err != nil {
 		resp.Base.Code = base.Code_FAIL
 		resp.Base.Msg = "获取路径失败"
 		return resp, err
 	}
+	// 数据存储路径
 	newPath := fmt.Sprintf("%s/%s", path, req.Name)
-	Key := util.UuidV4()
+	// 上传的数据存储的唯一标识
+	sourceKey := util.UuidV4()
 
 	errChan := make(chan error, 1) // 通道大小可以设置为1
 	var wg sync.WaitGroup
@@ -52,9 +59,34 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 	// Goroutine 1: 上传文件到 Minio
 	go func() {
 		defer wg.Done()
+		// 上传到minio
 		err := s.SourceRepo.UploadToMinio(bucketName, newPath, req.Name, bytes.NewReader(req.FileData), req.Size)
 		if err != nil {
 			errChan <- err
+			return
+		}
+
+		// 将矢量数据规范统一化存储 矢量数据为：geo parquet格式
+		unifiedKey := util.UuidV4() //归一化后数据存储的唯一key
+
+		ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
+		defer cancel()
+
+		// 返回存储的路径，这里生成时间文件夹存储
+		now := time.Now()
+		storagePath := fmt.Sprintf("%d/%02d/%02d/%s.parquet", now.Year(), now.Month(), now.Day(), unifiedKey)
+		unifiedBucketName := "unified"
+		resp, err := s.geoClient.ToGeoParquetStorage(ctx, &storage.ToGeoParquetStorageRequest{
+			SourcePath:  newPath,
+			BucketName:  unifiedBucketName,
+			StorageName: storagePath,
+		})
+		if err != nil {
+			errChan <- err
+			return
+		}
+		if resp.Base.Code == base.Code_SUCCESS {
+			s.SourceRepo.AddUnifiedItem(req.SourceCategory, sourceKey, unifiedKey, resp.DestPath, resp.Size)
 		}
 	}()
 
@@ -64,7 +96,7 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 		success, addItemErr := s.SourceRepo.AddItem(req.SourceCategory, req.Key, &source.Item{
 			Name:         req.Name,
 			ItemType:     source.ItemType_FILE,
-			Key:          Key,
+			Key:          sourceKey,
 			Size:         req.Size,
 			ModifiedTime: time.Now().Unix(),
 			Path:         newPath,
@@ -92,10 +124,11 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 			resp.Base.Msg = "上传到 Minio 失败"
 		}
 		return resp, err
-	case <-doneChan: // 如果所有 goroutine 都完成，没有错误，立即返回成功
+	case <-doneChan:
+		// 如果所有 goroutine 都完成，没有错误，立即返回成功
 		resp.Base.Code = base.Code_SUCCESS
 		resp.Base.Msg = "数据上传成功"
-		resp.Key = Key
+		resp.Key = sourceKey
 		return resp, nil
 	case <-time.After(300 * time.Second): // 超时处理
 		resp.Base.Code = base.Code_FAIL
@@ -274,12 +307,13 @@ func (s *SourceServiceImpl) AddItem(ctx context.Context, req *source.AddItemRequ
 	return resp, nil
 }
 
-func (s *SourceServiceImpl) GetUnifiedSourcePath(ctx context.Context, key string) (string, error) {
-	path, err := s.SourceRepo.GetPathByKey(key)
+func (s *SourceServiceImpl) GetUnifiedSourcePath(ctx context.Context, sourceKey string) (string, error) {
+	// 一个源数据中支持多个数据，例如zip中多个shp，gdb中多个shp，暂时只支持一个
+	path, err := s.SourceRepo.GetUnifiedSourcePathByKey(sourceKey)
 	if err != nil {
 		return "", err
 	}
-	return path, nil
+	return path[0], nil
 }
 
 func (s *SourceServiceImpl) GetSourcePath(ctx context.Context, key string) (string, error) {

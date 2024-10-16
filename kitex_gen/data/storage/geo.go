@@ -622,8 +622,608 @@ func (p *StoreResponse) Field1DeepEqual(src *base.BaseResp) bool {
 	return true
 }
 
+type ToGeoParquetStorageRequest struct {
+	SourcePath  string `thrift:"source_path,1,required" frugal:"1,required,string" json:"source_path"`
+	BucketName  string `thrift:"bucket_name,2,required" frugal:"2,required,string" json:"bucket_name"`
+	StorageName string `thrift:"storage_name,3,required" frugal:"3,required,string" json:"storage_name"`
+}
+
+func NewToGeoParquetStorageRequest() *ToGeoParquetStorageRequest {
+	return &ToGeoParquetStorageRequest{}
+}
+
+func (p *ToGeoParquetStorageRequest) InitDefault() {
+}
+
+func (p *ToGeoParquetStorageRequest) GetSourcePath() (v string) {
+	return p.SourcePath
+}
+
+func (p *ToGeoParquetStorageRequest) GetBucketName() (v string) {
+	return p.BucketName
+}
+
+func (p *ToGeoParquetStorageRequest) GetStorageName() (v string) {
+	return p.StorageName
+}
+func (p *ToGeoParquetStorageRequest) SetSourcePath(val string) {
+	p.SourcePath = val
+}
+func (p *ToGeoParquetStorageRequest) SetBucketName(val string) {
+	p.BucketName = val
+}
+func (p *ToGeoParquetStorageRequest) SetStorageName(val string) {
+	p.StorageName = val
+}
+
+var fieldIDToName_ToGeoParquetStorageRequest = map[int16]string{
+	1: "source_path",
+	2: "bucket_name",
+	3: "storage_name",
+}
+
+func (p *ToGeoParquetStorageRequest) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetSourcePath bool = false
+	var issetBucketName bool = false
+	var issetStorageName bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetSourcePath = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetBucketName = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetStorageName = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetSourcePath {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetBucketName {
+		fieldId = 2
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetStorageName {
+		fieldId = 3
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ToGeoParquetStorageRequest[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_ToGeoParquetStorageRequest[fieldId]))
+}
+
+func (p *ToGeoParquetStorageRequest) ReadField1(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.SourcePath = _field
+	return nil
+}
+func (p *ToGeoParquetStorageRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.BucketName = _field
+	return nil
+}
+func (p *ToGeoParquetStorageRequest) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.StorageName = _field
+	return nil
+}
+
+func (p *ToGeoParquetStorageRequest) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ToGeoParquetStorageRequest"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ToGeoParquetStorageRequest) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("source_path", thrift.STRING, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.SourcePath); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ToGeoParquetStorageRequest) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("bucket_name", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.BucketName); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *ToGeoParquetStorageRequest) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("storage_name", thrift.STRING, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.StorageName); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *ToGeoParquetStorageRequest) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ToGeoParquetStorageRequest(%+v)", *p)
+
+}
+
+func (p *ToGeoParquetStorageRequest) DeepEqual(ano *ToGeoParquetStorageRequest) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.SourcePath) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.BucketName) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.StorageName) {
+		return false
+	}
+	return true
+}
+
+func (p *ToGeoParquetStorageRequest) Field1DeepEqual(src string) bool {
+
+	if strings.Compare(p.SourcePath, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ToGeoParquetStorageRequest) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.BucketName, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ToGeoParquetStorageRequest) Field3DeepEqual(src string) bool {
+
+	if strings.Compare(p.StorageName, src) != 0 {
+		return false
+	}
+	return true
+}
+
+type ToGeoParquetStorageResponse struct {
+	Base     *base.BaseResp `thrift:"base,1,required" frugal:"1,required,base.BaseResp" json:"base"`
+	DestPath string         `thrift:"dest_path,2" frugal:"2,default,string" json:"dest_path"`
+	Size     int64          `thrift:"size,3" frugal:"3,default,i64" json:"size"`
+}
+
+func NewToGeoParquetStorageResponse() *ToGeoParquetStorageResponse {
+	return &ToGeoParquetStorageResponse{}
+}
+
+func (p *ToGeoParquetStorageResponse) InitDefault() {
+}
+
+var ToGeoParquetStorageResponse_Base_DEFAULT *base.BaseResp
+
+func (p *ToGeoParquetStorageResponse) GetBase() (v *base.BaseResp) {
+	if !p.IsSetBase() {
+		return ToGeoParquetStorageResponse_Base_DEFAULT
+	}
+	return p.Base
+}
+
+func (p *ToGeoParquetStorageResponse) GetDestPath() (v string) {
+	return p.DestPath
+}
+
+func (p *ToGeoParquetStorageResponse) GetSize() (v int64) {
+	return p.Size
+}
+func (p *ToGeoParquetStorageResponse) SetBase(val *base.BaseResp) {
+	p.Base = val
+}
+func (p *ToGeoParquetStorageResponse) SetDestPath(val string) {
+	p.DestPath = val
+}
+func (p *ToGeoParquetStorageResponse) SetSize(val int64) {
+	p.Size = val
+}
+
+var fieldIDToName_ToGeoParquetStorageResponse = map[int16]string{
+	1: "base",
+	2: "dest_path",
+	3: "size",
+}
+
+func (p *ToGeoParquetStorageResponse) IsSetBase() bool {
+	return p.Base != nil
+}
+
+func (p *ToGeoParquetStorageResponse) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+	var issetBase bool = false
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetBase = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 2:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	if !issetBase {
+		fieldId = 1
+		goto RequiredFieldNotSetError
+	}
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_ToGeoParquetStorageResponse[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+RequiredFieldNotSetError:
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_ToGeoParquetStorageResponse[fieldId]))
+}
+
+func (p *ToGeoParquetStorageResponse) ReadField1(iprot thrift.TProtocol) error {
+	_field := base.NewBaseResp()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Base = _field
+	return nil
+}
+func (p *ToGeoParquetStorageResponse) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.DestPath = _field
+	return nil
+}
+func (p *ToGeoParquetStorageResponse) ReadField3(iprot thrift.TProtocol) error {
+
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.Size = _field
+	return nil
+}
+
+func (p *ToGeoParquetStorageResponse) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ToGeoParquetStorageResponse"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+		if err = p.writeField2(oprot); err != nil {
+			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *ToGeoParquetStorageResponse) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("base", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Base.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *ToGeoParquetStorageResponse) writeField2(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("dest_path", thrift.STRING, 2); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.DestPath); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *ToGeoParquetStorageResponse) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("size", thrift.I64, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.Size); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *ToGeoParquetStorageResponse) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ToGeoParquetStorageResponse(%+v)", *p)
+
+}
+
+func (p *ToGeoParquetStorageResponse) DeepEqual(ano *ToGeoParquetStorageResponse) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Base) {
+		return false
+	}
+	if !p.Field2DeepEqual(ano.DestPath) {
+		return false
+	}
+	if !p.Field3DeepEqual(ano.Size) {
+		return false
+	}
+	return true
+}
+
+func (p *ToGeoParquetStorageResponse) Field1DeepEqual(src *base.BaseResp) bool {
+
+	if !p.Base.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+func (p *ToGeoParquetStorageResponse) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.DestPath, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ToGeoParquetStorageResponse) Field3DeepEqual(src int64) bool {
+
+	if p.Size != src {
+		return false
+	}
+	return true
+}
+
 type StoreService interface {
 	VectorStorage(ctx context.Context, req *StoreRequest) (r *StoreResponse, err error)
+
+	ToGeoParquetStorage(ctx context.Context, req *ToGeoParquetStorageRequest) (r *ToGeoParquetStorageResponse, err error)
 }
 
 type StoreServiceVectorStorageArgs struct {
@@ -959,6 +1559,346 @@ func (p *StoreServiceVectorStorageResult) DeepEqual(ano *StoreServiceVectorStora
 }
 
 func (p *StoreServiceVectorStorageResult) Field0DeepEqual(src *StoreResponse) bool {
+
+	if !p.Success.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type StoreServiceToGeoParquetStorageArgs struct {
+	Req *ToGeoParquetStorageRequest `thrift:"req,1" frugal:"1,default,ToGeoParquetStorageRequest" json:"req"`
+}
+
+func NewStoreServiceToGeoParquetStorageArgs() *StoreServiceToGeoParquetStorageArgs {
+	return &StoreServiceToGeoParquetStorageArgs{}
+}
+
+func (p *StoreServiceToGeoParquetStorageArgs) InitDefault() {
+}
+
+var StoreServiceToGeoParquetStorageArgs_Req_DEFAULT *ToGeoParquetStorageRequest
+
+func (p *StoreServiceToGeoParquetStorageArgs) GetReq() (v *ToGeoParquetStorageRequest) {
+	if !p.IsSetReq() {
+		return StoreServiceToGeoParquetStorageArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+func (p *StoreServiceToGeoParquetStorageArgs) SetReq(val *ToGeoParquetStorageRequest) {
+	p.Req = val
+}
+
+var fieldIDToName_StoreServiceToGeoParquetStorageArgs = map[int16]string{
+	1: "req",
+}
+
+func (p *StoreServiceToGeoParquetStorageArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+func (p *StoreServiceToGeoParquetStorageArgs) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 1:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField1(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreServiceToGeoParquetStorageArgs[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *StoreServiceToGeoParquetStorageArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewToGeoParquetStorageRequest()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Req = _field
+	return nil
+}
+
+func (p *StoreServiceToGeoParquetStorageArgs) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ToGeoParquetStorage_args"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField1(oprot); err != nil {
+			fieldId = 1
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *StoreServiceToGeoParquetStorageArgs) writeField1(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := p.Req.Write(oprot); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
+}
+
+func (p *StoreServiceToGeoParquetStorageArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("StoreServiceToGeoParquetStorageArgs(%+v)", *p)
+
+}
+
+func (p *StoreServiceToGeoParquetStorageArgs) DeepEqual(ano *StoreServiceToGeoParquetStorageArgs) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field1DeepEqual(ano.Req) {
+		return false
+	}
+	return true
+}
+
+func (p *StoreServiceToGeoParquetStorageArgs) Field1DeepEqual(src *ToGeoParquetStorageRequest) bool {
+
+	if !p.Req.DeepEqual(src) {
+		return false
+	}
+	return true
+}
+
+type StoreServiceToGeoParquetStorageResult struct {
+	Success *ToGeoParquetStorageResponse `thrift:"success,0,optional" frugal:"0,optional,ToGeoParquetStorageResponse" json:"success,omitempty"`
+}
+
+func NewStoreServiceToGeoParquetStorageResult() *StoreServiceToGeoParquetStorageResult {
+	return &StoreServiceToGeoParquetStorageResult{}
+}
+
+func (p *StoreServiceToGeoParquetStorageResult) InitDefault() {
+}
+
+var StoreServiceToGeoParquetStorageResult_Success_DEFAULT *ToGeoParquetStorageResponse
+
+func (p *StoreServiceToGeoParquetStorageResult) GetSuccess() (v *ToGeoParquetStorageResponse) {
+	if !p.IsSetSuccess() {
+		return StoreServiceToGeoParquetStorageResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *StoreServiceToGeoParquetStorageResult) SetSuccess(x interface{}) {
+	p.Success = x.(*ToGeoParquetStorageResponse)
+}
+
+var fieldIDToName_StoreServiceToGeoParquetStorageResult = map[int16]string{
+	0: "success",
+}
+
+func (p *StoreServiceToGeoParquetStorageResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *StoreServiceToGeoParquetStorageResult) Read(iprot thrift.TProtocol) (err error) {
+
+	var fieldTypeId thrift.TType
+	var fieldId int16
+
+	if _, err = iprot.ReadStructBegin(); err != nil {
+		goto ReadStructBeginError
+	}
+
+	for {
+		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
+		if err != nil {
+			goto ReadFieldBeginError
+		}
+		if fieldTypeId == thrift.STOP {
+			break
+		}
+
+		switch fieldId {
+		case 0:
+			if fieldTypeId == thrift.STRUCT {
+				if err = p.ReadField0(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		default:
+			if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		}
+		if err = iprot.ReadFieldEnd(); err != nil {
+			goto ReadFieldEndError
+		}
+	}
+	if err = iprot.ReadStructEnd(); err != nil {
+		goto ReadStructEndError
+	}
+
+	return nil
+ReadStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
+ReadFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
+ReadFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreServiceToGeoParquetStorageResult[fieldId]), err)
+SkipFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
+
+ReadFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
+ReadStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+}
+
+func (p *StoreServiceToGeoParquetStorageResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewToGeoParquetStorageResponse()
+	if err := _field.Read(iprot); err != nil {
+		return err
+	}
+	p.Success = _field
+	return nil
+}
+
+func (p *StoreServiceToGeoParquetStorageResult) Write(oprot thrift.TProtocol) (err error) {
+	var fieldId int16
+	if err = oprot.WriteStructBegin("ToGeoParquetStorage_result"); err != nil {
+		goto WriteStructBeginError
+	}
+	if p != nil {
+		if err = p.writeField0(oprot); err != nil {
+			fieldId = 0
+			goto WriteFieldError
+		}
+	}
+	if err = oprot.WriteFieldStop(); err != nil {
+		goto WriteFieldStopError
+	}
+	if err = oprot.WriteStructEnd(); err != nil {
+		goto WriteStructEndError
+	}
+	return nil
+WriteStructBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
+WriteFieldError:
+	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
+WriteFieldStopError:
+	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
+WriteStructEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
+}
+
+func (p *StoreServiceToGeoParquetStorageResult) writeField0(oprot thrift.TProtocol) (err error) {
+	if p.IsSetSuccess() {
+		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
+			goto WriteFieldBeginError
+		}
+		if err := p.Success.Write(oprot); err != nil {
+			return err
+		}
+		if err = oprot.WriteFieldEnd(); err != nil {
+			goto WriteFieldEndError
+		}
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
+}
+
+func (p *StoreServiceToGeoParquetStorageResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("StoreServiceToGeoParquetStorageResult(%+v)", *p)
+
+}
+
+func (p *StoreServiceToGeoParquetStorageResult) DeepEqual(ano *StoreServiceToGeoParquetStorageResult) bool {
+	if p == ano {
+		return true
+	} else if p == nil || ano == nil {
+		return false
+	}
+	if !p.Field0DeepEqual(ano.Success) {
+		return false
+	}
+	return true
+}
+
+func (p *StoreServiceToGeoParquetStorageResult) Field0DeepEqual(src *ToGeoParquetStorageResponse) bool {
 
 	if !p.Success.DeepEqual(src) {
 		return false

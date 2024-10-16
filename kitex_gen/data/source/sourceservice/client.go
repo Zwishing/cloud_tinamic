@@ -20,6 +20,7 @@ type Client interface {
 	Upload(ctx context.Context, req *source.UploadRequest, callOptions ...callopt.Option) (r *source.UploadResponse, err error)
 	PresignedUpload(ctx context.Context, req *source.PresignedUploadResquest, callOptions ...callopt.Option) (r *source.PresignedUploadResponse, err error)
 	GetSourcePath(ctx context.Context, key string, callOptions ...callopt.Option) (r string, err error)
+	GetUnifiedSourcePath(ctx context.Context, sourceKey string, callOptions ...callopt.Option) (r string, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -94,4 +95,9 @@ func (p *kSourceServiceClient) PresignedUpload(ctx context.Context, req *source.
 func (p *kSourceServiceClient) GetSourcePath(ctx context.Context, key string, callOptions ...callopt.Option) (r string, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetSourcePath(ctx, key)
+}
+
+func (p *kSourceServiceClient) GetUnifiedSourcePath(ctx context.Context, sourceKey string, callOptions ...callopt.Option) (r string, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetUnifiedSourcePath(ctx, sourceKey)
 }

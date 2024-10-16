@@ -76,6 +76,13 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
+	"GetUnifiedSourcePath": kitex.NewMethodInfo(
+		getUnifiedSourcePathHandler,
+		newSourceServiceGetUnifiedSourcePathArgs,
+		newSourceServiceGetUnifiedSourcePathResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 }
 
 var (
@@ -304,6 +311,24 @@ func newSourceServiceGetSourcePathResult() interface{} {
 	return source.NewSourceServiceGetSourcePathResult()
 }
 
+func getUnifiedSourcePathHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*source.SourceServiceGetUnifiedSourcePathArgs)
+	realResult := result.(*source.SourceServiceGetUnifiedSourcePathResult)
+	success, err := handler.(source.SourceService).GetUnifiedSourcePath(ctx, realArg.SourceKey)
+	if err != nil {
+		return err
+	}
+	realResult.Success = &success
+	return nil
+}
+func newSourceServiceGetUnifiedSourcePathArgs() interface{} {
+	return source.NewSourceServiceGetUnifiedSourcePathArgs()
+}
+
+func newSourceServiceGetUnifiedSourcePathResult() interface{} {
+	return source.NewSourceServiceGetUnifiedSourcePathResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -399,6 +424,16 @@ func (p *kClient) GetSourcePath(ctx context.Context, key string) (r string, err 
 	_args.Key = key
 	var _result source.SourceServiceGetSourcePathResult
 	if err = p.c.Call(ctx, "GetSourcePath", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetUnifiedSourcePath(ctx context.Context, sourceKey string) (r string, err error) {
+	var _args source.SourceServiceGetUnifiedSourcePathArgs
+	_args.SourceKey = sourceKey
+	var _result source.SourceServiceGetUnifiedSourcePathResult
+	if err = p.c.Call(ctx, "GetUnifiedSourcePath", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

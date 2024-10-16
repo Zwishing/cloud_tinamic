@@ -104,4 +104,5 @@ service SourceService{
     UploadResponse Upload(1:UploadRequest req),
     PresignedUploadResponse PresignedUpload(1:PresignedUploadResquest req),
     string GetSourcePath(1:string key),
+    string GetUnifiedSourcePath(1:string source_key),
 }

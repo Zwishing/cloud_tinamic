@@ -15,7 +15,7 @@ pilota.workspace = true
 anyhow.workspace = true
 tokio = { workspace = true, features = ["full"] }
 
-gdal = "0.17.0"
+gdal = "0.17.1"
 gdal-sys = "0.10.0"
 wkb-raster = "0.2.1"
 serde = { version = "1.0.197", features = ["derive"] }
@@ -31,7 +31,9 @@ tempfile = "3.10.1"
 tracing = "0.1.40"
 geo="0.28.0"
 image="0.25.1"
-minio="0.1.0"
+#minio="0.1.0"
+chrono="0.4.38"
+minio = {git = "https://gitee.com/zhangwishing/minio-rs.git",branch = "master"}
 
 [profile.release]
 opt-level = 3

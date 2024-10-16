@@ -33,8 +33,8 @@ func (s *Storage) TableName() string {
 
 type Unified struct {
 	gorm.Model
-	key            string
-	SourceKey      string
+	Key            string    `json:"key" column:"key"`
+	SourceKey      string    `json:"sourceKey" column:"source_key"`
 	SourceCategory int64     `json:"source_category" column:"source_category"`
 	Size           int64     `json:"size" column:"size"`
 	Path           string    `json:"path" column:"path"`

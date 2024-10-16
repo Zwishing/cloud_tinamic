@@ -5,6 +5,7 @@ use tokio::sync::Mutex;
 use tokio_postgres::NoTls;
 use config::{Config, File, FileFormat};
 use minio::s3::client::Client as MinioClient;
+use minio::s3::ClientBuilder;
 use minio::s3::creds::StaticProvider;
 
 #[derive(Debug,Clone,Deserialize)]
@@ -25,7 +26,6 @@ struct DatabaseSettings {
 #[derive(Debug, Clone, Deserialize)]
 struct MinioSettings {
     endpoint:String,
-    bucket:String,
     access_key:String,
     secret_key:String,
 }
@@ -101,7 +101,10 @@ fn init_pool() -> &'static Mutex<Pool> {
         let pool = Pool::builder(manager)
             .max_size(20)
             .build()
-            .unwrap();
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to build database pool: {}", e);
+                panic!("Database pool initialization failed")
+            });
 
         tracing::info!("Successfully connected to PostgreSQL database @ {}", settings.database.host);
         Mutex::new(pool)
@@ -116,10 +119,15 @@ fn init_minio_client() -> &'static Mutex<MinioClient> {
             &settings.minio.secret_key,
             None,
         );
-        let client = MinioClient::new(
-            settings.minio.endpoint.parse().unwrap(),
-            Some(Box::new(static_provider)), None, None
-        ).expect("Failed to initialize MinIO client");
+
+        let client = ClientBuilder::new(
+            settings.minio.endpoint.parse().expect("Invalid MinIO endpoint URL")
+        ).provider(Some(Box::new(static_provider)))
+            .build()
+            .unwrap_or_else(|e| {
+                tracing::error!("Failed to build MinIO client: {}", e);
+                panic!("MinIO client initialization failed")
+            });
         tracing::info!("Successfully connected to MinIO @ {}", settings.minio.endpoint);
         Mutex::new(client)
     })

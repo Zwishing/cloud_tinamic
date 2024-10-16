@@ -1,16 +1,13 @@
-mod db;
 mod handler;
 mod util;
 mod service;
 mod programs;
 mod config;
 mod minio;
-
-use std::future::Future;
 use volo_thrift::ServerError;
 use volo_gen::data::storage::{StoreService, StoreRequest, StoreResponse, ToGeoParquetStorageRequest, ToGeoParquetStorageResponse};
 use volo_gen::base::{BaseResp,Code};
-use crate::handler::store_vector;
+use crate::handler::{store_vector,unified_vector};
 pub struct S;
 
 impl StoreService for S {
@@ -19,9 +16,9 @@ impl StoreService for S {
         req: StoreRequest,
     ) -> Result<
         StoreResponse,
-        volo_thrift::ServerError,
+        ServerError,
     > {
-        let url = util::add_prefix_from_ext(&req.url, &req.ext);
+        let url = util::add_prefix_from_ext(&req.url, Some(&req.ext));
         let base = match store_vector(&url, &req.schema, &req.table).await {
             Ok(_) => BaseResp {
                 code: Code::SUCCESS,
@@ -36,8 +33,28 @@ impl StoreService for S {
         Ok(StoreResponse { base })
     }
 
-    fn to_geo_parquet_storage(&self, req: ToGeoParquetStorageRequest) -> impl Future<Output=Result<ToGeoParquetStorageResponse, ServerError>> + Send {
-        todo!()
+    async fn to_geo_parquet_storage(&self, req: ToGeoParquetStorageRequest) -> Result<ToGeoParquetStorageResponse,ServerError> {
+        let url = util::add_prefix_from_ext(&req.source_path, None);
+        let resp = match unified_vector(&url,&req.bucket_name,&req.storage_name).await{
+            Ok(size)=> ToGeoParquetStorageResponse{
+                base:BaseResp {
+                    code: Code::SUCCESS,
+                    msg: format!("success to unified_vector in {}",req.storage_name).into(),
+                },
+                dest_path: Some(format!("{}/{}",req.bucket_name,req.storage_name).into()),
+                size:Some(size as i64),
+            },
+            Err(e)=>ToGeoParquetStorageResponse{
+                base: BaseResp {
+                    code: Code::FAIL,
+                    msg: e.to_string().into(),
+                },
+                dest_path: None,
+                size: None
+            }
+        };
+        Ok(resp)
+
     }
 }
 

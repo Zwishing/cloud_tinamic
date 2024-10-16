@@ -10,3 +10,7 @@ dbname = "tinamic"
 #password = "admin"
 #port=5433
 #dbname = "tinamic"
+[minio]
+endpoint="39.101.164.253:9000"
+access_key="ugNa8yDGzk4gESCATs06"
+secret_key="ruiC05DkvnxxNZrMba5kUbgux8oJLreYuulXhryw"
