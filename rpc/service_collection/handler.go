@@ -24,7 +24,9 @@ type ServiceCollectionImpl struct {
 	sourceClient          source.Client
 }
 
-func NewServiceCollectionImpl(mapProcessor mapprocessorservice.Client, geoStore storeservice.Client, serviceRepo repo.ServiceCollectionRepo, sourceService source.Client) *ServiceCollectionImpl {
+func NewServiceCollectionImpl(mapProcessor mapprocessorservice.Client,
+	geoStore storeservice.Client, serviceRepo repo.ServiceCollectionRepo,
+	sourceService source.Client) *ServiceCollectionImpl {
 	return &ServiceCollectionImpl{
 		mapProcessorClient:    mapProcessor,
 		geoClient:             geoStore,

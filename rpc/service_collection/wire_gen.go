@@ -17,12 +17,16 @@ func InitServiceCollection() (*ServiceCollectionImpl, error) {
 	if err != nil {
 		return nil, err
 	}
-	storeserviceClient, err := NewStoreServiceClient()
+	storeserviceClient, err := NewGeoServiceClient()
 	if err != nil {
 		return nil, err
 	}
 	db := repo.NewDB()
 	serviceCollectionRepo := repo.NewServiceCollectionRepoImpl(db)
-	serviceCollectionImpl := NewServiceCollectionImpl(client, storeserviceClient, serviceCollectionRepo)
+	sourceserviceClient, err := NewSourceServiceClient()
+	if err != nil {
+		return nil, err
+	}
+	serviceCollectionImpl := NewServiceCollectionImpl(client, storeserviceClient, serviceCollectionRepo, sourceserviceClient)
 	return serviceCollectionImpl, nil
 }

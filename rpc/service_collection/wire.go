@@ -14,7 +14,8 @@ func InitServiceCollection() (*ServiceCollectionImpl, error) {
 		repo.NewDB,
 		repo.NewServiceCollectionRepoImpl,
 		NewMapProcessorClient,
-		NewStoreServiceClient,
+		NewGeoServiceClient,
+		NewSourceServiceClient,
 		NewServiceCollectionImpl,
 	)
 	return nil, nil

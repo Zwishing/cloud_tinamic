@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cloud_tinamic/kitex_gen/data/source/sourceservice"
 	"cloud_tinamic/kitex_gen/data/storage/storeservice"
 	"cloud_tinamic/kitex_gen/map/processor/mapprocessorservice"
 	"github.com/cloudwego/kitex/client"
@@ -16,10 +17,19 @@ func NewMapProcessorClient() (mapprocessorservice.Client, error) {
 	return c, nil
 }
 
-func NewStoreServiceClient() (storeservice.Client, error) {
-	c, err := storeservice.NewClient("geo", client.WithHostPorts(""))
+func NewGeoServiceClient() (storeservice.Client, error) {
+	c, err := storeservice.NewClient("geo", client.WithHostPorts("0.0.0.0:8089"))
 	if err != nil {
 		klog.Errorf("连接到storeservice失败: %s", err)
+		return nil, err
+	}
+	return c, nil
+}
+
+func NewSourceServiceClient() (sourceservice.Client, error) {
+	c, err := sourceservice.NewClient("geo", client.WithHostPorts("0.0.0.0:8813"))
+	if err != nil {
+		klog.Errorf("连接到sourceservice失败: %s", err)
 		return nil, err
 	}
 	return c, nil
