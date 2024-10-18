@@ -36,7 +36,7 @@ func Publish(ctx *fiber.Ctx) error {
 
 	err = collectionClient.Publish(ctx.Context(), &collection.PublishRequest{
 		SourceCategory:  sourceCategory,
-		SourceKey:       publishRequest.Key,
+		SourceKey:       publishRequest.SourceKey,
 		ServiceCategory: serviceCategory,
 	})
 

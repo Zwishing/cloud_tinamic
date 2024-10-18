@@ -623,9 +623,10 @@ func (p *StoreResponse) Field1DeepEqual(src *base.BaseResp) bool {
 }
 
 type ToGeoParquetStorageRequest struct {
-	SourcePath  string `thrift:"source_path,1,required" frugal:"1,required,string" json:"source_path"`
-	BucketName  string `thrift:"bucket_name,2,required" frugal:"2,required,string" json:"bucket_name"`
-	StorageName string `thrift:"storage_name,3,required" frugal:"3,required,string" json:"storage_name"`
+	SourceBucket string `thrift:"source_bucket,1,required" frugal:"1,required,string" json:"source_bucket"`
+	SourcePath   string `thrift:"source_path,2,required" frugal:"2,required,string" json:"source_path"`
+	DestBucket   string `thrift:"dest_bucket,3,required" frugal:"3,required,string" json:"dest_bucket"`
+	DestPath     string `thrift:"dest_path,4,required" frugal:"4,required,string" json:"dest_path"`
 }
 
 func NewToGeoParquetStorageRequest() *ToGeoParquetStorageRequest {
@@ -635,40 +636,49 @@ func NewToGeoParquetStorageRequest() *ToGeoParquetStorageRequest {
 func (p *ToGeoParquetStorageRequest) InitDefault() {
 }
 
+func (p *ToGeoParquetStorageRequest) GetSourceBucket() (v string) {
+	return p.SourceBucket
+}
+
 func (p *ToGeoParquetStorageRequest) GetSourcePath() (v string) {
 	return p.SourcePath
 }
 
-func (p *ToGeoParquetStorageRequest) GetBucketName() (v string) {
-	return p.BucketName
+func (p *ToGeoParquetStorageRequest) GetDestBucket() (v string) {
+	return p.DestBucket
 }
 
-func (p *ToGeoParquetStorageRequest) GetStorageName() (v string) {
-	return p.StorageName
+func (p *ToGeoParquetStorageRequest) GetDestPath() (v string) {
+	return p.DestPath
+}
+func (p *ToGeoParquetStorageRequest) SetSourceBucket(val string) {
+	p.SourceBucket = val
 }
 func (p *ToGeoParquetStorageRequest) SetSourcePath(val string) {
 	p.SourcePath = val
 }
-func (p *ToGeoParquetStorageRequest) SetBucketName(val string) {
-	p.BucketName = val
+func (p *ToGeoParquetStorageRequest) SetDestBucket(val string) {
+	p.DestBucket = val
 }
-func (p *ToGeoParquetStorageRequest) SetStorageName(val string) {
-	p.StorageName = val
+func (p *ToGeoParquetStorageRequest) SetDestPath(val string) {
+	p.DestPath = val
 }
 
 var fieldIDToName_ToGeoParquetStorageRequest = map[int16]string{
-	1: "source_path",
-	2: "bucket_name",
-	3: "storage_name",
+	1: "source_bucket",
+	2: "source_path",
+	3: "dest_bucket",
+	4: "dest_path",
 }
 
 func (p *ToGeoParquetStorageRequest) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
+	var issetSourceBucket bool = false
 	var issetSourcePath bool = false
-	var issetBucketName bool = false
-	var issetStorageName bool = false
+	var issetDestBucket bool = false
+	var issetDestPath bool = false
 
 	if _, err = iprot.ReadStructBegin(); err != nil {
 		goto ReadStructBeginError
@@ -689,7 +699,7 @@ func (p *ToGeoParquetStorageRequest) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField1(iprot); err != nil {
 					goto ReadFieldError
 				}
-				issetSourcePath = true
+				issetSourceBucket = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -698,7 +708,7 @@ func (p *ToGeoParquetStorageRequest) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
-				issetBucketName = true
+				issetSourcePath = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -707,7 +717,16 @@ func (p *ToGeoParquetStorageRequest) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
-				issetStorageName = true
+				issetDestBucket = true
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				if err = p.ReadField4(iprot); err != nil {
+					goto ReadFieldError
+				}
+				issetDestPath = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -724,18 +743,23 @@ func (p *ToGeoParquetStorageRequest) Read(iprot thrift.TProtocol) (err error) {
 		goto ReadStructEndError
 	}
 
-	if !issetSourcePath {
+	if !issetSourceBucket {
 		fieldId = 1
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetBucketName {
+	if !issetSourcePath {
 		fieldId = 2
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetStorageName {
+	if !issetDestBucket {
 		fieldId = 3
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetDestPath {
+		fieldId = 4
 		goto RequiredFieldNotSetError
 	}
 	return nil
@@ -764,7 +788,7 @@ func (p *ToGeoParquetStorageRequest) ReadField1(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.SourcePath = _field
+	p.SourceBucket = _field
 	return nil
 }
 func (p *ToGeoParquetStorageRequest) ReadField2(iprot thrift.TProtocol) error {
@@ -775,7 +799,7 @@ func (p *ToGeoParquetStorageRequest) ReadField2(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.BucketName = _field
+	p.SourcePath = _field
 	return nil
 }
 func (p *ToGeoParquetStorageRequest) ReadField3(iprot thrift.TProtocol) error {
@@ -786,7 +810,18 @@ func (p *ToGeoParquetStorageRequest) ReadField3(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.StorageName = _field
+	p.DestBucket = _field
+	return nil
+}
+func (p *ToGeoParquetStorageRequest) ReadField4(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.DestPath = _field
 	return nil
 }
 
@@ -808,6 +843,10 @@ func (p *ToGeoParquetStorageRequest) Write(oprot thrift.TProtocol) (err error) {
 			fieldId = 3
 			goto WriteFieldError
 		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
 	}
 	if err = oprot.WriteFieldStop(); err != nil {
 		goto WriteFieldStopError
@@ -827,10 +866,10 @@ WriteStructEndError:
 }
 
 func (p *ToGeoParquetStorageRequest) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("source_path", thrift.STRING, 1); err != nil {
+	if err = oprot.WriteFieldBegin("source_bucket", thrift.STRING, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.SourcePath); err != nil {
+	if err := oprot.WriteString(p.SourceBucket); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -844,10 +883,10 @@ WriteFieldEndError:
 }
 
 func (p *ToGeoParquetStorageRequest) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("bucket_name", thrift.STRING, 2); err != nil {
+	if err = oprot.WriteFieldBegin("source_path", thrift.STRING, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.BucketName); err != nil {
+	if err := oprot.WriteString(p.SourcePath); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -861,10 +900,10 @@ WriteFieldEndError:
 }
 
 func (p *ToGeoParquetStorageRequest) writeField3(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("storage_name", thrift.STRING, 3); err != nil {
+	if err = oprot.WriteFieldBegin("dest_bucket", thrift.STRING, 3); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.StorageName); err != nil {
+	if err := oprot.WriteString(p.DestBucket); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -875,6 +914,23 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *ToGeoParquetStorageRequest) writeField4(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("dest_path", thrift.STRING, 4); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteString(p.DestPath); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
 }
 
 func (p *ToGeoParquetStorageRequest) String() string {
@@ -891,13 +947,16 @@ func (p *ToGeoParquetStorageRequest) DeepEqual(ano *ToGeoParquetStorageRequest) 
 	} else if p == nil || ano == nil {
 		return false
 	}
-	if !p.Field1DeepEqual(ano.SourcePath) {
+	if !p.Field1DeepEqual(ano.SourceBucket) {
 		return false
 	}
-	if !p.Field2DeepEqual(ano.BucketName) {
+	if !p.Field2DeepEqual(ano.SourcePath) {
 		return false
 	}
-	if !p.Field3DeepEqual(ano.StorageName) {
+	if !p.Field3DeepEqual(ano.DestBucket) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.DestPath) {
 		return false
 	}
 	return true
@@ -905,21 +964,28 @@ func (p *ToGeoParquetStorageRequest) DeepEqual(ano *ToGeoParquetStorageRequest) 
 
 func (p *ToGeoParquetStorageRequest) Field1DeepEqual(src string) bool {
 
-	if strings.Compare(p.SourcePath, src) != 0 {
+	if strings.Compare(p.SourceBucket, src) != 0 {
 		return false
 	}
 	return true
 }
 func (p *ToGeoParquetStorageRequest) Field2DeepEqual(src string) bool {
 
-	if strings.Compare(p.BucketName, src) != 0 {
+	if strings.Compare(p.SourcePath, src) != 0 {
 		return false
 	}
 	return true
 }
 func (p *ToGeoParquetStorageRequest) Field3DeepEqual(src string) bool {
 
-	if strings.Compare(p.StorageName, src) != 0 {
+	if strings.Compare(p.DestBucket, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *ToGeoParquetStorageRequest) Field4DeepEqual(src string) bool {
+
+	if strings.Compare(p.DestPath, src) != 0 {
 		return false
 	}
 	return true

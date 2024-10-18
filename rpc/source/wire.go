@@ -27,12 +27,13 @@ var DataProviders = wire.NewSet(
 )
 
 // SourceService 注入优化
-func InitSourceService() *SourceServiceImpl {
+func InitSourceService() (*SourceServiceImpl, error) {
 	wire.Build(
-		DataProviders,        // 复用数据库和 MinIO 的依赖
+		DataProviders, // 复用数据库和 MinIO 的依赖
+		NewGeoServiceClient,
 		NewSourceServiceImpl, // 注入服务
 	)
-	return nil
+	return nil, nil
 }
 
 // NSQ Client 注入优化

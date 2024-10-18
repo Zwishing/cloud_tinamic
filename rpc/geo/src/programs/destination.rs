@@ -1,7 +1,7 @@
 use std::ffi::CString;
 use std::mem::ManuallyDrop;
 use std::path::{Path, PathBuf};
-use gdal::{Dataset};
+use gdal::Dataset;
 use gdal::errors::{GdalError,Result};
 use super::util::_path_to_c_string;
 

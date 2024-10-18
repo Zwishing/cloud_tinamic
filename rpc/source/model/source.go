@@ -31,7 +31,7 @@ func (s *Storage) TableName() string {
 	return "data_source.storage"
 }
 
-type Unified struct {
+type CloudOptimized struct {
 	gorm.Model
 	Key            string    `json:"key" column:"key"`
 	SourceKey      string    `json:"sourceKey" column:"source_key"`
@@ -41,6 +41,6 @@ type Unified struct {
 	ModifiedTime   time.Time `json:"modified_time" column:"modified_time"`
 }
 
-func (s *Unified) TableName() string {
-	return "data_source.unified"
+func (s *CloudOptimized) TableName() string {
+	return "data_source.cloud_optimized"
 }

@@ -14,12 +14,16 @@ import (
 // Injectors from wire.go:
 
 // SourceService 注入优化
-func InitSourceService() *SourceServiceImpl {
+func InitSourceService() (*SourceServiceImpl, error) {
 	db := repo.NewDB()
 	storage := repo.NewMinio()
 	sourceRepo := repo.NewSourceRepoImpl(db, storage)
-	sourceServiceImpl := NewSourceServiceImpl(sourceRepo)
-	return sourceServiceImpl
+	client, err := NewGeoServiceClient()
+	if err != nil {
+		return nil, err
+	}
+	sourceServiceImpl := NewSourceServiceImpl(sourceRepo, client)
+	return sourceServiceImpl, nil
 }
 
 // NSQ Client 注入优化

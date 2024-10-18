@@ -26,5 +26,5 @@ pub async fn store_vector(url: &str, schema: &str, table: &str) -> Result<()> {
 
 
 pub async fn unified_vector<P: AsRef<Path>>(url: P, bucket_name:&str, name:&str) -> Result<u64,anyhow::Error>{
-    service::to_geoparquet_and_upload(url,bucket_name, name).await
+    service::to_geoparquet_and_upload(url, bucket_name, name).await
 }

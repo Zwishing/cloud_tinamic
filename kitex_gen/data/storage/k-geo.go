@@ -448,9 +448,10 @@ func (p *ToGeoParquetStorageRequest) FastRead(buf []byte) (int, error) {
 	var l int
 	var fieldTypeId thrift.TType
 	var fieldId int16
+	var issetSourceBucket bool = false
 	var issetSourcePath bool = false
-	var issetBucketName bool = false
-	var issetStorageName bool = false
+	var issetDestBucket bool = false
+	var issetDestPath bool = false
 	for {
 		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
 		offset += l
@@ -468,7 +469,7 @@ func (p *ToGeoParquetStorageRequest) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
-				issetSourcePath = true
+				issetSourceBucket = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -483,7 +484,7 @@ func (p *ToGeoParquetStorageRequest) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
-				issetBucketName = true
+				issetSourcePath = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -498,7 +499,22 @@ func (p *ToGeoParquetStorageRequest) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
-				issetStorageName = true
+				issetDestBucket = true
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 4:
+			if fieldTypeId == thrift.STRING {
+				l, err = p.FastReadField4(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+				issetDestPath = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -515,18 +531,23 @@ func (p *ToGeoParquetStorageRequest) FastRead(buf []byte) (int, error) {
 		}
 	}
 
-	if !issetSourcePath {
+	if !issetSourceBucket {
 		fieldId = 1
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetBucketName {
+	if !issetSourcePath {
 		fieldId = 2
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetStorageName {
+	if !issetDestBucket {
 		fieldId = 3
+		goto RequiredFieldNotSetError
+	}
+
+	if !issetDestPath {
+		fieldId = 4
 		goto RequiredFieldNotSetError
 	}
 	return offset, nil
@@ -550,7 +571,7 @@ func (p *ToGeoParquetStorageRequest) FastReadField1(buf []byte) (int, error) {
 		offset += l
 		_field = v
 	}
-	p.SourcePath = _field
+	p.SourceBucket = _field
 	return offset, nil
 }
 
@@ -564,7 +585,7 @@ func (p *ToGeoParquetStorageRequest) FastReadField2(buf []byte) (int, error) {
 		offset += l
 		_field = v
 	}
-	p.BucketName = _field
+	p.SourcePath = _field
 	return offset, nil
 }
 
@@ -578,7 +599,21 @@ func (p *ToGeoParquetStorageRequest) FastReadField3(buf []byte) (int, error) {
 		offset += l
 		_field = v
 	}
-	p.StorageName = _field
+	p.DestBucket = _field
+	return offset, nil
+}
+
+func (p *ToGeoParquetStorageRequest) FastReadField4(buf []byte) (int, error) {
+	offset := 0
+
+	var _field string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.DestPath = _field
 	return offset, nil
 }
 
@@ -593,6 +628,7 @@ func (p *ToGeoParquetStorageRequest) FastWriteNocopy(buf []byte, w thrift.Nocopy
 		offset += p.fastWriteField1(buf[offset:], w)
 		offset += p.fastWriteField2(buf[offset:], w)
 		offset += p.fastWriteField3(buf[offset:], w)
+		offset += p.fastWriteField4(buf[offset:], w)
 	}
 	offset += thrift.Binary.WriteFieldStop(buf[offset:])
 	return offset
@@ -604,6 +640,7 @@ func (p *ToGeoParquetStorageRequest) BLength() int {
 		l += p.field1Length()
 		l += p.field2Length()
 		l += p.field3Length()
+		l += p.field4Length()
 	}
 	l += thrift.Binary.FieldStopLength()
 	return l
@@ -612,42 +649,56 @@ func (p *ToGeoParquetStorageRequest) BLength() int {
 func (p *ToGeoParquetStorageRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 1)
-	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.SourcePath)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.SourceBucket)
 	return offset
 }
 
 func (p *ToGeoParquetStorageRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 2)
-	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.BucketName)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.SourcePath)
 	return offset
 }
 
 func (p *ToGeoParquetStorageRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
-	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.StorageName)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.DestBucket)
+	return offset
+}
+
+func (p *ToGeoParquetStorageRequest) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.DestPath)
 	return offset
 }
 
 func (p *ToGeoParquetStorageRequest) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.StringLengthNocopy(p.SourcePath)
+	l += thrift.Binary.StringLengthNocopy(p.SourceBucket)
 	return l
 }
 
 func (p *ToGeoParquetStorageRequest) field2Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.StringLengthNocopy(p.BucketName)
+	l += thrift.Binary.StringLengthNocopy(p.SourcePath)
 	return l
 }
 
 func (p *ToGeoParquetStorageRequest) field3Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.StringLengthNocopy(p.StorageName)
+	l += thrift.Binary.StringLengthNocopy(p.DestBucket)
+	return l
+}
+
+func (p *ToGeoParquetStorageRequest) field4Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.StringLengthNocopy(p.DestPath)
 	return l
 }
 

@@ -46,7 +46,7 @@
         bucket="vector"
         accessKey="ugNa8yDGzk4gESCATs06"
         secretKey="ruiC05DkvnxxNZrMba5kUbgux8oJLreYuulXhryw"
-        buckets = ["vector","raster"]
+        buckets = ["original-source","cloud-optimized-source","vector-tile"]
 
 [message]
     [message.nsq]

@@ -4,6 +4,8 @@ mod service;
 mod programs;
 mod config;
 mod minio;
+pub mod gdal_config;
+
 use volo_thrift::ServerError;
 use volo_gen::data::storage::{StoreService, StoreRequest, StoreResponse, ToGeoParquetStorageRequest, ToGeoParquetStorageResponse};
 use volo_gen::base::{BaseResp,Code};
@@ -18,7 +20,7 @@ impl StoreService for S {
         StoreResponse,
         ServerError,
     > {
-        let url = util::add_prefix_from_ext(&req.url, Some(&req.ext));
+        let url = util::add_prefix_from_ext(&req.url, "", Some(&req.ext));
         let base = match store_vector(&url, &req.schema, &req.table).await {
             Ok(_) => BaseResp {
                 code: Code::SUCCESS,
@@ -33,25 +35,29 @@ impl StoreService for S {
         Ok(StoreResponse { base })
     }
 
-    async fn to_geo_parquet_storage(&self, req: ToGeoParquetStorageRequest) -> Result<ToGeoParquetStorageResponse,ServerError> {
-        let url = util::add_prefix_from_ext(&req.source_path, None);
-        let resp = match unified_vector(&url,&req.bucket_name,&req.storage_name).await{
-            Ok(size)=> ToGeoParquetStorageResponse{
+    async fn to_geo_parquet_storage(&self, req: ToGeoParquetStorageRequest) -> Result<ToGeoParquetStorageResponse, ServerError> {
+        let s3url = util::add_prefix_from_ext(&req.source_path, &req.source_bucket,None);
+        let resp = match unified_vector(&s3url,&req.dest_bucket,&req.dest_path).await{
+            Ok(size)=> {
+                tracing::info!("success to unified_vector in {}",req.dest_path);
+                ToGeoParquetStorageResponse{
                 base:BaseResp {
                     code: Code::SUCCESS,
-                    msg: format!("success to unified_vector in {}",req.storage_name).into(),
+                    msg: format!("success to unified_vector in {}",req.dest_path).into(),
                 },
-                dest_path: Some(format!("{}/{}",req.bucket_name,req.storage_name).into()),
+                dest_path: Some(format!("{}",req.dest_path).into()),
                 size:Some(size as i64),
-            },
-            Err(e)=>ToGeoParquetStorageResponse{
+            }},
+            Err(e)=>{
+                tracing::error!("{}", e.to_string());
+                ToGeoParquetStorageResponse{
                 base: BaseResp {
                     code: Code::FAIL,
                     msg: e.to_string().into(),
                 },
                 dest_path: None,
                 size: None
-            }
+            }}
         };
         Ok(resp)
 

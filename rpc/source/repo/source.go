@@ -24,7 +24,7 @@ type ItemRepo interface {
 
 type StorageRepo interface {
 	AddItem(SourceCategory source.SourceCategory, parentKey string, item *source.Item) (bool, error)
-	DeleteItems(key []string) (bool, error)
+	DeleteItems(keys []string) (bool, error)
 	GetPathByKey(key string) (string, error)
 	GetHomeItemsBySourceCategory(sourceCategory source.SourceCategory) (string, []*model.Storage, error)
 	GetHomeKeyBySourceCategory(sourceCategory source.SourceCategory) (string, error)
@@ -32,12 +32,12 @@ type StorageRepo interface {
 
 type UnifiedRepo interface {
 	GetUnifiedSourcePathByKey(sourceKey string) ([]string, error)
-	AddUnifiedItem(sourceCategory source.SourceCategory, sourceKey string, unifiedKey string, path string, size int64) (bool, error)
+	AddCloudOptimizedItem(sourceCategory source.SourceCategory, sourceKey string, unifiedKey string, path string, size int64) (bool, error)
 }
 
 type MinioRepo interface {
 	PresignedUploadUrl(SourceCategory source.SourceCategory, path string, name string) (string, error)
-	UploadToMinio(bucketName, path, fileName string, reader io.Reader, fileSize int64) error
+	UploadToMinio(bucketName, path string, reader io.Reader, fileSize int64) error
 }
 
 type SourceRepo interface {
@@ -52,73 +52,58 @@ type SourceRepoImpl struct {
 	minio *storage.Storage
 }
 
-// UploadToMinio implements SourceRepo.
-func (s *SourceRepoImpl) UploadToMinio(bucketName, path, fileName string, reader io.Reader, fileSize int64) error {
-	opts := minio.PutObjectOptions{}
-	_, err := s.minio.Upload(bucketName, fileName, reader, fileSize, opts)
+func NewSourceRepoImpl(db *gorm.DB, minio *storage.Storage) SourceRepo {
+	return &SourceRepoImpl{db, minio}
+}
+
+func (s *SourceRepoImpl) UploadToMinio(bucketName, path string, reader io.Reader, fileSize int64) error {
+	_, err := s.minio.Upload(bucketName, path, reader, fileSize, minio.PutObjectOptions{})
 	return err
 }
 
-func NewSourceRepoImpl(db *gorm.DB, minio *storage.Storage) SourceRepo {
-	return &SourceRepoImpl{
-		db,
-		minio,
-	}
-}
-
-// GetChildrenItemsByKey 通过当前的key，查询所有属于当前的子类
 func (s *SourceRepoImpl) GetChildrenItemsByKey(key string) ([]*model.Storage, error) {
 	var items []*model.Storage
-	err := s.DB.Table("data_source.storage").
-		Where("parent_key = ? ", key).
-		Find(&items).Error
+	err := s.DB.Table("data_source.storage").Where("parent_key = ?", key).Find(&items).Error
 	if err != nil {
-		// Changed from Fatalf to Errorf to avoid program termination
 		klog.Errorf("failed to query storages: %v", err)
 		return nil, fmt.Errorf("database query error: %w", err)
 	}
-	// Added a check for empty result
 	if len(items) == 0 {
 		klog.Infof("no items found for parent_key: %s", key)
 	}
 	return items, nil
 }
 
-// GetSiblingItemsByKey 通过当前的key找到同一父节点的数据
 func (s *SourceRepoImpl) GetSiblingItemsByKey(key string) ([]*model.Storage, error) {
-
 	var items []*model.Storage
-	err := s.DB.Where("parent_key = (?)",
-		s.DB.Model(&model.Storage{}).Select("parent_key").Where("key = ?", key)).
-		Find(&items).Error
-
+	err := s.DB.Where("parent_key = (?)", s.DB.Model(&model.Storage{}).Select("parent_key").Where("key = ?", key)).Find(&items).Error
 	if err != nil {
-		// Changed from Fatalf to Errorf to avoid program termination
 		klog.Errorf("failed to query storages: %v", err)
 		return nil, fmt.Errorf("database query error: %w", err)
 	}
-	// Added a check for empty result
 	if len(items) == 0 {
-		klog.Infof("no items found for parent_key: %s", key)
+		klog.Infof("no items found for key: %s", key)
 	}
 	return items, nil
-
 }
 
-// GetItemByPath TODO
 func (db *SourceRepoImpl) GetItemByPath(SourceCategory source.SourceCategory, path string) ([]*source.Item, error) {
 	return nil, nil
 }
 
-func (db *SourceRepoImpl) AddItem(SourceCategory source.SourceCategory, parentKey string, item *source.Item) (bool, error) {
-	// 解析修改时间
-	modifiedTime := time.Unix(item.ModifiedTime, 0).Local()
+func (db *SourceRepoImpl) AddItem(sourceCategory source.SourceCategory, parentKey string, item *source.Item) (bool, error) {
+	if parentKey == "" {
+		var err error
+		parentKey, err = db.getSourceCategoryRootKey(sourceCategory)
+		if err != nil {
+			return false, fmt.Errorf("failed to get parent key: %w", err)
+		}
+	}
 
-	// 创建 baseInfo 和 store 对象
 	baseInfo := model.BaseInfo{
 		Key:            item.Key,
 		Name:           item.Name,
-		SourceCategory: int64(SourceCategory),
+		SourceCategory: int64(sourceCategory),
 	}
 	store := model.Storage{
 		Key:             item.Key,
@@ -126,21 +111,16 @@ func (db *SourceRepoImpl) AddItem(SourceCategory source.SourceCategory, parentKe
 		Name:            item.Name,
 		StorageCategory: int64(item.ItemType),
 		Size:            item.Size,
-		ModifiedTime:    modifiedTime,
+		ModifiedTime:    time.Unix(item.ModifiedTime, 0).Local(),
 		Path:            item.Path,
 	}
 
-	// 打开事务
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
-		// 插入到 base_info 表
 		if err := tx.Create(&baseInfo).Error; err != nil {
-			klog.Errorf("failed to insert into base_info for uuid %s: %v", item.Key, err)
-			return err
+			return fmt.Errorf("failed to insert into base_info for uuid %s: %w", item.Key, err)
 		}
-		// 插入到 storage 表
 		if err := tx.Create(&store).Error; err != nil {
-			klog.Errorf("failed to insert into storage for uuid %s: %v", item.Key, err)
-			return err
+			return fmt.Errorf("failed to insert into storage for uuid %s: %w", item.Key, err)
 		}
 		return nil
 	})
@@ -151,47 +131,45 @@ func (db *SourceRepoImpl) AddItem(SourceCategory source.SourceCategory, parentKe
 	}
 	return true, nil
 }
+
+func (db *SourceRepoImpl) getSourceCategoryRootKey(sourceCategory source.SourceCategory) (string, error) {
+	var parentKey string
+	err := db.DB.Table("data_source.storage AS s2").
+		Joins("JOIN data_source.base_info AS b ON s2.key = b.key").
+		Select("s2.key").
+		Where("s2.parent_key IS NULL AND b.source_category = ?", sourceCategory).
+		Limit(1).Scan(&parentKey).Error
+	if err != nil {
+		return "", fmt.Errorf("failed to get parent key: %w", err)
+	}
+	return parentKey, nil
+}
+
 func (db *SourceRepoImpl) PresignedUploadUrl(SourceCategory source.SourceCategory, path string, name string) (string, error) {
 	bucketName := strings.ToLower(SourceCategory.String())
 	if db.minio.ObjExist(bucketName, name) {
-		err := fmt.Errorf("object already exists: %s/%s", bucketName, name)
-		klog.Errorf("failed to generate presigned URL: %v", err)
-		return "", err
+		return "", fmt.Errorf("object already exists: %s/%s", bucketName, name)
 	}
 
-	// Attempt to generate a presigned URL
 	presignedURL, err := db.minio.PutPresignedUrl(bucketName, path+name, 60)
 	if err != nil {
-		err = fmt.Errorf("failed to generate presigned URL for %s/%s: %w", bucketName, path+name, err)
-		klog.Error(err)
-		return "", err
+		return "", fmt.Errorf("failed to generate presigned URL for %s/%s: %w", bucketName, path+name, err)
 	}
 
 	return presignedURL, nil
 }
 
 func (db *SourceRepoImpl) DeleteItems(keys []string) (bool, error) {
-	// Use GORM's transaction processing
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
-		// Delete from both base_info and storage tables using IN clause
-		result := tx.Where("key IN ?", keys).Delete(&model.BaseInfo{})
-		if result.Error != nil {
-			klog.Errorf("Failed to delete records for keys %v: %v", keys, result.Error)
-			return result.Error
+		for _, table := range []interface{}{&model.BaseInfo{}, &model.Storage{}} {
+			result := tx.Where("key IN ?", keys).Delete(table)
+			if result.Error != nil {
+				return result.Error
+			}
+			if result.RowsAffected == 0 {
+				return fmt.Errorf("no records found for deletion in %T", table)
+			}
 		}
-
-		result = tx.Where("key IN ?", keys).Delete(&model.Storage{})
-		if result.Error != nil {
-			klog.Errorf("Failed to delete records from storage for keys %v: %v", keys, result.Error)
-			return result.Error
-		}
-
-		// Check if any records were affected
-		if result.RowsAffected == 0 {
-			klog.Warnf("No records found for deletion with keys %v", keys)
-			return fmt.Errorf("no records found for deletion")
-		}
-
 		return nil
 	})
 
@@ -205,21 +183,13 @@ func (db *SourceRepoImpl) DeleteItems(keys []string) (bool, error) {
 
 func (s *SourceRepoImpl) GetPathByKey(key string) (string, error) {
 	var path string
-	err := s.DB.Table("data_source.storage").
-		Select("path").
-		Where("key = ?", key).
-		Scan(&path).Error // 使用 Scan 以确保可以接收单个字段的值
-
-	if err != nil {
-		return "", err // 返回空字符串和错误
-	}
-
-	return path, nil // 返回查询到的路径
+	err := s.DB.Table("data_source.storage").Select("path").Where("key = ?", key).Scan(&path).Error
+	return path, err
 }
 
 func (s *SourceRepoImpl) GetUnifiedSourcePathByKey(sourceKey string) ([]string, error) {
 	var paths []string
-	err := s.DB.Model(&model.Unified{}).
+	err := s.DB.Model(&model.CloudOptimized{}).
 		Select("path").
 		Where("source_key = ?", sourceKey).
 		Pluck("path", &paths).Error
@@ -241,7 +211,6 @@ func (s *SourceRepoImpl) GetItemByName(parentKey string, name string) ([]*model.
 		Where("parent_key = ? AND name = ?", parentKey, name).
 		Find(&items).Error
 	if err != nil {
-		klog.Errorf("failed to query storage items: %v", err)
 		return nil, fmt.Errorf("failed to query storage items: %w", err)
 	}
 	if len(items) == 0 {
@@ -252,14 +221,20 @@ func (s *SourceRepoImpl) GetItemByName(parentKey string, name string) ([]*model.
 
 func (s *SourceRepoImpl) GetCountByName(key string, name string, itemType source.ItemType) (int64, error) {
 	var count int64
-	err := s.DB.Table("data_source.storage").
-		Where("storage_category = ? AND parent_key = ? AND name = ?", itemType, key, name).
-		Count(&count).Error
-	if err != nil {
-		err = fmt.Errorf("failed to get count: %w", err)
-		klog.Error(err)
-		return -1, err
+	query := s.DB.Table("data_source.storage").
+		Where("storage_category = ? AND name = ?", itemType, name)
+
+	if key == "" {
+		query = query.Where("parent_key IS NULL")
+	} else {
+		query = query.Where("parent_key = ?", key)
 	}
+
+	err := query.Count(&count).Error
+	if err != nil {
+		return 0, fmt.Errorf("failed to get count: %w", err)
+	}
+
 	return count, nil
 }
 
@@ -267,16 +242,12 @@ func (s *SourceRepoImpl) GetHomeItemsBySourceCategory(sourceCategory source.Sour
 	var key string
 	var storages []*model.Storage
 
-	// 使用事务
 	err := s.DB.Transaction(func(tx *gorm.DB) error {
-		// 查询顶级键
-		subQuery := tx.Table("data_source.storage AS s2").
+		if err := tx.Table("data_source.storage AS s2").
 			Joins("JOIN data_source.base_info AS b ON s2.key = b.key").
 			Select("s2.key").
 			Where("s2.parent_key IS NULL AND b.source_category = ?", sourceCategory).
-			Limit(1)
-
-		if err := subQuery.Scan(&key).Error; err != nil {
+			Limit(1).Scan(&key).Error; err != nil {
 			return err
 		}
 
@@ -284,15 +255,13 @@ func (s *SourceRepoImpl) GetHomeItemsBySourceCategory(sourceCategory source.Sour
 			return fmt.Errorf("no top-level key found for source category: %v", sourceCategory)
 		}
 
-		// 查询子项
 		return tx.Table("data_source.storage").
 			Where("parent_key = ?", key).
 			Find(&storages).Error
 	})
 
 	if err != nil {
-		klog.Errorf("Failed to get top items by source category: %v", err)
-		return "", nil, err
+		return "", nil, fmt.Errorf("failed to get top items by source category: %w", err)
 	}
 
 	if len(storages) == 0 {
@@ -323,20 +292,18 @@ func (s *SourceRepoImpl) GetHomeKeyBySourceCategory(sourceCategory source.Source
 	return key, nil
 }
 
-func (s *SourceRepoImpl) AddUnifiedItem(sourceCategory source.SourceCategory, sourceKey string, unifiedKey string, path string, size int64) (bool, error) {
-	unified := model.Unified{
+func (s *SourceRepoImpl) AddCloudOptimizedItem(sourceCategory source.SourceCategory, sourceKey string, unifiedKey string, path string, size int64) (bool, error) {
+	unified := model.CloudOptimized{
 		SourceKey:      sourceKey,
 		Key:            unifiedKey,
 		SourceCategory: int64(sourceCategory),
 		Size:           size,
 		Path:           path,
-		ModifiedTime:   time.Now(), // 使用当前时间作为修改时间
+		ModifiedTime:   time.Now(),
 	}
 
-	result := s.DB.Create(&unified)
-	if result.Error != nil {
-		klog.Errorf("Failed to add unified item: %v", result.Error)
-		return false, result.Error
+	if err := s.DB.Create(&unified).Error; err != nil {
+		return false, fmt.Errorf("failed to add unified item: %w", err)
 	}
 
 	return true, nil

@@ -31,6 +31,8 @@ pub fn to_geoparquet<P: AsRef<Path>>(url: P, out: &Path)-> Result<(), anyhow::Er
             "-f", "Parquet",
             "-t_srs", "EPSG:4326",
             "-lco", "FID=gid",
+            "-makevalid",
+            // "skipfailures"
         ]
             .try_into()?
     );
@@ -43,7 +45,7 @@ pub async fn vector_to_pg(url: &str, schema: &str, table: &str)->Result<(), anyh
     // let pg = format!("PG:{}", "postgresql://postgres:admin321@1.92.113.25:5432/tinamic");
     let pg = format!("PG:{}", "dbname=tinamic host=1.92.113.25 port=5432 user=postgres password=admin321");
     // let dst_connection = CString::new("PG: host=1.92.113.25 user=postgres password=admin321 dbname=tinamic").unwrap();
-    let dst_connection  = get_settings().lock().await.to_pg_string();
+    let dst_connection  = get_settings().await.lock().await.to_pg_string();
     let dst_connection = CString::new(dst_connection).unwrap();
     let src = Dataset::open(url)?;
     gdal::config::set_config_option("PG_USE_COPY", "YES").unwrap();
@@ -94,21 +96,23 @@ pub async fn vector_to_pg(url: &str, schema: &str, table: &str)->Result<(), anyh
     Ok(())
 }
 
-pub fn add_prefix_from_ext(url: &str, ext: Option<&str>) -> String {
+pub fn add_prefix_from_ext(path: &str, bucket_name:&str, ext: Option<&str>) -> String {
     let ext = ext.map(|e| e.to_lowercase())
-        .or_else(|| url.split('.').last().map(|s| s.to_lowercase()));
+        .or_else(|| path.split('.').last().map(|s| s.to_lowercase()));
 
     let prefix = match ext.as_deref() {
-        Some("shp") => "/vsicurl/",
-        Some("zip") => "/vsizip//vsicurl/",
-        _ => "/vsicurl/",
+        Some("shp") => "/vsis3/",
+        Some("zip") => "/vsizip//vsis3/",
+        _ => "/vsis3/",
     };
-    format!("{}{}", prefix, url)
+    format!("{}{}{}", prefix, bucket_name, path)
 }
 
 #[cfg(test)]
 mod tests {
     use std::path;
+    use crate::gdal_config;
+
     use super::*;
 
     #[test]
@@ -121,7 +125,7 @@ mod tests {
     fn test_add_prefix_from_ext() {
         let url = "http://example.com/data";
         let ext = "SHP";
-        let result = add_prefix_from_ext(url, Some(ext));
+        let result = add_prefix_from_ext(url, "",Some(ext));
         assert_eq!("/vsicurl/http://example.com/data", result);
     }
     // #[test]
@@ -141,8 +145,17 @@ mod tests {
         println!("{:?}", err.err())
     }
     #[tokio::test]
-    async fn test_to_geoparquet(){
-        let path = "/vsizip//vsicurl/http://39.101.164.253:9000/vector/city.zip";
-        to_geoparquet(path, Path::new("city.parquet")).expect("TODO: panic message");
+    async fn test_to_geoparquet() {
+        let _ = gdal_config::init_gdal_config();
+        // gdal::config::set_config_option("AWS_VIRTUAL_HOSTING", "FALSE").unwrap();
+        // gdal::config::set_config_option("AWS_HTTPS", "NO").unwrap();
+        // gdal::config::set_config_option("AWS_S3_ENDPOINT", "39.101.164.253:9000").unwrap();
+        // gdal::config::set_config_option("AWS_REGION", "us-east-1").unwrap();
+        // gdal::config::set_config_option("AWS_SECRET_ACCESS_KEY", "ruiC05DkvnxxNZrMba5kUbgux8oJLreYuulXhryw").unwrap();
+        // gdal::config::set_config_option("AWS_ACCESS_KEY_ID", "ugNa8yDGzk4gESCATs06").unwrap();
+        // gdal::config::set_config_option("AWS_HTTPS", "NO").unwrap();
+       
+        let path = "/vsizip//vsis3/vector/city.zip";
+        to_geoparquet(path, Path::new("city.parquet")).expect("Failed to convert to GeoParquet");
     }
 }

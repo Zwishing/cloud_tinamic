@@ -16,9 +16,10 @@ struct StoreResponse {
 }
 
 struct ToGeoParquetStorageRequest{
-    1:required string source_path,
-    2:required string bucket_name,
-    3:required string storage_name,
+    1:required string source_bucket
+    2:required string source_path,
+    3:required string dest_bucket,
+    4:required string dest_path,
 }
 
 struct ToGeoParquetStorageResponse {

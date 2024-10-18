@@ -1035,6 +1035,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
+ "tracing-subscriber",
  "volo",
  "volo-gen",
  "volo-thrift",

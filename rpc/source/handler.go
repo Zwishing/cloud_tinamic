@@ -6,11 +6,13 @@ import (
 	source "cloud_tinamic/kitex_gen/data/source"
 	"cloud_tinamic/kitex_gen/data/storage"
 	"cloud_tinamic/kitex_gen/data/storage/storeservice"
+	"cloud_tinamic/pkg"
 	"cloud_tinamic/pkg/util"
 	"cloud_tinamic/rpc/source/pack"
 	"cloud_tinamic/rpc/source/repo"
 	"context"
 	"fmt"
+	"github.com/cloudwego/kitex/pkg/klog"
 	"strings"
 	"sync"
 	"time"
@@ -32,14 +34,12 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 		Base: base.NewBaseResp(),
 	}
 
-	bucketName := strings.ToLower(req.SourceCategory.String())
-
 	// 处理key为空时，默认上传到根目录
 	if req.Key == "" {
 		req.Key, err = s.SourceRepo.GetHomeKeyBySourceCategory(req.SourceCategory)
 	}
 
-	// 获取指定目录的路径
+	// 获取指定目录的路径,上传的目录的路径
 	path, err := s.SourceRepo.GetPathByKey(req.Key)
 	if err != nil {
 		resp.Base.Code = base.Code_FAIL
@@ -47,7 +47,7 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 		return resp, err
 	}
 	// 数据存储路径
-	newPath := fmt.Sprintf("%s/%s", path, req.Name)
+	storePath := fmt.Sprintf("%s/%s", path, req.Name)
 	// 上传的数据存储的唯一标识
 	sourceKey := util.UuidV4()
 
@@ -60,34 +60,37 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 	go func() {
 		defer wg.Done()
 		// 上传到minio
-		err := s.SourceRepo.UploadToMinio(bucketName, newPath, req.Name, bytes.NewReader(req.FileData), req.Size)
+		err := s.SourceRepo.UploadToMinio(pkg.OriginalSourceBucketName, storePath, bytes.NewReader(req.FileData), req.Size)
 		if err != nil {
 			errChan <- err
 			return
 		}
 
-		// 将矢量数据规范统一化存储 矢量数据为：geo parquet格式
-		unifiedKey := util.UuidV4() //归一化后数据存储的唯一key
+		go func() {
+			// 将矢量数据规范统一化存储 矢量数据为：geo parquet格式
+			unifiedKey := util.UuidV4() //归一化后数据存储的唯一key
 
-		ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
-		defer cancel()
+			ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
+			defer cancel()
 
-		// 返回存储的路径，这里生成时间文件夹存储
-		now := time.Now()
-		storagePath := fmt.Sprintf("%d/%02d/%02d/%s.parquet", now.Year(), now.Month(), now.Day(), unifiedKey)
-		unifiedBucketName := "unified"
-		resp, err := s.geoClient.ToGeoParquetStorage(ctx, &storage.ToGeoParquetStorageRequest{
-			SourcePath:  newPath,
-			BucketName:  unifiedBucketName,
-			StorageName: storagePath,
-		})
-		if err != nil {
-			errChan <- err
-			return
-		}
-		if resp.Base.Code == base.Code_SUCCESS {
-			s.SourceRepo.AddUnifiedItem(req.SourceCategory, sourceKey, unifiedKey, resp.DestPath, resp.Size)
-		}
+			// 返回存储的路径，这里生成时间文件夹存储
+			//now := time.Now()
+			parquetPath := fmt.Sprintf("%s/%s.parquet", path, unifiedKey)
+			resp, err := s.geoClient.ToGeoParquetStorage(ctx, &storage.ToGeoParquetStorageRequest{
+				SourceBucket: pkg.OriginalSourceBucketName,
+				SourcePath:   storePath,
+				DestBucket:   pkg.CloudOptimizedSourceBucketName,
+				DestPath:     parquetPath,
+			})
+			if err != nil {
+				klog.Error(err)
+				errChan <- err
+				return
+			}
+			if resp.Base.Code == base.Code_SUCCESS {
+				s.SourceRepo.AddCloudOptimizedItem(req.SourceCategory, sourceKey, unifiedKey, resp.DestPath, resp.Size)
+			}
+		}()
 	}()
 
 	// Goroutine 2: 添加文件元数据到数据库
@@ -99,7 +102,7 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 			Key:          sourceKey,
 			Size:         req.Size,
 			ModifiedTime: time.Now().Unix(),
-			Path:         newPath,
+			Path:         storePath,
 		})
 		if addItemErr != nil || !success {
 			errChan <- fmt.Errorf("添加到数据库失败: %v", addItemErr)
@@ -116,7 +119,7 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 	select {
 	case err := <-errChan: // 任何错误会立即触发
 		if strings.Contains(err.Error(), "添加到数据库失败") {
-			//_ = s.SourceRepo.DeleteFromMinio(bucketName, newPath) // 保持一致性，删除已上传文件
+			//_ = s.SourceRepo.DeleteFromMinio(bucketName, storePath) // 保持一致性，删除已上传文件
 			resp.Base.Code = base.Code_FAIL
 			resp.Base.Msg = "添加到数据库失败"
 		} else {

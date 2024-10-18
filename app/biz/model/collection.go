@@ -1,7 +1,9 @@
 package model
 
 type PublishRequest struct {
+	ServiceName     string `json:"serviceName" validate:"required"`
 	SourceCategory  string `json:"sourceCategory" validate:"required,oneof= vector imagery"`
-	Key             string `json:"key" validate:"required"`
-	ServiceCategory string `json:"serviceCategory" validate:"required,oneof= mvt feature"`
+	SourceKey       string `json:"key" validate:"required"`
+	ServiceCategory string `json:"serviceCategory"`
+	Description     string `json:"description"`
 }

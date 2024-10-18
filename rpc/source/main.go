@@ -8,8 +8,10 @@ import (
 )
 
 func main() {
+
+	service, err := InitSourceService()
 	svr := source.NewServer(
-		InitSourceService(),
+		service,
 		server.WithServiceAddr(
 			&net.TCPAddr{
 				IP:   net.ParseIP("0.0.0.0"),
@@ -21,7 +23,7 @@ func main() {
 	// 关闭nsq
 	defer client.Stop()
 
-	err := svr.Run()
+	err = svr.Run()
 	if err != nil {
 		klog.Fatal("user server run failed error: %v", err)
 	}
