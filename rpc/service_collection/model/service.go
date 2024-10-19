@@ -1,14 +1,8 @@
 package model
 
 import (
+	"cloud_tinamic/pkg"
 	"gorm.io/gorm"
-)
-
-const (
-	VectorSchema    = "vector"
-	CollectionTable = "vector.collection"
-	InfoTable       = "vector.info"
-	VectorTable     = "vector.vector"
 )
 
 type Collection struct {
@@ -45,13 +39,13 @@ type Vector struct {
 }
 
 func (c *Collection) Table() string {
-	return CollectionTable
+	return pkg.ServiceCollectionTable
 }
 
 func (i *Info) Table() string {
-	return InfoTable
+	return pkg.ServiceInfoTable
 }
 
 func (i *Info) Vector() string {
-	return VectorTable
+	return pkg.ServiceVectorTable
 }

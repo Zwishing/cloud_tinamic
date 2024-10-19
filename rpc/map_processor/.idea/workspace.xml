@@ -4,39 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ef2e104a-51ec-4048-ae7f-d5a25e11f957" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../../pkg/const.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/thumbnail_parquet.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/biz/handler/collection.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/biz/handler/collection.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/biz/model/collection.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/biz/model/collection.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../config/tinamic.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../../config/tinamic.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../idl/geo.thrift" beforeDir="false" afterPath="$PROJECT_DIR$/../../idl/geo.thrift" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../kitex_gen/data/storage/geo.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/data/storage/geo.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../kitex_gen/data/storage/k-geo.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/data/storage/k-geo.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/config/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/config/config.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/config/gdal_config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/config/gdal_config.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/src/bin/server.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/bin/server.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/src/config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/config.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/src/gdal_config.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/gdal_config.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/src/handler.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/handler.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/src/minio.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/minio.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/src/programs/destination.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/programs/destination.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/src/programs/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/programs/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../geo/src/util.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/util.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/test_thumbnail.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/test_thumbnail.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/thumbnail.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/thumbnail.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../source/client.go" beforeDir="false" afterPath="$PROJECT_DIR$/../source/client.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../source/handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/../source/handler.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../source/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../source/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../source/repo/source.go" beforeDir="false" afterPath="$PROJECT_DIR$/../source/repo/source.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../source/wire.go" beforeDir="false" afterPath="$PROJECT_DIR$/../source/wire.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../source/wire_gen.go" beforeDir="false" afterPath="$PROJECT_DIR$/../source/wire_gen.go" afterDir="false" />
-    </list>
+    <list default="true" id="ef2e104a-51ec-4048-ae7f-d5a25e11f957" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

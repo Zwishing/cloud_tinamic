@@ -8,7 +8,7 @@ import (
 // gorm的Hook 钩子函数
 
 // AfterCreate 插入文件时，更新size
-func (s *Storage) AfterCreate(tx *gorm.DB) (err error) {
+func (s *Original) AfterCreate(tx *gorm.DB) (err error) {
 	// 这里的1代表文件
 	if s.StorageCategory == 1 && s.ParentKey != "" {
 		parentKey := s.ParentKey
@@ -39,7 +39,7 @@ func (s *Storage) AfterCreate(tx *gorm.DB) (err error) {
 }
 
 // AfterDelete 前端删除文件夹后，钩子函数将文件里的子文件及子文件夹里的内容删除
-func (s *Storage) AfterDelete(tx *gorm.DB) (err error) {
+func (s *Original) AfterDelete(tx *gorm.DB) (err error) {
 	// 判断当前 key 是否是文件夹
 	if s.IsDirectory() {
 		sql := `
@@ -78,12 +78,12 @@ func (s *Storage) AfterDelete(tx *gorm.DB) (err error) {
 }
 
 // IsDirectory 判断是否为文件夹的方法
-func (s *Storage) IsDirectory() bool {
+func (s *Original) IsDirectory() bool {
 	// 假设有一个字段表示是否为文件夹
 	return s.StorageCategory == 2
 }
 
-func (s *Storage) IsFile() bool {
+func (s *Original) IsFile() bool {
 	// 假设有一个字段表示是否为文件
 	return s.StorageCategory == 1
 }

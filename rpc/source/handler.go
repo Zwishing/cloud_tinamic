@@ -312,7 +312,7 @@ func (s *SourceServiceImpl) AddItem(ctx context.Context, req *source.AddItemRequ
 
 func (s *SourceServiceImpl) GetUnifiedSourcePath(ctx context.Context, sourceKey string) (string, error) {
 	// 一个源数据中支持多个数据，例如zip中多个shp，gdb中多个shp，暂时只支持一个
-	path, err := s.SourceRepo.GetUnifiedSourcePathByKey(sourceKey)
+	path, err := s.SourceRepo.GetCloudOptimizedSourcePathByKey(sourceKey)
 	if err != nil {
 		return "", err
 	}

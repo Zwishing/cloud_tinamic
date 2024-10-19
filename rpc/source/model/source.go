@@ -1,22 +1,23 @@
 package model
 
 import (
+	"cloud_tinamic/pkg"
 	"gorm.io/gorm"
 	"time"
 )
 
-type BaseInfo struct {
+type Info struct {
 	gorm.Model
 	Key            string `json:"key" column:"key"`
 	Name           string `json:"name" column:"name"`
 	SourceCategory int64  `json:"source_category" column:"source_category"`
 }
 
-func (b *BaseInfo) TableName() string {
-	return "data_source.base_info"
+func (b *Info) TableName() string {
+	return pkg.SourceInfoTable
 }
 
-type Storage struct {
+type Original struct {
 	gorm.Model
 	Key             string    `json:"key" column:"key"`
 	ParentKey       string    `json:"parent_key" column:"parent_key"`
@@ -27,8 +28,8 @@ type Storage struct {
 	Path            string    `json:"path" column:"path"`
 }
 
-func (s *Storage) TableName() string {
-	return "data_source.storage"
+func (s *Original) TableName() string {
+	return pkg.SourceOriginalTable
 }
 
 type CloudOptimized struct {
@@ -42,5 +43,5 @@ type CloudOptimized struct {
 }
 
 func (s *CloudOptimized) TableName() string {
-	return "data_source.cloud_optimized"
+	return pkg.SourceCloudOptimizedTable
 }

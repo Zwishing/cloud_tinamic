@@ -5,7 +5,7 @@ import (
 	"cloud_tinamic/rpc/source/model"
 )
 
-func Storages(models []*model.Storage) []*source.Item {
+func Storages(models []*model.Original) []*source.Item {
 	storages := make([]*source.Item, 0, len(models))
 	for _, m := range models {
 		if u := Storage(m); u != nil {
@@ -15,7 +15,7 @@ func Storages(models []*model.Storage) []*source.Item {
 	return storages
 }
 
-func Storage(m *model.Storage) *source.Item {
+func Storage(m *model.Original) *source.Item {
 	if m == nil {
 		return nil
 	}

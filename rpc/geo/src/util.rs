@@ -43,13 +43,13 @@ pub fn to_geoparquet<P: AsRef<Path>>(url: P, out: &Path)-> Result<(), anyhow::Er
 pub async fn vector_to_pg(url: &str, schema: &str, table: &str)->Result<(), anyhow::Error>{
     let schema = format!("SCHEMA={}", schema);
     // let pg = format!("PG:{}", "postgresql://postgres:admin321@1.92.113.25:5432/tinamic");
-    let pg = format!("PG:{}", "dbname=tinamic host=1.92.113.25 port=5432 user=postgres password=admin321");
+    // let pg = format!("PG:{}", "dbname=tinamic host=1.92.113.25 port=5432 user=postgres password=admin321");
     // let dst_connection = CString::new("PG: host=1.92.113.25 user=postgres password=admin321 dbname=tinamic").unwrap();
     let dst_connection  = get_settings().await.lock().await.to_pg_string();
     let dst_connection = CString::new(dst_connection).unwrap();
     let src = Dataset::open(url)?;
-    gdal::config::set_config_option("PG_USE_COPY", "YES").unwrap();
-    let options: Option<VectorTranslateOptions> = Some(
+    // gdal::config::set_config_option("PG_USE_COPY", "YES").unwrap();
+    let opts: Option<VectorTranslateOptions> = Some(
         vec![
             "-t_srs", "EPSG:4326",
             "-nln", table,
@@ -62,36 +62,39 @@ pub async fn vector_to_pg(url: &str, schema: &str, table: &str)->Result<(), anyh
         ]
             .try_into()?
     );
+
+    vector_translate(&[src], dst_connection.try_into()?, opts)?;
+
     
-    let c_options = options
-        .as_ref()
-        .map(|x| x.c_options() as *const GDALVectorTranslateOptions)
-        .unwrap_or(null());
-
-    let datasets = [&src];
-            // .iter()
-            // .map(|x|x.borrow())
-            // .collect::<Vec<&Dataset>>();
-
-            let dataset_out = unsafe {
-                // Get raw handles to the datasets
-                let mut datasets_raw: Vec<gdal_sys::GDALDatasetH> =
-                    datasets.iter().map(|x| x.c_dataset()).collect();
-        
-                let data = GDALVectorTranslate(
-                    dst_connection.as_ptr(),
-                    ptr::null_mut(),
-                    // only 1 supported currently
-                    1,
-                    datasets_raw.as_mut_ptr(),
-                    c_options,
-                    null_mut(),
-                );
-        
-                // GDAL takes the ownership of `h_dst_ds`
-                // dest.do_no_drop_dataset();
-                data
-            };
+    // let c_options = options
+    //     .as_ref()
+    //     .map(|x| x.c_options() as *const GDALVectorTranslateOptions)
+    //     .unwrap_or(null());
+    //
+    // let datasets = [&src];
+    //         // .iter()
+    //         // .map(|x|x.borrow())
+    //         // .collect::<Vec<&Dataset>>();
+    //
+    //         let dataset_out = unsafe {
+    //             // Get raw handles to the datasets
+    //             let mut datasets_raw: Vec<gdal_sys::GDALDatasetH> =
+    //                 datasets.iter().map(|x| x.c_dataset()).collect();
+    //
+    //             let data = GDALVectorTranslate(
+    //                 dst_connection.as_ptr(),
+    //                 ptr::null_mut(),
+    //                 // only 1 supported currently
+    //                 1,
+    //                 datasets_raw.as_mut_ptr(),
+    //                 c_options,
+    //                 null_mut(),
+    //             );
+    //
+    //             // GDAL takes the ownership of `h_dst_ds`
+    //             // dest.do_no_drop_dataset();
+    //             data
+    //         };
     
     Ok(())
 }

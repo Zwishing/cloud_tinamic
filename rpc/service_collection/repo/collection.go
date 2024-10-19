@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"cloud_tinamic/pkg"
 	"cloud_tinamic/rpc/service_collection/model"
 	"cloud_tinamic/rpc/vector_service/repo"
 	"fmt"
@@ -62,7 +63,7 @@ func (s *ServiceCollectionRepoImpl) AddCollection(sourceKey string, serviceKey s
 		ServiceKey:     serviceKey,
 		Title:          title,
 		SourceKey:      sourceKey,
-		SourceSchema:   model.VectorSchema,
+		SourceSchema:   pkg.VectorSchema,
 		SourceCategory: 1,
 		Srid:           vectorInfo.SRID,
 	}
@@ -116,7 +117,7 @@ func (s *ServiceCollectionRepoImpl) GetCollectionByServiceKey(serviceKey string)
 
 	return &repo.LayerTable{
 		ID:             serviceKey,
-		Schema:         model.VectorSchema,
+		Schema:         pkg.VectorSchema,
 		Table:          "",
 		Description:    "",
 		Properties:     nil,
