@@ -41,9 +41,7 @@ func (u *UserRepoImpl) QueryUserByAccount(account string, category user.UserCate
 func (u *UserRepoImpl) QueryUserById(userId string) (*model.User, error) {
 	var usr model.User
 
-	err := u.DB.Table("user_info.user").
-		Where("user_id = ?", userId).
-		First(&usr).Error
+	err := u.DB.Where("user_id = ?", userId).First(&usr).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

@@ -169,13 +169,16 @@ func (db *SourceRepoImpl) GetHomeKeyBySourceCategory(sourceCategory source.Sourc
 // DeleteItems 删除项
 func (db *SourceRepoImpl) DeleteItems(keys []string) (bool, error) {
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
-		for _, table := range []interface{}{&model.Info{}, &model.Original{}} {
+		tables := []interface{}{
+			&model.Info{},
+			&model.Original{},
+		}
+
+		for _, table := range tables {
+			// 执行删除操作
 			result := tx.Where("key IN ?", keys).Delete(table)
 			if result.Error != nil {
-				return result.Error
-			}
-			if result.RowsAffected == 0 {
-				return fmt.Errorf("no records found for deletion in %T", table)
+				return fmt.Errorf("failed to delete from table %T: %w", table, result.Error)
 			}
 		}
 		return nil
@@ -185,7 +188,6 @@ func (db *SourceRepoImpl) DeleteItems(keys []string) (bool, error) {
 		klog.Errorf("Transaction failed for keys %v: %v", keys, err)
 		return false, err
 	}
-
 	return true, nil
 }
 
