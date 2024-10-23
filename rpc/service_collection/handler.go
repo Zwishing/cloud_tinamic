@@ -1,13 +1,15 @@
 package main
 
 import (
-	source2 "cloud_tinamic/kitex_gen/data/source"
-	source "cloud_tinamic/kitex_gen/data/source/sourceservice"
+	"cloud_tinamic/kitex_gen/base"
+	Source "cloud_tinamic/kitex_gen/data/source"
+	SourceService "cloud_tinamic/kitex_gen/data/source/sourceservice"
 	"cloud_tinamic/kitex_gen/data/storage"
 	"cloud_tinamic/kitex_gen/data/storage/storeservice"
 	"cloud_tinamic/kitex_gen/map/processor"
 	"cloud_tinamic/kitex_gen/map/processor/mapprocessorservice"
 	collection "cloud_tinamic/kitex_gen/service/collection"
+	"cloud_tinamic/pkg"
 	"cloud_tinamic/pkg/errors"
 	"cloud_tinamic/pkg/util"
 	"cloud_tinamic/rpc/service_collection/repo"
@@ -18,20 +20,20 @@ import (
 
 // ServiceCollectionImpl implements the last ServiceCollection defined in the IDL.
 type ServiceCollectionImpl struct {
-	mapProcessorClient    mapprocessorservice.Client
-	geoClient             storeservice.Client
-	serviceCollectionRepo repo.ServiceCollectionRepo
-	sourceClient          source.Client
+	MapProcessorClient    mapprocessorservice.Client
+	GeoClient             storeservice.Client
+	ServiceCollectionRepo repo.ServiceCollectionRepo
+	SourceClient          SourceService.Client
 }
 
 func NewServiceCollectionImpl(mapProcessor mapprocessorservice.Client,
 	geoStore storeservice.Client, serviceRepo repo.ServiceCollectionRepo,
-	sourceService source.Client) *ServiceCollectionImpl {
+	sourceService SourceService.Client) *ServiceCollectionImpl {
 	return &ServiceCollectionImpl{
-		mapProcessorClient:    mapProcessor,
-		geoClient:             geoStore,
-		serviceCollectionRepo: serviceRepo,
-		sourceClient:          sourceService,
+		MapProcessorClient:    mapProcessor,
+		GeoClient:             geoStore,
+		ServiceCollectionRepo: serviceRepo,
+		SourceClient:          sourceService,
 	}
 }
 
@@ -48,83 +50,102 @@ func (s *ServiceCollectionImpl) AddCollection(ctx context.Context, sourceKey str
 }
 
 // Publish implements the ServiceCollection interface.
-func (s *ServiceCollectionImpl) Publish(ctx context.Context, req *collection.PublishRequest) (err error) {
+func (s *ServiceCollectionImpl) Publish(ctx context.Context, req *collection.PublishRequest) (resp *collection.PublishResponse, err error) {
+	resp = &collection.PublishResponse{
+		Base: base.NewBaseResp(),
+	}
 	// 查询出数据的路径通过key
-	path, err := s.sourceClient.GetUnifiedSourcePath(ctx, req.SourceKey)
+	cloudOptimizedKeyPath, err := s.SourceClient.GetCloudOptimizedSourcePath(ctx, req.SourceKey)
 	if err != nil {
 		err = errors.Kerrorf(errors.DatabaseErrorCode, "获取源路径失败: %v", err)
 		klog.Error(err)
-		return err
+		resp.Base.Code = base.Code_NOT_FOUND
+		resp.Base.Msg = err.Error()
+		return resp, err
 	}
 
-	path = "http://39.101.164.253:9000" + path
+	var serviceKeys []string
 
-	var thumbnailCh = make(chan []byte, 1)
+	for _, keyPathMap := range cloudOptimizedKeyPath {
 
-	// 启动 goroutine 处理缩略图生成
-	go func() {
-		timeoutCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-		defer cancel() // 确保在函数结束时调用取消函数
+		var thumbnailCh = make(chan []byte, 1)
 
-		// 发起请求生成缩略图
-		resp, err := s.mapProcessorClient.VectorThumbnail(timeoutCtx, &processor.VectorThumbnailRequest{
-			FilePath: path, // 使用从源获取的实际路径
-			Width:    300,
-			Height:   300,
-		})
-		if err != nil {
-			err = errors.Kerrorf(errors.InternalServerCode, "请求缩略图失败: %v", err)
+		// 启动 goroutine 处理缩略图生成
+		go func() {
+			timeoutCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+			defer cancel() // 确保在函数结束时调用取消函数
+
+			// 发起请求生成缩略图
+			resp, err := s.MapProcessorClient.VectorThumbnail(timeoutCtx, &processor.VectorThumbnailRequest{
+				CloudOptimizedPath:       keyPathMap["path"], // 使用从源获取的实际路径
+				CloudOptimizedBucketName: pkg.CloudOptimizedSourceBucketName,
+				Width:                    300,
+				Height:                   300,
+			})
+			if err != nil {
+				err = errors.Kerrorf(errors.InternalServerCode, "请求缩略图失败: %v", err)
+				klog.Error(err)
+				thumbnailCh <- nil
+				return
+			}
+			thumbnailCh <- resp.GetThumbnail()
+		}()
+
+		switch req.SourceCategory {
+		case Source.SourceCategory_VECTOR:
+			timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+			defer cancel() // 确保在函数结束时调用取消函数
+			_, err = s.GeoClient.VectorToPGStorage(timeoutCtx, &storage.VectorToPGStorageRequest{
+				Schema:                   pkg.VectorSchema,  // 存储矢量数据的schema
+				Table:                    keyPathMap["key"], // cloud_optimized_key
+				Name:                     req.ServiceName,
+				CloudOptimizedBucketName: pkg.CloudOptimizedSourceBucketName,
+				CloudOptimizedPath:       keyPathMap["path"],
+			})
+			if err != nil {
+				err = errors.Kerrorf(errors.DatabaseErrorCode, "vector存储失败: %v", err)
+				klog.Error(err)
+				resp.Base.Code = base.Code_FAIL
+				resp.Base.Msg = err.Error()
+				return resp, err
+			}
+		default:
+			err = errors.Kerrorf(errors.InvalidInputCode, "不支持的源类别: %v", req.SourceCategory)
 			klog.Error(err)
-			thumbnailCh <- nil
-			return
+			resp.Base.Code = base.Code_FAIL
+			resp.Base.Msg = err.Error()
+			return resp, err
 		}
-		thumbnailCh <- resp.GetThumbnail()
-	}()
 
-	title := util.GetFileName(path, false)
-	switch req.SourceCategory {
-	case source2.SourceCategory_VECTOR:
-		timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-		defer cancel() // 确保在函数结束时调用取消函数
-		_, err = s.geoClient.VectorStorage(timeoutCtx, &storage.StoreRequest{
-			Schema: "vector",
-			Table:  req.SourceKey,
-			Name:   title,
-			Url:    path,
-			Ext:    util.GetFileExtension(path, false),
-		})
+		serviceKey := util.UuidV4()
+
+		serviceKeys = append(serviceKeys, serviceKey)
+		// 添加记录
+		_, err = s.ServiceCollectionRepo.AddCollection(keyPathMap["key"], serviceKey, req.ServiceName)
 		if err != nil {
-			err = errors.Kerrorf(errors.DatabaseErrorCode, "向量存储失败: %v", err)
+			err = errors.Kerrorf(errors.DatabaseErrorCode, "添加记录失败: %v", err)
 			klog.Error(err)
-			return err
+			resp.Base.Code = base.Code_SERVER_ERROR
+			resp.Base.Msg = err.Error()
+			return resp, err
 		}
-	default:
-		err = errors.Kerrorf(errors.InvalidInputCode, "不支持的源类别: %v", req.SourceCategory)
-		klog.Error(err)
-		return err
-	}
 
-	serviceKey := util.UuidV4()
-	// 添加记录
-	_, err = s.serviceCollectionRepo.AddCollection(req.SourceKey, serviceKey, title)
-	if err != nil {
-		err = errors.Kerrorf(errors.DatabaseErrorCode, "添加记录失败: %v", err)
-		klog.Error(err)
-		return err
-	}
-
-	go func() {
 		thumbnail := <-thumbnailCh
 		if thumbnail != nil {
-			s.UpdateThumbnail(ctx, serviceKey, thumbnail)
+			err := s.UpdateThumbnail(ctx, serviceKey, thumbnail)
+			if err != nil {
+				klog.Errorf("未能更新 %s 缩率图: %v", serviceKey, err)
+			}
 		}
-	}()
+	}
 
-	return nil
+	resp.Base.Code = base.Code_SUCCESS
+	resp.ServiceKeys = serviceKeys
+	return resp, nil
 }
 
 func (s *ServiceCollectionImpl) UpdateThumbnail(ctx context.Context, serviceKey string, thumbnail []byte) error {
-	_, err := s.serviceCollectionRepo.UpdateThumbnail(serviceKey, thumbnail)
+	_, err := s.ServiceCollectionRepo.UpdateThumbnail(serviceKey, thumbnail)
 	if err != nil {
 		klog.Errorf("更新缩略图失败: %v", err)
 		return err

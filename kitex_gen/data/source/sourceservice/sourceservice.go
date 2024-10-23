@@ -76,10 +76,10 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
-	"GetUnifiedSourcePath": kitex.NewMethodInfo(
-		getUnifiedSourcePathHandler,
-		newSourceServiceGetUnifiedSourcePathArgs,
-		newSourceServiceGetUnifiedSourcePathResult,
+	"GetCloudOptimizedSourcePath": kitex.NewMethodInfo(
+		getCloudOptimizedSourcePathHandler,
+		newSourceServiceGetCloudOptimizedSourcePathArgs,
+		newSourceServiceGetCloudOptimizedSourcePathResult,
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
@@ -311,22 +311,22 @@ func newSourceServiceGetSourcePathResult() interface{} {
 	return source.NewSourceServiceGetSourcePathResult()
 }
 
-func getUnifiedSourcePathHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	realArg := arg.(*source.SourceServiceGetUnifiedSourcePathArgs)
-	realResult := result.(*source.SourceServiceGetUnifiedSourcePathResult)
-	success, err := handler.(source.SourceService).GetUnifiedSourcePath(ctx, realArg.SourceKey)
+func getCloudOptimizedSourcePathHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*source.SourceServiceGetCloudOptimizedSourcePathArgs)
+	realResult := result.(*source.SourceServiceGetCloudOptimizedSourcePathResult)
+	success, err := handler.(source.SourceService).GetCloudOptimizedSourcePath(ctx, realArg.SourceKey)
 	if err != nil {
 		return err
 	}
-	realResult.Success = &success
+	realResult.Success = success
 	return nil
 }
-func newSourceServiceGetUnifiedSourcePathArgs() interface{} {
-	return source.NewSourceServiceGetUnifiedSourcePathArgs()
+func newSourceServiceGetCloudOptimizedSourcePathArgs() interface{} {
+	return source.NewSourceServiceGetCloudOptimizedSourcePathArgs()
 }
 
-func newSourceServiceGetUnifiedSourcePathResult() interface{} {
-	return source.NewSourceServiceGetUnifiedSourcePathResult()
+func newSourceServiceGetCloudOptimizedSourcePathResult() interface{} {
+	return source.NewSourceServiceGetCloudOptimizedSourcePathResult()
 }
 
 type kClient struct {
@@ -429,11 +429,11 @@ func (p *kClient) GetSourcePath(ctx context.Context, key string) (r string, err 
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) GetUnifiedSourcePath(ctx context.Context, sourceKey string) (r string, err error) {
-	var _args source.SourceServiceGetUnifiedSourcePathArgs
+func (p *kClient) GetCloudOptimizedSourcePath(ctx context.Context, sourceKey string) (r []map[string]string, err error) {
+	var _args source.SourceServiceGetCloudOptimizedSourcePathArgs
 	_args.SourceKey = sourceKey
-	var _result source.SourceServiceGetUnifiedSourcePathResult
-	if err = p.c.Call(ctx, "GetUnifiedSourcePath", &_args, &_result); err != nil {
+	var _result source.SourceServiceGetCloudOptimizedSourcePathResult
+	if err = p.c.Call(ctx, "GetCloudOptimizedSourcePath", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

@@ -26,7 +26,7 @@ var (
 	_ = thrift.STOP
 )
 
-func (p *StoreRequest) FastRead(buf []byte) (int, error) {
+func (p *VectorToPGStorageRequest) FastRead(buf []byte) (int, error) {
 	var err error
 	var offset int
 	var l int
@@ -35,8 +35,8 @@ func (p *StoreRequest) FastRead(buf []byte) (int, error) {
 	var issetSchema bool = false
 	var issetTable bool = false
 	var issetName bool = false
-	var issetUrl bool = false
-	var issetExt bool = false
+	var issetCloudOptimizedBucketName bool = false
+	var issetCloudOptimizedPath bool = false
 	for {
 		fieldTypeId, fieldId, l, err = thrift.Binary.ReadFieldBegin(buf[offset:])
 		offset += l
@@ -99,7 +99,7 @@ func (p *StoreRequest) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
-				issetUrl = true
+				issetCloudOptimizedBucketName = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -114,7 +114,7 @@ func (p *StoreRequest) FastRead(buf []byte) (int, error) {
 				if err != nil {
 					goto ReadFieldError
 				}
-				issetExt = true
+				issetCloudOptimizedPath = true
 			} else {
 				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
 				offset += l
@@ -146,12 +146,12 @@ func (p *StoreRequest) FastRead(buf []byte) (int, error) {
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetUrl {
+	if !issetCloudOptimizedBucketName {
 		fieldId = 4
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetExt {
+	if !issetCloudOptimizedPath {
 		fieldId = 5
 		goto RequiredFieldNotSetError
 	}
@@ -159,14 +159,14 @@ func (p *StoreRequest) FastRead(buf []byte) (int, error) {
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreRequest[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_VectorToPGStorageRequest[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 RequiredFieldNotSetError:
-	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_StoreRequest[fieldId]))
+	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_VectorToPGStorageRequest[fieldId]))
 }
 
-func (p *StoreRequest) FastReadField1(buf []byte) (int, error) {
+func (p *VectorToPGStorageRequest) FastReadField1(buf []byte) (int, error) {
 	offset := 0
 
 	var _field string
@@ -180,7 +180,7 @@ func (p *StoreRequest) FastReadField1(buf []byte) (int, error) {
 	return offset, nil
 }
 
-func (p *StoreRequest) FastReadField2(buf []byte) (int, error) {
+func (p *VectorToPGStorageRequest) FastReadField2(buf []byte) (int, error) {
 	offset := 0
 
 	var _field string
@@ -194,7 +194,7 @@ func (p *StoreRequest) FastReadField2(buf []byte) (int, error) {
 	return offset, nil
 }
 
-func (p *StoreRequest) FastReadField3(buf []byte) (int, error) {
+func (p *VectorToPGStorageRequest) FastReadField3(buf []byte) (int, error) {
 	offset := 0
 
 	var _field string
@@ -208,7 +208,7 @@ func (p *StoreRequest) FastReadField3(buf []byte) (int, error) {
 	return offset, nil
 }
 
-func (p *StoreRequest) FastReadField4(buf []byte) (int, error) {
+func (p *VectorToPGStorageRequest) FastReadField4(buf []byte) (int, error) {
 	offset := 0
 
 	var _field string
@@ -218,11 +218,11 @@ func (p *StoreRequest) FastReadField4(buf []byte) (int, error) {
 		offset += l
 		_field = v
 	}
-	p.Url = _field
+	p.CloudOptimizedBucketName = _field
 	return offset, nil
 }
 
-func (p *StoreRequest) FastReadField5(buf []byte) (int, error) {
+func (p *VectorToPGStorageRequest) FastReadField5(buf []byte) (int, error) {
 	offset := 0
 
 	var _field string
@@ -232,16 +232,16 @@ func (p *StoreRequest) FastReadField5(buf []byte) (int, error) {
 		offset += l
 		_field = v
 	}
-	p.Ext = _field
+	p.CloudOptimizedPath = _field
 	return offset, nil
 }
 
 // for compatibility
-func (p *StoreRequest) FastWrite(buf []byte) int {
+func (p *VectorToPGStorageRequest) FastWrite(buf []byte) int {
 	return 0
 }
 
-func (p *StoreRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *VectorToPGStorageRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], w)
@@ -254,7 +254,7 @@ func (p *StoreRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	return offset
 }
 
-func (p *StoreRequest) BLength() int {
+func (p *VectorToPGStorageRequest) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
@@ -267,77 +267,77 @@ func (p *StoreRequest) BLength() int {
 	return l
 }
 
-func (p *StoreRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *VectorToPGStorageRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 1)
 	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.Schema)
 	return offset
 }
 
-func (p *StoreRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
+func (p *VectorToPGStorageRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 2)
 	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.Table)
 	return offset
 }
 
-func (p *StoreRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
+func (p *VectorToPGStorageRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 3)
 	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.Name)
 	return offset
 }
 
-func (p *StoreRequest) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
+func (p *VectorToPGStorageRequest) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 4)
-	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.Url)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.CloudOptimizedBucketName)
 	return offset
 }
 
-func (p *StoreRequest) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
+func (p *VectorToPGStorageRequest) fastWriteField5(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 5)
-	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.Ext)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.CloudOptimizedPath)
 	return offset
 }
 
-func (p *StoreRequest) field1Length() int {
+func (p *VectorToPGStorageRequest) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += thrift.Binary.StringLengthNocopy(p.Schema)
 	return l
 }
 
-func (p *StoreRequest) field2Length() int {
+func (p *VectorToPGStorageRequest) field2Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += thrift.Binary.StringLengthNocopy(p.Table)
 	return l
 }
 
-func (p *StoreRequest) field3Length() int {
+func (p *VectorToPGStorageRequest) field3Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += thrift.Binary.StringLengthNocopy(p.Name)
 	return l
 }
 
-func (p *StoreRequest) field4Length() int {
+func (p *VectorToPGStorageRequest) field4Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.StringLengthNocopy(p.Url)
+	l += thrift.Binary.StringLengthNocopy(p.CloudOptimizedBucketName)
 	return l
 }
 
-func (p *StoreRequest) field5Length() int {
+func (p *VectorToPGStorageRequest) field5Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.StringLengthNocopy(p.Ext)
+	l += thrift.Binary.StringLengthNocopy(p.CloudOptimizedPath)
 	return l
 }
 
-func (p *StoreResponse) FastRead(buf []byte) (int, error) {
+func (p *VectorToPGStorageResponse) FastRead(buf []byte) (int, error) {
 	var err error
 	var offset int
 	var l int
@@ -386,14 +386,14 @@ func (p *StoreResponse) FastRead(buf []byte) (int, error) {
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreResponse[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_VectorToPGStorageResponse[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 RequiredFieldNotSetError:
-	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_StoreResponse[fieldId]))
+	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_VectorToPGStorageResponse[fieldId]))
 }
 
-func (p *StoreResponse) FastReadField1(buf []byte) (int, error) {
+func (p *VectorToPGStorageResponse) FastReadField1(buf []byte) (int, error) {
 	offset := 0
 	_field := base.NewBaseResp()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
@@ -406,11 +406,11 @@ func (p *StoreResponse) FastReadField1(buf []byte) (int, error) {
 }
 
 // for compatibility
-func (p *StoreResponse) FastWrite(buf []byte) int {
+func (p *VectorToPGStorageResponse) FastWrite(buf []byte) int {
 	return 0
 }
 
-func (p *StoreResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *VectorToPGStorageResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], w)
@@ -419,7 +419,7 @@ func (p *StoreResponse) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	return offset
 }
 
-func (p *StoreResponse) BLength() int {
+func (p *VectorToPGStorageResponse) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
@@ -428,14 +428,14 @@ func (p *StoreResponse) BLength() int {
 	return l
 }
 
-func (p *StoreResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *VectorToPGStorageResponse) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
 	offset += p.Base.FastWriteNocopy(buf[offset:], w)
 	return offset
 }
 
-func (p *StoreResponse) field1Length() int {
+func (p *VectorToPGStorageResponse) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += p.Base.BLength()
@@ -895,7 +895,7 @@ func (p *ToGeoParquetStorageResponse) field3Length() int {
 	return l
 }
 
-func (p *StoreServiceVectorStorageArgs) FastRead(buf []byte) (int, error) {
+func (p *StoreServiceVectorToPGStorageArgs) FastRead(buf []byte) (int, error) {
 	var err error
 	var offset int
 	var l int
@@ -938,14 +938,14 @@ func (p *StoreServiceVectorStorageArgs) FastRead(buf []byte) (int, error) {
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreServiceVectorStorageArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreServiceVectorToPGStorageArgs[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *StoreServiceVectorStorageArgs) FastReadField1(buf []byte) (int, error) {
+func (p *StoreServiceVectorToPGStorageArgs) FastReadField1(buf []byte) (int, error) {
 	offset := 0
-	_field := NewStoreRequest()
+	_field := NewVectorToPGStorageRequest()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
@@ -956,11 +956,11 @@ func (p *StoreServiceVectorStorageArgs) FastReadField1(buf []byte) (int, error) 
 }
 
 // for compatibility
-func (p *StoreServiceVectorStorageArgs) FastWrite(buf []byte) int {
+func (p *StoreServiceVectorToPGStorageArgs) FastWrite(buf []byte) int {
 	return 0
 }
 
-func (p *StoreServiceVectorStorageArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *StoreServiceVectorToPGStorageArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], w)
@@ -969,7 +969,7 @@ func (p *StoreServiceVectorStorageArgs) FastWriteNocopy(buf []byte, w thrift.Noc
 	return offset
 }
 
-func (p *StoreServiceVectorStorageArgs) BLength() int {
+func (p *StoreServiceVectorToPGStorageArgs) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
@@ -978,21 +978,21 @@ func (p *StoreServiceVectorStorageArgs) BLength() int {
 	return l
 }
 
-func (p *StoreServiceVectorStorageArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *StoreServiceVectorToPGStorageArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
 	offset += p.Req.FastWriteNocopy(buf[offset:], w)
 	return offset
 }
 
-func (p *StoreServiceVectorStorageArgs) field1Length() int {
+func (p *StoreServiceVectorToPGStorageArgs) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += p.Req.BLength()
 	return l
 }
 
-func (p *StoreServiceVectorStorageResult) FastRead(buf []byte) (int, error) {
+func (p *StoreServiceVectorToPGStorageResult) FastRead(buf []byte) (int, error) {
 	var err error
 	var offset int
 	var l int
@@ -1035,14 +1035,14 @@ func (p *StoreServiceVectorStorageResult) FastRead(buf []byte) (int, error) {
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreServiceVectorStorageResult[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreServiceVectorToPGStorageResult[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *StoreServiceVectorStorageResult) FastReadField0(buf []byte) (int, error) {
+func (p *StoreServiceVectorToPGStorageResult) FastReadField0(buf []byte) (int, error) {
 	offset := 0
-	_field := NewStoreResponse()
+	_field := NewVectorToPGStorageResponse()
 	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
@@ -1053,11 +1053,11 @@ func (p *StoreServiceVectorStorageResult) FastReadField0(buf []byte) (int, error
 }
 
 // for compatibility
-func (p *StoreServiceVectorStorageResult) FastWrite(buf []byte) int {
+func (p *StoreServiceVectorToPGStorageResult) FastWrite(buf []byte) int {
 	return 0
 }
 
-func (p *StoreServiceVectorStorageResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *StoreServiceVectorToPGStorageResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField0(buf[offset:], w)
@@ -1066,7 +1066,7 @@ func (p *StoreServiceVectorStorageResult) FastWriteNocopy(buf []byte, w thrift.N
 	return offset
 }
 
-func (p *StoreServiceVectorStorageResult) BLength() int {
+func (p *StoreServiceVectorToPGStorageResult) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field0Length()
@@ -1075,7 +1075,7 @@ func (p *StoreServiceVectorStorageResult) BLength() int {
 	return l
 }
 
-func (p *StoreServiceVectorStorageResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
+func (p *StoreServiceVectorToPGStorageResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p.IsSetSuccess() {
 		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 0)
@@ -1084,7 +1084,7 @@ func (p *StoreServiceVectorStorageResult) fastWriteField0(buf []byte, w thrift.N
 	return offset
 }
 
-func (p *StoreServiceVectorStorageResult) field0Length() int {
+func (p *StoreServiceVectorToPGStorageResult) field0Length() int {
 	l := 0
 	if p.IsSetSuccess() {
 		l += thrift.Binary.FieldBeginLength()
@@ -1291,11 +1291,11 @@ func (p *StoreServiceToGeoParquetStorageResult) field0Length() int {
 	return l
 }
 
-func (p *StoreServiceVectorStorageArgs) GetFirstArgument() interface{} {
+func (p *StoreServiceVectorToPGStorageArgs) GetFirstArgument() interface{} {
 	return p.Req
 }
 
-func (p *StoreServiceVectorStorageResult) GetResult() interface{} {
+func (p *StoreServiceVectorToPGStorageResult) GetResult() interface{} {
 	return p.Success
 }
 

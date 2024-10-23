@@ -21,7 +21,8 @@ all_structs = []
 class VectorThumbnailRequest(object):
     """
     Attributes:
-     - file_path
+     - cloud_optimized_path
+     - cloud_optimized_bucket_name
      - width
      - height
 
@@ -29,8 +30,9 @@ class VectorThumbnailRequest(object):
     thrift_spec = None
 
 
-    def __init__(self, file_path = None, width = None, height = None,):
-        self.file_path = file_path
+    def __init__(self, cloud_optimized_path = None, cloud_optimized_bucket_name = None, width = None, height = None,):
+        self.cloud_optimized_path = cloud_optimized_path
+        self.cloud_optimized_bucket_name = cloud_optimized_bucket_name
         self.width = width
         self.height = height
 
@@ -45,15 +47,20 @@ class VectorThumbnailRequest(object):
                 break
             if fid == 1:
                 if ftype == TType.STRING:
-                    self.file_path = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                    self.cloud_optimized_path = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
                 else:
                     iprot.skip(ftype)
             elif fid == 2:
+                if ftype == TType.STRING:
+                    self.cloud_optimized_bucket_name = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 3:
                 if ftype == TType.I32:
                     self.width = iprot.readI32()
                 else:
                     iprot.skip(ftype)
-            elif fid == 3:
+            elif fid == 4:
                 if ftype == TType.I32:
                     self.height = iprot.readI32()
                 else:
@@ -69,16 +76,20 @@ class VectorThumbnailRequest(object):
             oprot.trans.write(oprot._fast_encode(self, [self.__class__, self.thrift_spec]))
             return
         oprot.writeStructBegin('VectorThumbnailRequest')
-        if self.file_path is not None:
-            oprot.writeFieldBegin('file_path', TType.STRING, 1)
-            oprot.writeString(self.file_path.encode('utf-8') if sys.version_info[0] == 2 else self.file_path)
+        if self.cloud_optimized_path is not None:
+            oprot.writeFieldBegin('cloud_optimized_path', TType.STRING, 1)
+            oprot.writeString(self.cloud_optimized_path.encode('utf-8') if sys.version_info[0] == 2 else self.cloud_optimized_path)
+            oprot.writeFieldEnd()
+        if self.cloud_optimized_bucket_name is not None:
+            oprot.writeFieldBegin('cloud_optimized_bucket_name', TType.STRING, 2)
+            oprot.writeString(self.cloud_optimized_bucket_name.encode('utf-8') if sys.version_info[0] == 2 else self.cloud_optimized_bucket_name)
             oprot.writeFieldEnd()
         if self.width is not None:
-            oprot.writeFieldBegin('width', TType.I32, 2)
+            oprot.writeFieldBegin('width', TType.I32, 3)
             oprot.writeI32(self.width)
             oprot.writeFieldEnd()
         if self.height is not None:
-            oprot.writeFieldBegin('height', TType.I32, 3)
+            oprot.writeFieldBegin('height', TType.I32, 4)
             oprot.writeI32(self.height)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -171,9 +182,10 @@ class VectorThumbnailRespose(object):
 all_structs.append(VectorThumbnailRequest)
 VectorThumbnailRequest.thrift_spec = (
     None,  # 0
-    (1, TType.STRING, 'file_path', 'UTF8', None, ),  # 1
-    (2, TType.I32, 'width', None, None, ),  # 2
-    (3, TType.I32, 'height', None, None, ),  # 3
+    (1, TType.STRING, 'cloud_optimized_path', 'UTF8', None, ),  # 1
+    (2, TType.STRING, 'cloud_optimized_bucket_name', 'UTF8', None, ),  # 2
+    (3, TType.I32, 'width', None, None, ),  # 3
+    (4, TType.I32, 'height', None, None, ),  # 4
 )
 all_structs.append(VectorThumbnailRespose)
 VectorThumbnailRespose.thrift_spec = (

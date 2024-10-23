@@ -12,9 +12,10 @@ import (
 )
 
 type VectorThumbnailRequest struct {
-	FilePath string `thrift:"file_path,1" frugal:"1,default,string" json:"file_path"`
-	Width    int32  `thrift:"width,2" frugal:"2,default,i32" json:"width"`
-	Height   int32  `thrift:"height,3" frugal:"3,default,i32" json:"height"`
+	CloudOptimizedPath       string `thrift:"cloud_optimized_path,1" frugal:"1,default,string" json:"cloud_optimized_path"`
+	CloudOptimizedBucketName string `thrift:"cloud_optimized_bucket_name,2" frugal:"2,default,string" json:"cloud_optimized_bucket_name"`
+	Width                    int32  `thrift:"width,3" frugal:"3,default,i32" json:"width"`
+	Height                   int32  `thrift:"height,4" frugal:"4,default,i32" json:"height"`
 }
 
 func NewVectorThumbnailRequest() *VectorThumbnailRequest {
@@ -24,8 +25,12 @@ func NewVectorThumbnailRequest() *VectorThumbnailRequest {
 func (p *VectorThumbnailRequest) InitDefault() {
 }
 
-func (p *VectorThumbnailRequest) GetFilePath() (v string) {
-	return p.FilePath
+func (p *VectorThumbnailRequest) GetCloudOptimizedPath() (v string) {
+	return p.CloudOptimizedPath
+}
+
+func (p *VectorThumbnailRequest) GetCloudOptimizedBucketName() (v string) {
+	return p.CloudOptimizedBucketName
 }
 
 func (p *VectorThumbnailRequest) GetWidth() (v int32) {
@@ -35,8 +40,11 @@ func (p *VectorThumbnailRequest) GetWidth() (v int32) {
 func (p *VectorThumbnailRequest) GetHeight() (v int32) {
 	return p.Height
 }
-func (p *VectorThumbnailRequest) SetFilePath(val string) {
-	p.FilePath = val
+func (p *VectorThumbnailRequest) SetCloudOptimizedPath(val string) {
+	p.CloudOptimizedPath = val
+}
+func (p *VectorThumbnailRequest) SetCloudOptimizedBucketName(val string) {
+	p.CloudOptimizedBucketName = val
 }
 func (p *VectorThumbnailRequest) SetWidth(val int32) {
 	p.Width = val
@@ -46,9 +54,10 @@ func (p *VectorThumbnailRequest) SetHeight(val int32) {
 }
 
 var fieldIDToName_VectorThumbnailRequest = map[int16]string{
-	1: "file_path",
-	2: "width",
-	3: "height",
+	1: "cloud_optimized_path",
+	2: "cloud_optimized_bucket_name",
+	3: "width",
+	4: "height",
 }
 
 func (p *VectorThumbnailRequest) Read(iprot thrift.TProtocol) (err error) {
@@ -79,7 +88,7 @@ func (p *VectorThumbnailRequest) Read(iprot thrift.TProtocol) (err error) {
 				goto SkipFieldError
 			}
 		case 2:
-			if fieldTypeId == thrift.I32 {
+			if fieldTypeId == thrift.STRING {
 				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
@@ -89,6 +98,14 @@ func (p *VectorThumbnailRequest) Read(iprot thrift.TProtocol) (err error) {
 		case 3:
 			if fieldTypeId == thrift.I32 {
 				if err = p.ReadField3(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 4:
+			if fieldTypeId == thrift.I32 {
+				if err = p.ReadField4(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -131,10 +148,21 @@ func (p *VectorThumbnailRequest) ReadField1(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.FilePath = _field
+	p.CloudOptimizedPath = _field
 	return nil
 }
 func (p *VectorThumbnailRequest) ReadField2(iprot thrift.TProtocol) error {
+
+	var _field string
+	if v, err := iprot.ReadString(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.CloudOptimizedBucketName = _field
+	return nil
+}
+func (p *VectorThumbnailRequest) ReadField3(iprot thrift.TProtocol) error {
 
 	var _field int32
 	if v, err := iprot.ReadI32(); err != nil {
@@ -145,7 +173,7 @@ func (p *VectorThumbnailRequest) ReadField2(iprot thrift.TProtocol) error {
 	p.Width = _field
 	return nil
 }
-func (p *VectorThumbnailRequest) ReadField3(iprot thrift.TProtocol) error {
+func (p *VectorThumbnailRequest) ReadField4(iprot thrift.TProtocol) error {
 
 	var _field int32
 	if v, err := iprot.ReadI32(); err != nil {
@@ -175,6 +203,10 @@ func (p *VectorThumbnailRequest) Write(oprot thrift.TProtocol) (err error) {
 			fieldId = 3
 			goto WriteFieldError
 		}
+		if err = p.writeField4(oprot); err != nil {
+			fieldId = 4
+			goto WriteFieldError
+		}
 	}
 	if err = oprot.WriteFieldStop(); err != nil {
 		goto WriteFieldStopError
@@ -194,10 +226,10 @@ WriteStructEndError:
 }
 
 func (p *VectorThumbnailRequest) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("file_path", thrift.STRING, 1); err != nil {
+	if err = oprot.WriteFieldBegin("cloud_optimized_path", thrift.STRING, 1); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.FilePath); err != nil {
+	if err := oprot.WriteString(p.CloudOptimizedPath); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -211,10 +243,10 @@ WriteFieldEndError:
 }
 
 func (p *VectorThumbnailRequest) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("width", thrift.I32, 2); err != nil {
+	if err = oprot.WriteFieldBegin("cloud_optimized_bucket_name", thrift.STRING, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteI32(p.Width); err != nil {
+	if err := oprot.WriteString(p.CloudOptimizedBucketName); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -228,10 +260,10 @@ WriteFieldEndError:
 }
 
 func (p *VectorThumbnailRequest) writeField3(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("height", thrift.I32, 3); err != nil {
+	if err = oprot.WriteFieldBegin("width", thrift.I32, 3); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteI32(p.Height); err != nil {
+	if err := oprot.WriteI32(p.Width); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -242,6 +274,23 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
+}
+
+func (p *VectorThumbnailRequest) writeField4(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("height", thrift.I32, 4); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI32(p.Height); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
 }
 
 func (p *VectorThumbnailRequest) String() string {
@@ -258,13 +307,16 @@ func (p *VectorThumbnailRequest) DeepEqual(ano *VectorThumbnailRequest) bool {
 	} else if p == nil || ano == nil {
 		return false
 	}
-	if !p.Field1DeepEqual(ano.FilePath) {
+	if !p.Field1DeepEqual(ano.CloudOptimizedPath) {
 		return false
 	}
-	if !p.Field2DeepEqual(ano.Width) {
+	if !p.Field2DeepEqual(ano.CloudOptimizedBucketName) {
 		return false
 	}
-	if !p.Field3DeepEqual(ano.Height) {
+	if !p.Field3DeepEqual(ano.Width) {
+		return false
+	}
+	if !p.Field4DeepEqual(ano.Height) {
 		return false
 	}
 	return true
@@ -272,19 +324,26 @@ func (p *VectorThumbnailRequest) DeepEqual(ano *VectorThumbnailRequest) bool {
 
 func (p *VectorThumbnailRequest) Field1DeepEqual(src string) bool {
 
-	if strings.Compare(p.FilePath, src) != 0 {
+	if strings.Compare(p.CloudOptimizedPath, src) != 0 {
 		return false
 	}
 	return true
 }
-func (p *VectorThumbnailRequest) Field2DeepEqual(src int32) bool {
+func (p *VectorThumbnailRequest) Field2DeepEqual(src string) bool {
+
+	if strings.Compare(p.CloudOptimizedBucketName, src) != 0 {
+		return false
+	}
+	return true
+}
+func (p *VectorThumbnailRequest) Field3DeepEqual(src int32) bool {
 
 	if p.Width != src {
 		return false
 	}
 	return true
 }
-func (p *VectorThumbnailRequest) Field3DeepEqual(src int32) bool {
+func (p *VectorThumbnailRequest) Field4DeepEqual(src int32) bool {
 
 	if p.Height != src {
 		return false

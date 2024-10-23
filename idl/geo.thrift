@@ -3,15 +3,16 @@ namespace go data.storage
 
 include "base.thrift"
 
-struct StoreRequest {
+struct VectorToPGStorageRequest {
     1: required string schema,
     2: required string table,
     3: required string name,
-    4: required string url,
-    5: required string ext,
+    4: required string cloud_optimized_bucket_name,
+    5: required string cloud_optimized_path,
+    // 6: optional i64 size, // 文件大小
 }
 
-struct StoreResponse {
+struct VectorToPGStorageResponse {
     1: required base.BaseResp base,
 }
 
@@ -31,6 +32,6 @@ struct ToGeoParquetStorageResponse {
 
 
 service StoreService {
-    StoreResponse VectorStorage(1:StoreRequest req),
+    VectorToPGStorageResponse VectorToPGStorage(1:VectorToPGStorageRequest req),
     ToGeoParquetStorageResponse ToGeoParquetStorage(1:ToGeoParquetStorageRequest req),
 }

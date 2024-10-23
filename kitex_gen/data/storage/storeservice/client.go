@@ -11,7 +11,7 @@ import (
 
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.
 type Client interface {
-	VectorStorage(ctx context.Context, req *storage.StoreRequest, callOptions ...callopt.Option) (r *storage.StoreResponse, err error)
+	VectorToPGStorage(ctx context.Context, req *storage.VectorToPGStorageRequest, callOptions ...callopt.Option) (r *storage.VectorToPGStorageResponse, err error)
 	ToGeoParquetStorage(ctx context.Context, req *storage.ToGeoParquetStorageRequest, callOptions ...callopt.Option) (r *storage.ToGeoParquetStorageResponse, err error)
 }
 
@@ -44,9 +44,9 @@ type kStoreServiceClient struct {
 	*kClient
 }
 
-func (p *kStoreServiceClient) VectorStorage(ctx context.Context, req *storage.StoreRequest, callOptions ...callopt.Option) (r *storage.StoreResponse, err error) {
+func (p *kStoreServiceClient) VectorToPGStorage(ctx context.Context, req *storage.VectorToPGStorageRequest, callOptions ...callopt.Option) (r *storage.VectorToPGStorageResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.VectorStorage(ctx, req)
+	return p.kClient.VectorToPGStorage(ctx, req)
 }
 
 func (p *kStoreServiceClient) ToGeoParquetStorage(ctx context.Context, req *storage.ToGeoParquetStorageRequest, callOptions ...callopt.Option) (r *storage.ToGeoParquetStorageResponse, err error) {

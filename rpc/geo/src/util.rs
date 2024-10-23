@@ -1,8 +1,17 @@
+use std::default::Default;
 use std::{ffi::CString, path::Path, ptr::{self, null, null_mut}};
+use std::io::Write;
+use std::sync::{Arc, Mutex};
 use gdal::Dataset;
+use gdal::vector::Feature;
 use gdal_sys::{GDALVectorTranslate,GDALVectorTranslateOptions};
 use crate::programs::vector::vector_translate::{vector_translate,VectorTranslateOptions};
 use crate::config::get_settings;
+use crate::programs::destination::DatasetDestination;
+use geoarrow::io::{gdal::read_gdal,parquet::write_geoparquet_async};
+use geoarrow::io::parquet::GeoParquetWriterOptions;
+use minio::s3::types::FileHeaderInfo::NONE;
+use tokio::io::AsyncWrite;
 
 pub fn zipshp2sql<P: AsRef<Path>>(url: P, out: &Path, schema: &str, table: &str) -> Result<(), anyhow::Error> {
     let schema = format!("SCHEMA={}", schema);
@@ -16,7 +25,9 @@ pub fn zipshp2sql<P: AsRef<Path>>(url: P, out: &Path, schema: &str, table: &str)
             "-lco", "FID=gid",
             "-lco", schema.as_str(),
             "-lco", "CREATE_SCHEMA=OFF",
-            "-lco", "GEOM_COLUMN_POSITION=END"
+            "-lco", "GEOM_COLUMN_POSITION=END",
+            "-lco", "LAUNDER=NO",
+            "-makevalid",
         ]
             .try_into()?
     );
@@ -40,11 +51,33 @@ pub fn to_geoparquet<P: AsRef<Path>>(url: P, out: &Path)-> Result<(), anyhow::Er
     Ok(())
 }
 
+// pub async fn gdal_to_geoparquet<P: AsRef<Path>, F: AsyncWrite + Unpin + Send>(url: P, f: F) -> Result<(), anyhow::Error> {
+//     let dataset = Dataset::open(url)?;
+//
+//     // 用内层作用域限制 layer 的生命周期
+//     let reader = {
+//         // 获取图层
+//         let mut layer = dataset.layer(0)?;
+//         // 从 layer 中读取数据
+//         let geoarrow_data = read_gdal(&mut layer, None)?;
+//
+//         // 检查并将 geoarrow.wkb 解析为 GeoArrow 原生类型
+//         geoarrow_data
+//             .into_iter()
+//             .map(|feature| match feature {
+//
+//             })
+//             .collect::<Result<Vec<_>, _>>()? // 错误处理
+//     };
+//
+//     // 将解析后的数据写入 GeoParquet 文件
+//     write_geoparquet_async(reader, f, &GeoParquetWriterOptions::default()).await?;
+//     Ok(())
+// }
+
+
 pub async fn vector_to_pg(url: &str, schema: &str, table: &str)->Result<(), anyhow::Error>{
     let schema = format!("SCHEMA={}", schema);
-    // let pg = format!("PG:{}", "postgresql://postgres:admin321@1.92.113.25:5432/tinamic");
-    // let pg = format!("PG:{}", "dbname=tinamic host=1.92.113.25 port=5432 user=postgres password=admin321");
-    // let dst_connection = CString::new("PG: host=1.92.113.25 user=postgres password=admin321 dbname=tinamic").unwrap();
     let dst_connection  = get_settings().await.lock().await.to_pg_string();
     let dst_connection = CString::new(dst_connection).unwrap();
     let src = Dataset::open(url)?;
@@ -53,17 +86,17 @@ pub async fn vector_to_pg(url: &str, schema: &str, table: &str)->Result<(), anyh
         vec![
             "-t_srs", "EPSG:4326",
             "-nln", table,
+            "-lco", "OVERWRITE=NO",
             "-lco", "GEOMETRY_NAME=geom",
             "-lco", "FID=gid",
             "-lco", schema.as_str(),
+            "-lco", "LAUNDER=NO",
             "-makevalid",
-            // "-lco", "CREATE_SCHEMA=OFF",
-            // "-lco", "GEOM_COLUMN_POSITION=END",
         ]
             .try_into()?
     );
 
-    vector_translate(&[src], dst_connection.try_into()?, opts)?;
+    vector_translate(&[src], DatasetDestination::Path(dst_connection), opts)?;
 
     
     // let c_options = options
@@ -105,6 +138,7 @@ pub fn add_prefix_from_ext(path: &str, bucket_name:&str, ext: Option<&str>) -> S
 
     let prefix = match ext.as_deref() {
         Some("shp") => "/vsis3/",
+        Some("parquet") => "/vsis3/",
         Some("zip") => "/vsizip//vsis3/",
         _ => "/vsis3/",
     };
@@ -114,6 +148,7 @@ pub fn add_prefix_from_ext(path: &str, bucket_name:&str, ext: Option<&str>) -> S
 #[cfg(test)]
 mod tests {
     use std::path;
+    use tokio::fs::File;
     use crate::gdal_config;
 
     use super::*;
@@ -161,4 +196,12 @@ mod tests {
         let path = "/vsizip//vsis3/vector/city.zip";
         to_geoparquet(path, Path::new("city.parquet")).expect("Failed to convert to GeoParquet");
     }
+
+    // #[tokio::test]
+    // async fn test_gdal_to_geoparquet(){
+    //     let _ = gdal_config::init_gdal_config();
+    //     let path = "/vsizip//vsis3/original-source/vector/city01.zip";
+    //     let f = File::create("city2.parquet").await.unwrap();
+    //     gdal_to_geoparquet(path,f).await.unwrap();
+    // }
 }

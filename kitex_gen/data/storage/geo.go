@@ -10,73 +10,73 @@ import (
 	"strings"
 )
 
-type StoreRequest struct {
-	Schema string `thrift:"schema,1,required" frugal:"1,required,string" json:"schema"`
-	Table  string `thrift:"table,2,required" frugal:"2,required,string" json:"table"`
-	Name   string `thrift:"name,3,required" frugal:"3,required,string" json:"name"`
-	Url    string `thrift:"url,4,required" frugal:"4,required,string" json:"url"`
-	Ext    string `thrift:"ext,5,required" frugal:"5,required,string" json:"ext"`
+type VectorToPGStorageRequest struct {
+	Schema                   string `thrift:"schema,1,required" frugal:"1,required,string" json:"schema"`
+	Table                    string `thrift:"table,2,required" frugal:"2,required,string" json:"table"`
+	Name                     string `thrift:"name,3,required" frugal:"3,required,string" json:"name"`
+	CloudOptimizedBucketName string `thrift:"cloud_optimized_bucket_name,4,required" frugal:"4,required,string" json:"cloud_optimized_bucket_name"`
+	CloudOptimizedPath       string `thrift:"cloud_optimized_path,5,required" frugal:"5,required,string" json:"cloud_optimized_path"`
 }
 
-func NewStoreRequest() *StoreRequest {
-	return &StoreRequest{}
+func NewVectorToPGStorageRequest() *VectorToPGStorageRequest {
+	return &VectorToPGStorageRequest{}
 }
 
-func (p *StoreRequest) InitDefault() {
+func (p *VectorToPGStorageRequest) InitDefault() {
 }
 
-func (p *StoreRequest) GetSchema() (v string) {
+func (p *VectorToPGStorageRequest) GetSchema() (v string) {
 	return p.Schema
 }
 
-func (p *StoreRequest) GetTable() (v string) {
+func (p *VectorToPGStorageRequest) GetTable() (v string) {
 	return p.Table
 }
 
-func (p *StoreRequest) GetName() (v string) {
+func (p *VectorToPGStorageRequest) GetName() (v string) {
 	return p.Name
 }
 
-func (p *StoreRequest) GetUrl() (v string) {
-	return p.Url
+func (p *VectorToPGStorageRequest) GetCloudOptimizedBucketName() (v string) {
+	return p.CloudOptimizedBucketName
 }
 
-func (p *StoreRequest) GetExt() (v string) {
-	return p.Ext
+func (p *VectorToPGStorageRequest) GetCloudOptimizedPath() (v string) {
+	return p.CloudOptimizedPath
 }
-func (p *StoreRequest) SetSchema(val string) {
+func (p *VectorToPGStorageRequest) SetSchema(val string) {
 	p.Schema = val
 }
-func (p *StoreRequest) SetTable(val string) {
+func (p *VectorToPGStorageRequest) SetTable(val string) {
 	p.Table = val
 }
-func (p *StoreRequest) SetName(val string) {
+func (p *VectorToPGStorageRequest) SetName(val string) {
 	p.Name = val
 }
-func (p *StoreRequest) SetUrl(val string) {
-	p.Url = val
+func (p *VectorToPGStorageRequest) SetCloudOptimizedBucketName(val string) {
+	p.CloudOptimizedBucketName = val
 }
-func (p *StoreRequest) SetExt(val string) {
-	p.Ext = val
+func (p *VectorToPGStorageRequest) SetCloudOptimizedPath(val string) {
+	p.CloudOptimizedPath = val
 }
 
-var fieldIDToName_StoreRequest = map[int16]string{
+var fieldIDToName_VectorToPGStorageRequest = map[int16]string{
 	1: "schema",
 	2: "table",
 	3: "name",
-	4: "url",
-	5: "ext",
+	4: "cloud_optimized_bucket_name",
+	5: "cloud_optimized_path",
 }
 
-func (p *StoreRequest) Read(iprot thrift.TProtocol) (err error) {
+func (p *VectorToPGStorageRequest) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
 	var issetSchema bool = false
 	var issetTable bool = false
 	var issetName bool = false
-	var issetUrl bool = false
-	var issetExt bool = false
+	var issetCloudOptimizedBucketName bool = false
+	var issetCloudOptimizedPath bool = false
 
 	if _, err = iprot.ReadStructBegin(); err != nil {
 		goto ReadStructBeginError
@@ -124,7 +124,7 @@ func (p *StoreRequest) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField4(iprot); err != nil {
 					goto ReadFieldError
 				}
-				issetUrl = true
+				issetCloudOptimizedBucketName = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -133,7 +133,7 @@ func (p *StoreRequest) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField5(iprot); err != nil {
 					goto ReadFieldError
 				}
-				issetExt = true
+				issetCloudOptimizedPath = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -165,12 +165,12 @@ func (p *StoreRequest) Read(iprot thrift.TProtocol) (err error) {
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetUrl {
+	if !issetCloudOptimizedBucketName {
 		fieldId = 4
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetExt {
+	if !issetCloudOptimizedPath {
 		fieldId = 5
 		goto RequiredFieldNotSetError
 	}
@@ -180,7 +180,7 @@ ReadStructBeginError:
 ReadFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreRequest[fieldId]), err)
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_VectorToPGStorageRequest[fieldId]), err)
 SkipFieldError:
 	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 
@@ -189,10 +189,10 @@ ReadFieldEndError:
 ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
 RequiredFieldNotSetError:
-	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_StoreRequest[fieldId]))
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_VectorToPGStorageRequest[fieldId]))
 }
 
-func (p *StoreRequest) ReadField1(iprot thrift.TProtocol) error {
+func (p *VectorToPGStorageRequest) ReadField1(iprot thrift.TProtocol) error {
 
 	var _field string
 	if v, err := iprot.ReadString(); err != nil {
@@ -203,7 +203,7 @@ func (p *StoreRequest) ReadField1(iprot thrift.TProtocol) error {
 	p.Schema = _field
 	return nil
 }
-func (p *StoreRequest) ReadField2(iprot thrift.TProtocol) error {
+func (p *VectorToPGStorageRequest) ReadField2(iprot thrift.TProtocol) error {
 
 	var _field string
 	if v, err := iprot.ReadString(); err != nil {
@@ -214,7 +214,7 @@ func (p *StoreRequest) ReadField2(iprot thrift.TProtocol) error {
 	p.Table = _field
 	return nil
 }
-func (p *StoreRequest) ReadField3(iprot thrift.TProtocol) error {
+func (p *VectorToPGStorageRequest) ReadField3(iprot thrift.TProtocol) error {
 
 	var _field string
 	if v, err := iprot.ReadString(); err != nil {
@@ -225,7 +225,7 @@ func (p *StoreRequest) ReadField3(iprot thrift.TProtocol) error {
 	p.Name = _field
 	return nil
 }
-func (p *StoreRequest) ReadField4(iprot thrift.TProtocol) error {
+func (p *VectorToPGStorageRequest) ReadField4(iprot thrift.TProtocol) error {
 
 	var _field string
 	if v, err := iprot.ReadString(); err != nil {
@@ -233,10 +233,10 @@ func (p *StoreRequest) ReadField4(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.Url = _field
+	p.CloudOptimizedBucketName = _field
 	return nil
 }
-func (p *StoreRequest) ReadField5(iprot thrift.TProtocol) error {
+func (p *VectorToPGStorageRequest) ReadField5(iprot thrift.TProtocol) error {
 
 	var _field string
 	if v, err := iprot.ReadString(); err != nil {
@@ -244,13 +244,13 @@ func (p *StoreRequest) ReadField5(iprot thrift.TProtocol) error {
 	} else {
 		_field = v
 	}
-	p.Ext = _field
+	p.CloudOptimizedPath = _field
 	return nil
 }
 
-func (p *StoreRequest) Write(oprot thrift.TProtocol) (err error) {
+func (p *VectorToPGStorageRequest) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
-	if err = oprot.WriteStructBegin("StoreRequest"); err != nil {
+	if err = oprot.WriteStructBegin("VectorToPGStorageRequest"); err != nil {
 		goto WriteStructBeginError
 	}
 	if p != nil {
@@ -292,7 +292,7 @@ WriteStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
 }
 
-func (p *StoreRequest) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *VectorToPGStorageRequest) writeField1(oprot thrift.TProtocol) (err error) {
 	if err = oprot.WriteFieldBegin("schema", thrift.STRING, 1); err != nil {
 		goto WriteFieldBeginError
 	}
@@ -309,7 +309,7 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
-func (p *StoreRequest) writeField2(oprot thrift.TProtocol) (err error) {
+func (p *VectorToPGStorageRequest) writeField2(oprot thrift.TProtocol) (err error) {
 	if err = oprot.WriteFieldBegin("table", thrift.STRING, 2); err != nil {
 		goto WriteFieldBeginError
 	}
@@ -326,7 +326,7 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
 }
 
-func (p *StoreRequest) writeField3(oprot thrift.TProtocol) (err error) {
+func (p *VectorToPGStorageRequest) writeField3(oprot thrift.TProtocol) (err error) {
 	if err = oprot.WriteFieldBegin("name", thrift.STRING, 3); err != nil {
 		goto WriteFieldBeginError
 	}
@@ -343,11 +343,11 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
 }
 
-func (p *StoreRequest) writeField4(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("url", thrift.STRING, 4); err != nil {
+func (p *VectorToPGStorageRequest) writeField4(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("cloud_optimized_bucket_name", thrift.STRING, 4); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.Url); err != nil {
+	if err := oprot.WriteString(p.CloudOptimizedBucketName); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -360,11 +360,11 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 4 end error: ", p), err)
 }
 
-func (p *StoreRequest) writeField5(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("ext", thrift.STRING, 5); err != nil {
+func (p *VectorToPGStorageRequest) writeField5(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("cloud_optimized_path", thrift.STRING, 5); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteString(p.Ext); err != nil {
+	if err := oprot.WriteString(p.CloudOptimizedPath); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {
@@ -377,15 +377,15 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 5 end error: ", p), err)
 }
 
-func (p *StoreRequest) String() string {
+func (p *VectorToPGStorageRequest) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("StoreRequest(%+v)", *p)
+	return fmt.Sprintf("VectorToPGStorageRequest(%+v)", *p)
 
 }
 
-func (p *StoreRequest) DeepEqual(ano *StoreRequest) bool {
+func (p *VectorToPGStorageRequest) DeepEqual(ano *VectorToPGStorageRequest) bool {
 	if p == ano {
 		return true
 	} else if p == nil || ano == nil {
@@ -400,83 +400,83 @@ func (p *StoreRequest) DeepEqual(ano *StoreRequest) bool {
 	if !p.Field3DeepEqual(ano.Name) {
 		return false
 	}
-	if !p.Field4DeepEqual(ano.Url) {
+	if !p.Field4DeepEqual(ano.CloudOptimizedBucketName) {
 		return false
 	}
-	if !p.Field5DeepEqual(ano.Ext) {
+	if !p.Field5DeepEqual(ano.CloudOptimizedPath) {
 		return false
 	}
 	return true
 }
 
-func (p *StoreRequest) Field1DeepEqual(src string) bool {
+func (p *VectorToPGStorageRequest) Field1DeepEqual(src string) bool {
 
 	if strings.Compare(p.Schema, src) != 0 {
 		return false
 	}
 	return true
 }
-func (p *StoreRequest) Field2DeepEqual(src string) bool {
+func (p *VectorToPGStorageRequest) Field2DeepEqual(src string) bool {
 
 	if strings.Compare(p.Table, src) != 0 {
 		return false
 	}
 	return true
 }
-func (p *StoreRequest) Field3DeepEqual(src string) bool {
+func (p *VectorToPGStorageRequest) Field3DeepEqual(src string) bool {
 
 	if strings.Compare(p.Name, src) != 0 {
 		return false
 	}
 	return true
 }
-func (p *StoreRequest) Field4DeepEqual(src string) bool {
+func (p *VectorToPGStorageRequest) Field4DeepEqual(src string) bool {
 
-	if strings.Compare(p.Url, src) != 0 {
+	if strings.Compare(p.CloudOptimizedBucketName, src) != 0 {
 		return false
 	}
 	return true
 }
-func (p *StoreRequest) Field5DeepEqual(src string) bool {
+func (p *VectorToPGStorageRequest) Field5DeepEqual(src string) bool {
 
-	if strings.Compare(p.Ext, src) != 0 {
+	if strings.Compare(p.CloudOptimizedPath, src) != 0 {
 		return false
 	}
 	return true
 }
 
-type StoreResponse struct {
+type VectorToPGStorageResponse struct {
 	Base *base.BaseResp `thrift:"base,1,required" frugal:"1,required,base.BaseResp" json:"base"`
 }
 
-func NewStoreResponse() *StoreResponse {
-	return &StoreResponse{}
+func NewVectorToPGStorageResponse() *VectorToPGStorageResponse {
+	return &VectorToPGStorageResponse{}
 }
 
-func (p *StoreResponse) InitDefault() {
+func (p *VectorToPGStorageResponse) InitDefault() {
 }
 
-var StoreResponse_Base_DEFAULT *base.BaseResp
+var VectorToPGStorageResponse_Base_DEFAULT *base.BaseResp
 
-func (p *StoreResponse) GetBase() (v *base.BaseResp) {
+func (p *VectorToPGStorageResponse) GetBase() (v *base.BaseResp) {
 	if !p.IsSetBase() {
-		return StoreResponse_Base_DEFAULT
+		return VectorToPGStorageResponse_Base_DEFAULT
 	}
 	return p.Base
 }
-func (p *StoreResponse) SetBase(val *base.BaseResp) {
+func (p *VectorToPGStorageResponse) SetBase(val *base.BaseResp) {
 	p.Base = val
 }
 
-var fieldIDToName_StoreResponse = map[int16]string{
+var fieldIDToName_VectorToPGStorageResponse = map[int16]string{
 	1: "base",
 }
 
-func (p *StoreResponse) IsSetBase() bool {
+func (p *VectorToPGStorageResponse) IsSetBase() bool {
 	return p.Base != nil
 }
 
-func (p *StoreResponse) Read(iprot thrift.TProtocol) (err error) {
+func (p *VectorToPGStorageResponse) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
@@ -528,7 +528,7 @@ ReadStructBeginError:
 ReadFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreResponse[fieldId]), err)
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_VectorToPGStorageResponse[fieldId]), err)
 SkipFieldError:
 	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 
@@ -537,10 +537,10 @@ ReadFieldEndError:
 ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
 RequiredFieldNotSetError:
-	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_StoreResponse[fieldId]))
+	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_VectorToPGStorageResponse[fieldId]))
 }
 
-func (p *StoreResponse) ReadField1(iprot thrift.TProtocol) error {
+func (p *VectorToPGStorageResponse) ReadField1(iprot thrift.TProtocol) error {
 	_field := base.NewBaseResp()
 	if err := _field.Read(iprot); err != nil {
 		return err
@@ -549,9 +549,9 @@ func (p *StoreResponse) ReadField1(iprot thrift.TProtocol) error {
 	return nil
 }
 
-func (p *StoreResponse) Write(oprot thrift.TProtocol) (err error) {
+func (p *VectorToPGStorageResponse) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
-	if err = oprot.WriteStructBegin("StoreResponse"); err != nil {
+	if err = oprot.WriteStructBegin("VectorToPGStorageResponse"); err != nil {
 		goto WriteStructBeginError
 	}
 	if p != nil {
@@ -577,7 +577,7 @@ WriteStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
 }
 
-func (p *StoreResponse) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *VectorToPGStorageResponse) writeField1(oprot thrift.TProtocol) (err error) {
 	if err = oprot.WriteFieldBegin("base", thrift.STRUCT, 1); err != nil {
 		goto WriteFieldBeginError
 	}
@@ -594,15 +594,15 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
-func (p *StoreResponse) String() string {
+func (p *VectorToPGStorageResponse) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("StoreResponse(%+v)", *p)
+	return fmt.Sprintf("VectorToPGStorageResponse(%+v)", *p)
 
 }
 
-func (p *StoreResponse) DeepEqual(ano *StoreResponse) bool {
+func (p *VectorToPGStorageResponse) DeepEqual(ano *VectorToPGStorageResponse) bool {
 	if p == ano {
 		return true
 	} else if p == nil || ano == nil {
@@ -614,7 +614,7 @@ func (p *StoreResponse) DeepEqual(ano *StoreResponse) bool {
 	return true
 }
 
-func (p *StoreResponse) Field1DeepEqual(src *base.BaseResp) bool {
+func (p *VectorToPGStorageResponse) Field1DeepEqual(src *base.BaseResp) bool {
 
 	if !p.Base.DeepEqual(src) {
 		return false
@@ -1287,43 +1287,43 @@ func (p *ToGeoParquetStorageResponse) Field3DeepEqual(src int64) bool {
 }
 
 type StoreService interface {
-	VectorStorage(ctx context.Context, req *StoreRequest) (r *StoreResponse, err error)
+	VectorToPGStorage(ctx context.Context, req *VectorToPGStorageRequest) (r *VectorToPGStorageResponse, err error)
 
 	ToGeoParquetStorage(ctx context.Context, req *ToGeoParquetStorageRequest) (r *ToGeoParquetStorageResponse, err error)
 }
 
-type StoreServiceVectorStorageArgs struct {
-	Req *StoreRequest `thrift:"req,1" frugal:"1,default,StoreRequest" json:"req"`
+type StoreServiceVectorToPGStorageArgs struct {
+	Req *VectorToPGStorageRequest `thrift:"req,1" frugal:"1,default,VectorToPGStorageRequest" json:"req"`
 }
 
-func NewStoreServiceVectorStorageArgs() *StoreServiceVectorStorageArgs {
-	return &StoreServiceVectorStorageArgs{}
+func NewStoreServiceVectorToPGStorageArgs() *StoreServiceVectorToPGStorageArgs {
+	return &StoreServiceVectorToPGStorageArgs{}
 }
 
-func (p *StoreServiceVectorStorageArgs) InitDefault() {
+func (p *StoreServiceVectorToPGStorageArgs) InitDefault() {
 }
 
-var StoreServiceVectorStorageArgs_Req_DEFAULT *StoreRequest
+var StoreServiceVectorToPGStorageArgs_Req_DEFAULT *VectorToPGStorageRequest
 
-func (p *StoreServiceVectorStorageArgs) GetReq() (v *StoreRequest) {
+func (p *StoreServiceVectorToPGStorageArgs) GetReq() (v *VectorToPGStorageRequest) {
 	if !p.IsSetReq() {
-		return StoreServiceVectorStorageArgs_Req_DEFAULT
+		return StoreServiceVectorToPGStorageArgs_Req_DEFAULT
 	}
 	return p.Req
 }
-func (p *StoreServiceVectorStorageArgs) SetReq(val *StoreRequest) {
+func (p *StoreServiceVectorToPGStorageArgs) SetReq(val *VectorToPGStorageRequest) {
 	p.Req = val
 }
 
-var fieldIDToName_StoreServiceVectorStorageArgs = map[int16]string{
+var fieldIDToName_StoreServiceVectorToPGStorageArgs = map[int16]string{
 	1: "req",
 }
 
-func (p *StoreServiceVectorStorageArgs) IsSetReq() bool {
+func (p *StoreServiceVectorToPGStorageArgs) IsSetReq() bool {
 	return p.Req != nil
 }
 
-func (p *StoreServiceVectorStorageArgs) Read(iprot thrift.TProtocol) (err error) {
+func (p *StoreServiceVectorToPGStorageArgs) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
@@ -1369,7 +1369,7 @@ ReadStructBeginError:
 ReadFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreServiceVectorStorageArgs[fieldId]), err)
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreServiceVectorToPGStorageArgs[fieldId]), err)
 SkipFieldError:
 	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 
@@ -1379,8 +1379,8 @@ ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
 }
 
-func (p *StoreServiceVectorStorageArgs) ReadField1(iprot thrift.TProtocol) error {
-	_field := NewStoreRequest()
+func (p *StoreServiceVectorToPGStorageArgs) ReadField1(iprot thrift.TProtocol) error {
+	_field := NewVectorToPGStorageRequest()
 	if err := _field.Read(iprot); err != nil {
 		return err
 	}
@@ -1388,9 +1388,9 @@ func (p *StoreServiceVectorStorageArgs) ReadField1(iprot thrift.TProtocol) error
 	return nil
 }
 
-func (p *StoreServiceVectorStorageArgs) Write(oprot thrift.TProtocol) (err error) {
+func (p *StoreServiceVectorToPGStorageArgs) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
-	if err = oprot.WriteStructBegin("VectorStorage_args"); err != nil {
+	if err = oprot.WriteStructBegin("VectorToPGStorage_args"); err != nil {
 		goto WriteStructBeginError
 	}
 	if p != nil {
@@ -1416,7 +1416,7 @@ WriteStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
 }
 
-func (p *StoreServiceVectorStorageArgs) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *StoreServiceVectorToPGStorageArgs) writeField1(oprot thrift.TProtocol) (err error) {
 	if err = oprot.WriteFieldBegin("req", thrift.STRUCT, 1); err != nil {
 		goto WriteFieldBeginError
 	}
@@ -1433,15 +1433,15 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
-func (p *StoreServiceVectorStorageArgs) String() string {
+func (p *StoreServiceVectorToPGStorageArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("StoreServiceVectorStorageArgs(%+v)", *p)
+	return fmt.Sprintf("StoreServiceVectorToPGStorageArgs(%+v)", *p)
 
 }
 
-func (p *StoreServiceVectorStorageArgs) DeepEqual(ano *StoreServiceVectorStorageArgs) bool {
+func (p *StoreServiceVectorToPGStorageArgs) DeepEqual(ano *StoreServiceVectorToPGStorageArgs) bool {
 	if p == ano {
 		return true
 	} else if p == nil || ano == nil {
@@ -1453,7 +1453,7 @@ func (p *StoreServiceVectorStorageArgs) DeepEqual(ano *StoreServiceVectorStorage
 	return true
 }
 
-func (p *StoreServiceVectorStorageArgs) Field1DeepEqual(src *StoreRequest) bool {
+func (p *StoreServiceVectorToPGStorageArgs) Field1DeepEqual(src *VectorToPGStorageRequest) bool {
 
 	if !p.Req.DeepEqual(src) {
 		return false
@@ -1461,38 +1461,38 @@ func (p *StoreServiceVectorStorageArgs) Field1DeepEqual(src *StoreRequest) bool 
 	return true
 }
 
-type StoreServiceVectorStorageResult struct {
-	Success *StoreResponse `thrift:"success,0,optional" frugal:"0,optional,StoreResponse" json:"success,omitempty"`
+type StoreServiceVectorToPGStorageResult struct {
+	Success *VectorToPGStorageResponse `thrift:"success,0,optional" frugal:"0,optional,VectorToPGStorageResponse" json:"success,omitempty"`
 }
 
-func NewStoreServiceVectorStorageResult() *StoreServiceVectorStorageResult {
-	return &StoreServiceVectorStorageResult{}
+func NewStoreServiceVectorToPGStorageResult() *StoreServiceVectorToPGStorageResult {
+	return &StoreServiceVectorToPGStorageResult{}
 }
 
-func (p *StoreServiceVectorStorageResult) InitDefault() {
+func (p *StoreServiceVectorToPGStorageResult) InitDefault() {
 }
 
-var StoreServiceVectorStorageResult_Success_DEFAULT *StoreResponse
+var StoreServiceVectorToPGStorageResult_Success_DEFAULT *VectorToPGStorageResponse
 
-func (p *StoreServiceVectorStorageResult) GetSuccess() (v *StoreResponse) {
+func (p *StoreServiceVectorToPGStorageResult) GetSuccess() (v *VectorToPGStorageResponse) {
 	if !p.IsSetSuccess() {
-		return StoreServiceVectorStorageResult_Success_DEFAULT
+		return StoreServiceVectorToPGStorageResult_Success_DEFAULT
 	}
 	return p.Success
 }
-func (p *StoreServiceVectorStorageResult) SetSuccess(x interface{}) {
-	p.Success = x.(*StoreResponse)
+func (p *StoreServiceVectorToPGStorageResult) SetSuccess(x interface{}) {
+	p.Success = x.(*VectorToPGStorageResponse)
 }
 
-var fieldIDToName_StoreServiceVectorStorageResult = map[int16]string{
+var fieldIDToName_StoreServiceVectorToPGStorageResult = map[int16]string{
 	0: "success",
 }
 
-func (p *StoreServiceVectorStorageResult) IsSetSuccess() bool {
+func (p *StoreServiceVectorToPGStorageResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
-func (p *StoreServiceVectorStorageResult) Read(iprot thrift.TProtocol) (err error) {
+func (p *StoreServiceVectorToPGStorageResult) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
@@ -1538,7 +1538,7 @@ ReadStructBeginError:
 ReadFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreServiceVectorStorageResult[fieldId]), err)
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_StoreServiceVectorToPGStorageResult[fieldId]), err)
 SkipFieldError:
 	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 
@@ -1548,8 +1548,8 @@ ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
 }
 
-func (p *StoreServiceVectorStorageResult) ReadField0(iprot thrift.TProtocol) error {
-	_field := NewStoreResponse()
+func (p *StoreServiceVectorToPGStorageResult) ReadField0(iprot thrift.TProtocol) error {
+	_field := NewVectorToPGStorageResponse()
 	if err := _field.Read(iprot); err != nil {
 		return err
 	}
@@ -1557,9 +1557,9 @@ func (p *StoreServiceVectorStorageResult) ReadField0(iprot thrift.TProtocol) err
 	return nil
 }
 
-func (p *StoreServiceVectorStorageResult) Write(oprot thrift.TProtocol) (err error) {
+func (p *StoreServiceVectorToPGStorageResult) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
-	if err = oprot.WriteStructBegin("VectorStorage_result"); err != nil {
+	if err = oprot.WriteStructBegin("VectorToPGStorage_result"); err != nil {
 		goto WriteStructBeginError
 	}
 	if p != nil {
@@ -1585,7 +1585,7 @@ WriteStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
 }
 
-func (p *StoreServiceVectorStorageResult) writeField0(oprot thrift.TProtocol) (err error) {
+func (p *StoreServiceVectorToPGStorageResult) writeField0(oprot thrift.TProtocol) (err error) {
 	if p.IsSetSuccess() {
 		if err = oprot.WriteFieldBegin("success", thrift.STRUCT, 0); err != nil {
 			goto WriteFieldBeginError
@@ -1604,15 +1604,15 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
 }
 
-func (p *StoreServiceVectorStorageResult) String() string {
+func (p *StoreServiceVectorToPGStorageResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("StoreServiceVectorStorageResult(%+v)", *p)
+	return fmt.Sprintf("StoreServiceVectorToPGStorageResult(%+v)", *p)
 
 }
 
-func (p *StoreServiceVectorStorageResult) DeepEqual(ano *StoreServiceVectorStorageResult) bool {
+func (p *StoreServiceVectorToPGStorageResult) DeepEqual(ano *StoreServiceVectorToPGStorageResult) bool {
 	if p == ano {
 		return true
 	} else if p == nil || ano == nil {
@@ -1624,7 +1624,7 @@ func (p *StoreServiceVectorStorageResult) DeepEqual(ano *StoreServiceVectorStora
 	return true
 }
 
-func (p *StoreServiceVectorStorageResult) Field0DeepEqual(src *StoreResponse) bool {
+func (p *StoreServiceVectorToPGStorageResult) Field0DeepEqual(src *VectorToPGStorageResponse) bool {
 
 	if !p.Success.DeepEqual(src) {
 		return false

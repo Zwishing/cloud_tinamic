@@ -5,10 +5,10 @@ CREATE TABLE IF NOT EXISTS service.info (
     id SERIAL PRIMARY KEY, -- 每个服务信息条目的唯一标识符
     service_key UUID NOT NULL UNIQUE, -- 服务的唯一键
     title VARCHAR(255) NOT NULL, -- 数据名称
-    source_key UUID NOT NULL UNIQUE, -- 源数据的唯一键
+    cloud_optimized_key UUID NOT NULL UNIQUE, -- 源数据的唯一键,
     source_schema VARCHAR(255) NOT NULL, -- 源数据所在的模式
     source_category integer NOT NULL, -- 源数据的类型
-    sird INT, -- 空间参考标识符
+    srid INT, -- 空间参考标识符
     created_at TIMESTAMP DEFAULT NOW(), -- 创建时间戳
     updated_at TIMESTAMP DEFAULT NOW(), -- 最后更新时间戳
     deleted_at TIMESTAMP DEFAULT NULL -- 软删除时间戳
@@ -18,17 +18,17 @@ COMMENT ON TABLE service.info IS '包含服务信息的表';
 COMMENT ON COLUMN service.info.id IS '每个服务信息条目的唯一标识符';
 COMMENT ON COLUMN service.info.service_key IS '服务的唯一键';
 COMMENT ON COLUMN service.info.title IS '服务名称';
-COMMENT ON COLUMN service.info.source_key IS '源数据的唯一键';
+COMMENT ON COLUMN service.info.cloud_optimized_key IS '源数据的唯一键';
 COMMENT ON COLUMN service.info.source_schema IS '源数据所在的模式';
 COMMENT ON COLUMN service.info.source_category IS '源数据的类型';
-COMMENT ON COLUMN service.info.sird IS '空间参考标识符';
+COMMENT ON COLUMN service.info.srid IS '空间参考标识符';
 COMMENT ON COLUMN service.info.created_at IS '创建时间戳';
 COMMENT ON COLUMN service.info.updated_at IS '最后更新时间戳';
 COMMENT ON COLUMN service.info.deleted_at IS '软删除时间戳';
 
 -- 信息表的索引
 CREATE INDEX idx_info_service_key ON service.info(service_key);
-CREATE INDEX idx_info_source_key ON service.info(source_key);
+CREATE INDEX idx_info_cloud_optimized_key ON service.info(cloud_optimized_key);
 
 -- 创建集合表
 CREATE TABLE IF NOT EXISTS service.collection (
@@ -69,7 +69,7 @@ CREATE INDEX idx_collection_center ON service.collection USING GIST(center);
 -- 创建矢量表
 CREATE TABLE IF NOT EXISTS service.vector (
     id SERIAL PRIMARY KEY, -- 每个矢量条目的唯一标识符
-    source_key UUID NOT NULL UNIQUE, -- 服务的唯一键
+    cloud_optimized_key UUID NOT NULL UNIQUE, -- 数据源唯一键
     title VARCHAR(255) NOT NULL, -- 矢量服务名称
     geometry_category VARCHAR(255), -- 几何类型: 点、线、面
     geometry_field VARCHAR(255), -- 几何字段名称
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS service.vector (
 
 COMMENT ON TABLE service.vector IS '包含矢量服务的表';
 COMMENT ON COLUMN service.vector.id IS '每个矢量条目的唯一标识符';
-COMMENT ON COLUMN service.vector.source_key IS '服务的唯一键';
+COMMENT ON COLUMN service.vector.cloud_optimized_key IS '服务的唯一键';
 COMMENT ON COLUMN service.vector.title IS '矢量服务名称';
 COMMENT ON COLUMN service.vector.geometry_category IS '几何类型';
 COMMENT ON COLUMN service.vector.geometry_field IS '几何字段名称';

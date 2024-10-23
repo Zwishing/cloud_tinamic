@@ -4,9 +4,10 @@ namespace py map.processor
 include "base.thrift"
 
 struct VectorThumbnailRequest{
-    1:string file_path,
-    2:i32 width,
-    3:i32 height,
+    1:string cloud_optimized_path,
+    2:string cloud_optimized_bucket_name,
+    3:i32 width,
+    4:i32 height,
 }
 
 struct VectorThumbnailRespose {

@@ -3,9 +3,8 @@ def is_url(path):
     return path.startswith(("http://", "https://"))
 
 
-def preprocess_path(path):
-    """处理输入路径，根据需要添加前缀"""
-    if is_url(path):
-        prefix = "/vsizip//vsicurl/" if path.endswith(".zip") else "/vsicurl/"
-        return f"{prefix}{path}"
-    return path
+def preprocess_s3path(bucket: str, path: str) -> str:
+    """处理输入路径，根据需要添加前缀
+    "s3://cloud-optimized-source/vector/116329e3-b8df-49eb-826a-75272f49c4cd.parquet"
+    """
+    return f"s3://{bucket}{path}"

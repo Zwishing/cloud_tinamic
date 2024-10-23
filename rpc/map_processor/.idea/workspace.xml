@@ -4,7 +4,50 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ef2e104a-51ec-4048-ae7f-d5a25e11f957" name="Changes" comment="" />
+    <list default="true" id="ef2e104a-51ec-4048-ae7f-d5a25e11f957" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../geo/city2.parquet" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/biz/handler/client.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/biz/handler/client.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/biz/handler/collection.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/biz/handler/collection.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/biz/model/collection.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/biz/model/collection.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/biz/router/source.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/biz/router/source.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../idl/collection.thrift" beforeDir="false" afterPath="$PROJECT_DIR$/../../idl/collection.thrift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../idl/geo.thrift" beforeDir="false" afterPath="$PROJECT_DIR$/../../idl/geo.thrift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../idl/processor.thrift" beforeDir="false" afterPath="$PROJECT_DIR$/../../idl/processor.thrift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../idl/source.thrift" beforeDir="false" afterPath="$PROJECT_DIR$/../../idl/source.thrift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/data/source/k-source.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/data/source/k-source.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/data/source/source.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/data/source/source.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/data/source/sourceservice/client.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/data/source/sourceservice/client.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/data/source/sourceservice/sourceservice.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/data/source/sourceservice/sourceservice.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/data/storage/geo.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/data/storage/geo.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/data/storage/k-geo.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/data/storage/k-geo.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/data/storage/storeservice/client.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/data/storage/storeservice/client.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/data/storage/storeservice/storeservice.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/data/storage/storeservice/storeservice.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/map/processor/k-processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/map/processor/k-processor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/map/processor/processor.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/map/processor/processor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/service/collection/collection.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/service/collection/collection.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/service/collection/k-collection.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/service/collection/k-collection.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/service/collection/servicecollection/client.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/service/collection/servicecollection/client.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../kitex_gen/service/collection/servicecollection/servicecollection.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../kitex_gen/service/collection/servicecollection/servicecollection.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/const.go" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/const.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../geo/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../geo/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../geo/src/handler.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/handler.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../geo/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../geo/src/service.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/service.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../geo/src/util.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../geo/src/util.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gen-py/map/processor/ttypes.py" beforeDir="false" afterPath="$PROJECT_DIR$/gen-py/map/processor/ttypes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/test_thumbnail.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/test_thumbnail.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/util.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../service_collection/handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/../service_collection/handler.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../service_collection/model/collections.sql" beforeDir="false" afterPath="$PROJECT_DIR$/../service_collection/model/collections.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../service_collection/model/hook.go" beforeDir="false" afterPath="$PROJECT_DIR$/../service_collection/model/hook.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../service_collection/model/service.go" beforeDir="false" afterPath="$PROJECT_DIR$/../service_collection/model/service.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../service_collection/repo/collection.go" beforeDir="false" afterPath="$PROJECT_DIR$/../service_collection/repo/collection.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../source/handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/../source/handler.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../source/repo/cloud_optimized_source.go" beforeDir="false" afterPath="$PROJECT_DIR$/../source/repo/cloud_optimized_source.go" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -61,7 +104,7 @@
       <recent name="$PROJECT_DIR$/gen" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.Python tests for test_thumbnail.TestVectorThumbnail.test_thumbnail">
+  <component name="RunManager" selected="Python.server">
     <configuration name="server" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="map_processor" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -196,7 +239,8 @@
       <workItem from="1729056135345" duration="283000" />
       <workItem from="1729167621798" duration="1858000" />
       <workItem from="1729178675391" duration="449000" />
-      <workItem from="1729252198934" duration="5157000" />
+      <workItem from="1729252198934" duration="5757000" />
+      <workItem from="1729403451104" duration="4778000" />
     </task>
     <servers />
   </component>
@@ -208,7 +252,7 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/map_processor$.coverage" NAME=" Coverage Results" MODIFIED="1729261575480" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/server" />
-    <SUITE FILE_PATH="coverage/map_processor$server.coverage" NAME="server Coverage Results" MODIFIED="1729178679951" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/map_processor$server.coverage" NAME="server Coverage Results" MODIFIED="1729411107829" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/map_processor$thumbnail.coverage" NAME="thumbnail Coverage Results" MODIFIED="1728742595153" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/server" />
   </component>
 </project>

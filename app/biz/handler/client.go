@@ -24,7 +24,7 @@ func init() {
 		client interface{}
 	}{
 		{"base.user.userservice", "0.0.0.0:8810", &userClient},
-		{"collectionservice", "0.0.0.0:8089", &collectionClient},
+		{"collectionservice", "0.0.0.0:8888", &collectionClient},
 		{"data.source.sourceservice", "0.0.0.0:8813", &sourceClient},
 	}
 

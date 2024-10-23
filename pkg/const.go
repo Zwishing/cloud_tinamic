@@ -21,3 +21,7 @@ const (
 	ServiceInfoTable       = "service.info"
 	ServiceVectorTable     = "service.vector"
 )
+
+const (
+	GeometryFieldName = "geom"
+)

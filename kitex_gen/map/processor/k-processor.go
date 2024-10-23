@@ -57,7 +57,7 @@ func (p *VectorThumbnailRequest) FastRead(buf []byte) (int, error) {
 				}
 			}
 		case 2:
-			if fieldTypeId == thrift.I32 {
+			if fieldTypeId == thrift.STRING {
 				l, err = p.FastReadField2(buf[offset:])
 				offset += l
 				if err != nil {
@@ -73,6 +73,20 @@ func (p *VectorThumbnailRequest) FastRead(buf []byte) (int, error) {
 		case 3:
 			if fieldTypeId == thrift.I32 {
 				l, err = p.FastReadField3(buf[offset:])
+				offset += l
+				if err != nil {
+					goto ReadFieldError
+				}
+			} else {
+				l, err = thrift.Binary.Skip(buf[offset:], fieldTypeId)
+				offset += l
+				if err != nil {
+					goto SkipFieldError
+				}
+			}
+		case 4:
+			if fieldTypeId == thrift.I32 {
+				l, err = p.FastReadField4(buf[offset:])
 				offset += l
 				if err != nil {
 					goto ReadFieldError
@@ -112,11 +126,25 @@ func (p *VectorThumbnailRequest) FastReadField1(buf []byte) (int, error) {
 		offset += l
 		_field = v
 	}
-	p.FilePath = _field
+	p.CloudOptimizedPath = _field
 	return offset, nil
 }
 
 func (p *VectorThumbnailRequest) FastReadField2(buf []byte) (int, error) {
+	offset := 0
+
+	var _field string
+	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+		return offset, err
+	} else {
+		offset += l
+		_field = v
+	}
+	p.CloudOptimizedBucketName = _field
+	return offset, nil
+}
+
+func (p *VectorThumbnailRequest) FastReadField3(buf []byte) (int, error) {
 	offset := 0
 
 	var _field int32
@@ -130,7 +158,7 @@ func (p *VectorThumbnailRequest) FastReadField2(buf []byte) (int, error) {
 	return offset, nil
 }
 
-func (p *VectorThumbnailRequest) FastReadField3(buf []byte) (int, error) {
+func (p *VectorThumbnailRequest) FastReadField4(buf []byte) (int, error) {
 	offset := 0
 
 	var _field int32
@@ -152,9 +180,10 @@ func (p *VectorThumbnailRequest) FastWrite(buf []byte) int {
 func (p *VectorThumbnailRequest) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
-		offset += p.fastWriteField2(buf[offset:], w)
 		offset += p.fastWriteField3(buf[offset:], w)
+		offset += p.fastWriteField4(buf[offset:], w)
 		offset += p.fastWriteField1(buf[offset:], w)
+		offset += p.fastWriteField2(buf[offset:], w)
 	}
 	offset += thrift.Binary.WriteFieldStop(buf[offset:])
 	return offset
@@ -166,6 +195,7 @@ func (p *VectorThumbnailRequest) BLength() int {
 		l += p.field1Length()
 		l += p.field2Length()
 		l += p.field3Length()
+		l += p.field4Length()
 	}
 	l += thrift.Binary.FieldStopLength()
 	return l
@@ -174,20 +204,27 @@ func (p *VectorThumbnailRequest) BLength() int {
 func (p *VectorThumbnailRequest) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 1)
-	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.FilePath)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.CloudOptimizedPath)
 	return offset
 }
 
 func (p *VectorThumbnailRequest) fastWriteField2(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 2)
-	offset += thrift.Binary.WriteI32(buf[offset:], p.Width)
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 2)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.CloudOptimizedBucketName)
 	return offset
 }
 
 func (p *VectorThumbnailRequest) fastWriteField3(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 3)
+	offset += thrift.Binary.WriteI32(buf[offset:], p.Width)
+	return offset
+}
+
+func (p *VectorThumbnailRequest) fastWriteField4(buf []byte, w thrift.NocopyWriter) int {
+	offset := 0
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.I32, 4)
 	offset += thrift.Binary.WriteI32(buf[offset:], p.Height)
 	return offset
 }
@@ -195,18 +232,25 @@ func (p *VectorThumbnailRequest) fastWriteField3(buf []byte, w thrift.NocopyWrit
 func (p *VectorThumbnailRequest) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.StringLengthNocopy(p.FilePath)
+	l += thrift.Binary.StringLengthNocopy(p.CloudOptimizedPath)
 	return l
 }
 
 func (p *VectorThumbnailRequest) field2Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.I32Length()
+	l += thrift.Binary.StringLengthNocopy(p.CloudOptimizedBucketName)
 	return l
 }
 
 func (p *VectorThumbnailRequest) field3Length() int {
+	l := 0
+	l += thrift.Binary.FieldBeginLength()
+	l += thrift.Binary.I32Length()
+	return l
+}
+
+func (p *VectorThumbnailRequest) field4Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += thrift.Binary.I32Length()

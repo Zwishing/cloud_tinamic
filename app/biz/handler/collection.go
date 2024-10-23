@@ -34,7 +34,8 @@ func Publish(ctx *fiber.Ctx) error {
 		return response.FailWithBadRequest(ctx, "Invalid service category")
 	}
 
-	err = collectionClient.Publish(ctx.Context(), &collection.PublishRequest{
+	resp, err := collectionClient.Publish(ctx.Context(), &collection.PublishRequest{
+		ServiceName:     publishRequest.ServiceName,
 		SourceCategory:  sourceCategory,
 		SourceKey:       publishRequest.SourceKey,
 		ServiceCategory: serviceCategory,
@@ -43,5 +44,5 @@ func Publish(ctx *fiber.Ctx) error {
 	if err != nil {
 		return response.FailWithInternalServerError(ctx, "Failed to publish: "+err.Error())
 	}
-	return response.SuccessWithOK(ctx, "Publication successful")
+	return response.SuccessWithOK(ctx, resp.ServiceKeys)
 }

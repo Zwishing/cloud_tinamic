@@ -13,10 +13,10 @@ import (
 var errInvalidMessageType = errors.New("invalid message type for service method handler")
 
 var serviceMethods = map[string]kitex.MethodInfo{
-	"VectorStorage": kitex.NewMethodInfo(
-		vectorStorageHandler,
-		newStoreServiceVectorStorageArgs,
-		newStoreServiceVectorStorageResult,
+	"VectorToPGStorage": kitex.NewMethodInfo(
+		vectorToPGStorageHandler,
+		newStoreServiceVectorToPGStorageArgs,
+		newStoreServiceVectorToPGStorageResult,
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
@@ -93,22 +93,22 @@ func newServiceInfo(hasStreaming bool, keepStreamingMethods bool, keepNonStreami
 	return svcInfo
 }
 
-func vectorStorageHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
-	realArg := arg.(*storage.StoreServiceVectorStorageArgs)
-	realResult := result.(*storage.StoreServiceVectorStorageResult)
-	success, err := handler.(storage.StoreService).VectorStorage(ctx, realArg.Req)
+func vectorToPGStorageHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*storage.StoreServiceVectorToPGStorageArgs)
+	realResult := result.(*storage.StoreServiceVectorToPGStorageResult)
+	success, err := handler.(storage.StoreService).VectorToPGStorage(ctx, realArg.Req)
 	if err != nil {
 		return err
 	}
 	realResult.Success = success
 	return nil
 }
-func newStoreServiceVectorStorageArgs() interface{} {
-	return storage.NewStoreServiceVectorStorageArgs()
+func newStoreServiceVectorToPGStorageArgs() interface{} {
+	return storage.NewStoreServiceVectorToPGStorageArgs()
 }
 
-func newStoreServiceVectorStorageResult() interface{} {
-	return storage.NewStoreServiceVectorStorageResult()
+func newStoreServiceVectorToPGStorageResult() interface{} {
+	return storage.NewStoreServiceVectorToPGStorageResult()
 }
 
 func toGeoParquetStorageHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
@@ -139,11 +139,11 @@ func newServiceClient(c client.Client) *kClient {
 	}
 }
 
-func (p *kClient) VectorStorage(ctx context.Context, req *storage.StoreRequest) (r *storage.StoreResponse, err error) {
-	var _args storage.StoreServiceVectorStorageArgs
+func (p *kClient) VectorToPGStorage(ctx context.Context, req *storage.VectorToPGStorageRequest) (r *storage.VectorToPGStorageResponse, err error) {
+	var _args storage.StoreServiceVectorToPGStorageArgs
 	_args.Req = req
-	var _result storage.StoreServiceVectorStorageResult
-	if err = p.c.Call(ctx, "VectorStorage", &_args, &_result); err != nil {
+	var _result storage.StoreServiceVectorToPGStorageResult
+	if err = p.c.Call(ctx, "VectorToPGStorage", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

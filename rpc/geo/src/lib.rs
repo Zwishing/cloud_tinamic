@@ -6,22 +6,31 @@ mod config;
 mod minio;
 pub mod gdal_config;
 
+use std::future::Future;
 use volo_thrift::ServerError;
-use volo_gen::data::storage::{StoreService, StoreRequest, StoreResponse, ToGeoParquetStorageRequest, ToGeoParquetStorageResponse};
+use volo_gen::data::storage::{StoreService, ToGeoParquetStorageRequest, ToGeoParquetStorageResponse, VectorToPgStorageRequest, VectorToPgStorageResponse};
 use volo_gen::base::{BaseResp,Code};
-use crate::handler::{store_vector,unified_vector};
+use crate::handler::{store_large_vector, store_vector, unified_vector};
 pub struct S;
 
 impl StoreService for S {
-    async fn vector_storage(
-        &self,
-        req: StoreRequest,
-    ) -> Result<
-        StoreResponse,
+    async fn vector_to_pg_storage(&self, req: VectorToPgStorageRequest) -> Result<
+        VectorToPgStorageResponse,
         ServerError,
     > {
-        let url = util::add_prefix_from_ext(&req.url, "", Some(&req.ext));
-        let base = match store_vector(&url, &req.schema, &req.table).await {
+        let s3path = util::add_prefix_from_ext(&req.cloud_optimized_path, &req.cloud_optimized_bucket_name, None);
+        // let base = match store_vector(&s3path, &req.schema, &req.table).await {
+        //     Ok(_) => BaseResp {
+        //         code: Code::SUCCESS,
+        //         msg: format!("success to store vector to postgis in {}.{}", req.schema, req.table).into(),
+        //     },
+        //     Err(e) => BaseResp {
+        //         code: Code::FAIL,
+        //         msg: e.to_string().into(),
+        //     },
+        // };
+
+        let base = match store_large_vector(&s3path, &req.schema, &req.table).await {
             Ok(_) => BaseResp {
                 code: Code::SUCCESS,
                 msg: format!("success to store vector to postgis in {}.{}", req.schema, req.table).into(),
@@ -32,7 +41,7 @@ impl StoreService for S {
             },
         };
 
-        Ok(StoreResponse { base })
+        Ok(VectorToPgStorageResponse { base })
     }
 
     async fn to_geo_parquet_storage(&self, req: ToGeoParquetStorageRequest) -> Result<ToGeoParquetStorageResponse, ServerError> {

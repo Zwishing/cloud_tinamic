@@ -4236,7 +4236,7 @@ func (p *SourceServiceGetSourcePathResult) field0Length() int {
 	return l
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) FastRead(buf []byte) (int, error) {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) FastRead(buf []byte) (int, error) {
 	var err error
 	var offset int
 	var l int
@@ -4279,12 +4279,12 @@ func (p *SourceServiceGetUnifiedSourcePathArgs) FastRead(buf []byte) (int, error
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceGetUnifiedSourcePathArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceGetCloudOptimizedSourcePathArgs[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) FastReadField1(buf []byte) (int, error) {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) FastReadField1(buf []byte) (int, error) {
 	offset := 0
 
 	var _field string
@@ -4299,11 +4299,11 @@ func (p *SourceServiceGetUnifiedSourcePathArgs) FastReadField1(buf []byte) (int,
 }
 
 // for compatibility
-func (p *SourceServiceGetUnifiedSourcePathArgs) FastWrite(buf []byte) int {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) FastWrite(buf []byte) int {
 	return 0
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField1(buf[offset:], w)
@@ -4312,7 +4312,7 @@ func (p *SourceServiceGetUnifiedSourcePathArgs) FastWriteNocopy(buf []byte, w th
 	return offset
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) BLength() int {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field1Length()
@@ -4321,21 +4321,21 @@ func (p *SourceServiceGetUnifiedSourcePathArgs) BLength() int {
 	return l
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 1)
 	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.SourceKey)
 	return offset
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) field1Length() int {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
 	l += thrift.Binary.StringLengthNocopy(p.SourceKey)
 	return l
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) FastRead(buf []byte) (int, error) {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) FastRead(buf []byte) (int, error) {
 	var err error
 	var offset int
 	var l int
@@ -4352,7 +4352,7 @@ func (p *SourceServiceGetUnifiedSourcePathResult) FastRead(buf []byte) (int, err
 		}
 		switch fieldId {
 		case 0:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.LIST {
 				l, err = p.FastReadField0(buf[offset:])
 				offset += l
 				if err != nil {
@@ -4378,31 +4378,59 @@ func (p *SourceServiceGetUnifiedSourcePathResult) FastRead(buf []byte) (int, err
 ReadFieldBeginError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceGetUnifiedSourcePathResult[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceGetCloudOptimizedSourcePathResult[fieldId]), err)
 SkipFieldError:
 	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) FastReadField0(buf []byte) (int, error) {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) FastReadField0(buf []byte) (int, error) {
 	offset := 0
 
-	var _field *string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+	_, size, l, err := thrift.Binary.ReadListBegin(buf[offset:])
+	offset += l
+	if err != nil {
 		return offset, err
-	} else {
+	}
+	_field := make([]map[string]string, 0, size)
+	for i := 0; i < size; i++ {
+		_, _, size, l, err := thrift.Binary.ReadMapBegin(buf[offset:])
 		offset += l
-		_field = &v
+		if err != nil {
+			return offset, err
+		}
+		_elem := make(map[string]string, size)
+		for i := 0; i < size; i++ {
+			var _key string
+			if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+				return offset, err
+			} else {
+				offset += l
+				_key = v
+			}
+
+			var _val string
+			if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+				return offset, err
+			} else {
+				offset += l
+				_val = v
+			}
+
+			_elem[_key] = _val
+		}
+
+		_field = append(_field, _elem)
 	}
 	p.Success = _field
 	return offset, nil
 }
 
 // for compatibility
-func (p *SourceServiceGetUnifiedSourcePathResult) FastWrite(buf []byte) int {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) FastWrite(buf []byte) int {
 	return 0
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) FastWriteNocopy(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p != nil {
 		offset += p.fastWriteField0(buf[offset:], w)
@@ -4411,7 +4439,7 @@ func (p *SourceServiceGetUnifiedSourcePathResult) FastWriteNocopy(buf []byte, w 
 	return offset
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) BLength() int {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) BLength() int {
 	l := 0
 	if p != nil {
 		l += p.field0Length()
@@ -4420,20 +4448,45 @@ func (p *SourceServiceGetUnifiedSourcePathResult) BLength() int {
 	return l
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) fastWriteField0(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	if p.IsSetSuccess() {
-		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 0)
-		offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, *p.Success)
+		offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.LIST, 0)
+		listBeginOffset := offset
+		offset += thrift.Binary.ListBeginLength()
+		var length int
+		for _, v := range p.Success {
+			length++
+			mapBeginOffset := offset
+			offset += thrift.Binary.MapBeginLength()
+			var length int
+			for k, v := range v {
+				length++
+				offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, k)
+				offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, v)
+			}
+			thrift.Binary.WriteMapBegin(buf[mapBeginOffset:], thrift.STRING, thrift.STRING, length)
+		}
+		thrift.Binary.WriteListBegin(buf[listBeginOffset:], thrift.MAP, length)
 	}
 	return offset
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) field0Length() int {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) field0Length() int {
 	l := 0
 	if p.IsSetSuccess() {
 		l += thrift.Binary.FieldBeginLength()
-		l += thrift.Binary.StringLengthNocopy(*p.Success)
+		l += thrift.Binary.ListBeginLength()
+		for _, v := range p.Success {
+			_ = v
+			l += thrift.Binary.MapBeginLength()
+			for k, v := range v {
+				_, _ = k, v
+
+				l += thrift.Binary.StringLengthNocopy(k)
+				l += thrift.Binary.StringLengthNocopy(v)
+			}
+		}
 	}
 	return l
 }
@@ -4510,10 +4563,10 @@ func (p *SourceServiceGetSourcePathResult) GetResult() interface{} {
 	return p.Success
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) GetFirstArgument() interface{} {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) GetFirstArgument() interface{} {
 	return p.SourceKey
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) GetResult() interface{} {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) GetResult() interface{} {
 	return p.Success
 }

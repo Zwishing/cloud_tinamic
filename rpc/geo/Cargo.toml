@@ -35,6 +35,8 @@ image="0.25.1"
 #minio="0.1.0"
 chrono="0.4.38"
 minio = {git = "https://gitee.com/zhangwishing/minio-rs.git",branch = "master"}
+#geoarrow = { version = "0.3.0", features = ["gdal", "parquet","parquet_async"] }
+geoarrow = { git = "https://gitee.com/zhangwishing/geoarrow-rs.git",branch = "main", features = ["gdal", "parquet","parquet_async"] }
 
 [profile.release]
 opt-level = 3

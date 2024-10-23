@@ -23,8 +23,12 @@ pub async fn store_vector(url: &str, schema: &str, table: &str) -> Result<()> {
     Ok(())
 }
 
+pub async fn store_large_vector(url: &str, schema: &str, table: &str)->Result<()>{
+    util::vector_to_pg(url,schema,table).await
+}
 
 
-pub async fn unified_vector<P: AsRef<Path>>(url: P, bucket_name:&str, name:&str) -> Result<u64,anyhow::Error>{
+
+pub async fn unified_vector<P: AsRef<Path>>(url: P, bucket_name:&str, name:&str) -> Result<u64>{
     service::to_geoparquet_and_upload(url, bucket_name, name).await
 }

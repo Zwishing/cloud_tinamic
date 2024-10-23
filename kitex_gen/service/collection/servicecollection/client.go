@@ -13,7 +13,7 @@ import (
 type Client interface {
 	GetCollections(ctx context.Context, pageSize int64, page int64, callOptions ...callopt.Option) (r *collection.GetCollectionsResponse, err error)
 	AddCollection(ctx context.Context, sourceKey string, title string, callOptions ...callopt.Option) (r *collection.AddCollectionResponse, err error)
-	Publish(ctx context.Context, req *collection.PublishRequest, callOptions ...callopt.Option) (err error)
+	Publish(ctx context.Context, req *collection.PublishRequest, callOptions ...callopt.Option) (r *collection.PublishResponse, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -55,7 +55,7 @@ func (p *kServiceCollectionClient) AddCollection(ctx context.Context, sourceKey 
 	return p.kClient.AddCollection(ctx, sourceKey, title)
 }
 
-func (p *kServiceCollectionClient) Publish(ctx context.Context, req *collection.PublishRequest, callOptions ...callopt.Option) (err error) {
+func (p *kServiceCollectionClient) Publish(ctx context.Context, req *collection.PublishRequest, callOptions ...callopt.Option) (r *collection.PublishResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.Publish(ctx, req)
 }

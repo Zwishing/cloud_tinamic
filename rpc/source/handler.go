@@ -65,17 +65,16 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 			errChan <- err
 			return
 		}
-
 		go func() {
 			// 将矢量数据规范统一化存储 矢量数据为：geo parquet格式
-			unifiedKey := util.UuidV4() //归一化后数据存储的唯一key
+			cloudOptimizedKey := util.UuidV4() //归一化后数据存储的唯一key
 
 			ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
 			defer cancel()
 
 			// 返回存储的路径，这里生成时间文件夹存储
 			//now := time.Now()
-			parquetPath := fmt.Sprintf("%s/%s.parquet", path, unifiedKey)
+			parquetPath := fmt.Sprintf("%s/%s.parquet", path, cloudOptimizedKey)
 			resp, err := s.geoClient.ToGeoParquetStorage(ctx, &storage.ToGeoParquetStorageRequest{
 				SourceBucket: pkg.OriginalSourceBucketName,
 				SourcePath:   storePath,
@@ -88,7 +87,7 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 				return
 			}
 			if resp.Base.Code == base.Code_SUCCESS {
-				s.SourceRepo.AddCloudOptimizedItem(req.SourceCategory, sourceKey, unifiedKey, resp.DestPath, resp.Size)
+				s.SourceRepo.AddCloudOptimizedItem(req.SourceCategory, sourceKey, cloudOptimizedKey, parquetPath, resp.Size)
 			}
 		}()
 	}()
@@ -310,13 +309,13 @@ func (s *SourceServiceImpl) AddItem(ctx context.Context, req *source.AddItemRequ
 	return resp, nil
 }
 
-func (s *SourceServiceImpl) GetUnifiedSourcePath(ctx context.Context, sourceKey string) (string, error) {
+func (s *SourceServiceImpl) GetCloudOptimizedSourcePath(ctx context.Context, sourceKey string) ([]map[string]string, error) {
 	// 一个源数据中支持多个数据，例如zip中多个shp，gdb中多个shp，暂时只支持一个
-	path, err := s.SourceRepo.GetCloudOptimizedSourcePathByKey(sourceKey)
+	cloudOptimizedKeyPath, err := s.SourceRepo.GetCloudOptimizedSourcePathByKey(sourceKey)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return path[0], nil
+	return cloudOptimizedKeyPath, nil
 }
 
 func (s *SourceServiceImpl) GetSourcePath(ctx context.Context, key string) (string, error) {

@@ -10,7 +10,7 @@ import (
 )
 
 type ServiceCollectionRepo interface {
-	AddCollection(sourceKey string, serviceKey string, title string) ([]string, error)
+	AddCollection(cloudOptimizedKey string, serviceKey string, title string) (string, error)
 	UpdateThumbnail(serviceKey string, thumbnail []byte) (bool, error)
 }
 type ServiceCollectionRepoImpl struct {
@@ -26,7 +26,7 @@ func NewServiceCollectionRepoImpl(db *gorm.DB) ServiceCollectionRepo {
 func (s *ServiceCollectionRepoImpl) GetCollections(page, pageSize int) {
 }
 
-func (s *ServiceCollectionRepoImpl) AddCollection(sourceKey string, serviceKey string, title string) ([]string, error) {
+func (s *ServiceCollectionRepoImpl) AddCollection(cloudOptimizedKey string, serviceKey string, title string) (string, error) {
 	// 开始事务
 	tx := s.DB.Begin()
 	defer func() {
@@ -44,28 +44,44 @@ func (s *ServiceCollectionRepoImpl) AddCollection(sourceKey string, serviceKey s
 
 	// 查询矢量信息
 	var vectorInfo VectorInfo
-	if err := s.DB.Table(fmt.Sprintf("%s.%s", "vector", sourceKey)).
-		Select(`COUNT(*) AS record_count, GeometryType(geom) AS geometry_type, ST_SRID(geom) AS srid`).
-		Scan(&vectorInfo).Error; err != nil {
-		klog.Errorf("查询向量信息时出错: %v", err)
-		return nil, tx.Rollback().Error
+	query := fmt.Sprintf(`
+		SELECT 
+			COUNT(*) AS record_count
+		FROM %s."%s"`, pkg.VectorSchema, cloudOptimizedKey)
+
+	row := s.DB.Raw(query).Row()
+	if err := row.Scan(&vectorInfo.RecordCount); err != nil {
+		klog.Errorf("查询矢量数据时出错: %v", err)
+		return "", tx.Rollback().Error
+	}
+
+	query = fmt.Sprintf(`
+		SELECT  
+			GeometryType(geom) AS geometry_type, 
+			ST_SRID(geom) AS srid 
+		FROM %s."%s"`, pkg.VectorSchema, cloudOptimizedKey)
+
+	row = s.DB.Raw(query).Row()
+	if err := row.Scan(&vectorInfo.GeometryType, &vectorInfo.SRID); err != nil {
+		klog.Errorf("查询矢量数据时出错: %v", err)
+		return "", tx.Rollback().Error
 	}
 
 	// 获取字段信息
-	fieldCount, properties, err := s.GetFieldInfo(sourceKey)
+	fieldCount, properties, err := s.GetFieldInfo(cloudOptimizedKey)
 	if err != nil {
 		klog.Errorf("查询字段信息时出错: %v", err)
-		return nil, tx.Rollback().Error
+		return "", tx.Rollback().Error
 	}
 
 	// 构造信息模型
-	info := model.Info{
-		ServiceKey:     serviceKey,
-		Title:          title,
-		SourceKey:      sourceKey,
-		SourceSchema:   pkg.VectorSchema,
-		SourceCategory: 1,
-		Srid:           vectorInfo.SRID,
+	infos := model.Info{
+		ServiceKey:        serviceKey,
+		Title:             title,
+		CloudOptimizedKey: cloudOptimizedKey,
+		SourceSchema:      pkg.VectorSchema,
+		SourceCategory:    1,
+		Srid:              vectorInfo.SRID,
 	}
 
 	// 构造集合模型
@@ -76,41 +92,41 @@ func (s *ServiceCollectionRepoImpl) AddCollection(sourceKey string, serviceKey s
 		Srid:            vectorInfo.SRID,
 	}
 
-	// 构造向量模型
+	// 构造矢量数据模型
 	vector := model.Vector{
-		SourceKey:        sourceKey,
-		Title:            title,
-		GeometryField:    "geom",
-		GeometryCategory: vectorInfo.GeometryType,
-		RecordCount:      vectorInfo.RecordCount,
-		FieldCount:       fieldCount,
-		Properties:       properties,
+		CloudOptimizedKey: cloudOptimizedKey,
+		Title:             title,
+		GeometryField:     pkg.GeometryFieldName,
+		GeometryCategory:  vectorInfo.GeometryType,
+		RecordCount:       vectorInfo.RecordCount,
+		FieldCount:        fieldCount,
+		Properties:        properties,
 	}
 
 	// 插入信息记录
-	if err := tx.Create(&info).Error; err != nil {
+	if err := tx.Table(pkg.ServiceInfoTable).Create(&infos).Error; err != nil {
 		klog.Errorf("插入信息记录时出错: %v", err)
-		return nil, tx.Rollback().Error
+		return "", tx.Rollback().Error
 	}
 	// 插入集合记录
-	if err := tx.Create(&collection).Error; err != nil {
+	if err := tx.Table(pkg.ServiceCollectionTable).Create(&collection).Error; err != nil {
 		klog.Errorf("插入集合记录时出错: %v", err)
-		return nil, tx.Rollback().Error
+		return "", tx.Rollback().Error
 	}
 	// 插入向量记录
-	if err := tx.Create(&vector).Error; err != nil {
+	if err := tx.Table(pkg.ServiceVectorTable).Create(&vector).Error; err != nil {
 		klog.Errorf("插入向量记录时出错: %v", err)
-		return nil, tx.Rollback().Error
+		return "", tx.Rollback().Error
 	}
 
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		klog.Errorf("提交事务时出错: %v", err)
-		return nil, tx.Rollback().Error
+		return "", tx.Rollback().Error
 	}
 
 	klog.Infof("成功添加集合，服务键为: %s", serviceKey)
-	return []string{serviceKey}, nil
+	return serviceKey, nil
 }
 
 func (s *ServiceCollectionRepoImpl) GetCollectionByServiceKey(serviceKey string) repo.Layer {
@@ -128,7 +144,7 @@ func (s *ServiceCollectionRepoImpl) GetCollectionByServiceKey(serviceKey string)
 	}
 }
 
-func (s *ServiceCollectionRepoImpl) GetFieldInfo(sourceKey string) (int64, map[string]string, error) {
+func (s *ServiceCollectionRepoImpl) GetFieldInfo(cloudOptimizedKey string) (int64, map[string]string, error) {
 	var fieldCount int64
 	// 定义一个 processor.thrift 来存储字段名称和类型
 	fieldInfo := make(map[string]string)
@@ -136,7 +152,7 @@ func (s *ServiceCollectionRepoImpl) GetFieldInfo(sourceKey string) (int64, map[s
 	// 查询字段名称和类型
 	rows, err := s.DB.Table("information_schema.columns").
 		Select("column_name, data_type").
-		Where("table_name = ? AND table_schema = 'vector'", sourceKey).
+		Where("table_name = ? AND table_schema = ?", cloudOptimizedKey, pkg.VectorSchema).
 		Rows()
 	if err != nil {
 		klog.Errorf("查询字段信息时出错: %v", err) // 使用 klog 记录错误
@@ -166,7 +182,7 @@ func (s *ServiceCollectionRepoImpl) GetFieldInfo(sourceKey string) (int64, map[s
 }
 
 func (s *ServiceCollectionRepoImpl) UpdateThumbnail(serviceKey string, thumbnail []byte) (bool, error) {
-	result := s.DB.Model(&model.Collection{}).
+	result := s.DB.Table(pkg.ServiceCollectionTable).
 		Where("service_key = ?", serviceKey).
 		Update("thumbnail", thumbnail)
 

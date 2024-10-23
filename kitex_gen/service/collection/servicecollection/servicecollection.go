@@ -138,12 +138,12 @@ func newServiceCollectionAddCollectionResult() interface{} {
 
 func publishHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*collection.ServiceCollectionPublishArgs)
-
-	err := handler.(collection.ServiceCollection).Publish(ctx, realArg.Req)
+	realResult := result.(*collection.ServiceCollectionPublishResult)
+	success, err := handler.(collection.ServiceCollection).Publish(ctx, realArg.Req)
 	if err != nil {
 		return err
 	}
-
+	realResult.Success = success
 	return nil
 }
 func newServiceCollectionPublishArgs() interface{} {
@@ -186,12 +186,12 @@ func (p *kClient) AddCollection(ctx context.Context, sourceKey string, title str
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) Publish(ctx context.Context, req *collection.PublishRequest) (err error) {
+func (p *kClient) Publish(ctx context.Context, req *collection.PublishRequest) (r *collection.PublishResponse, err error) {
 	var _args collection.ServiceCollectionPublishArgs
 	_args.Req = req
 	var _result collection.ServiceCollectionPublishResult
 	if err = p.c.Call(ctx, "Publish", &_args, &_result); err != nil {
 		return
 	}
-	return nil
+	return _result.GetSuccess(), nil
 }

@@ -3814,7 +3814,7 @@ type SourceService interface {
 
 	GetSourcePath(ctx context.Context, key string) (r string, err error)
 
-	GetUnifiedSourcePath(ctx context.Context, sourceKey string) (r string, err error)
+	GetCloudOptimizedSourcePath(ctx context.Context, sourceKey string) (r []map[string]string, err error)
 }
 
 type SourceServiceGetNextItemsArgs struct {
@@ -6879,29 +6879,29 @@ func (p *SourceServiceGetSourcePathResult) Field0DeepEqual(src *string) bool {
 	return true
 }
 
-type SourceServiceGetUnifiedSourcePathArgs struct {
+type SourceServiceGetCloudOptimizedSourcePathArgs struct {
 	SourceKey string `thrift:"source_key,1" frugal:"1,default,string" json:"source_key"`
 }
 
-func NewSourceServiceGetUnifiedSourcePathArgs() *SourceServiceGetUnifiedSourcePathArgs {
-	return &SourceServiceGetUnifiedSourcePathArgs{}
+func NewSourceServiceGetCloudOptimizedSourcePathArgs() *SourceServiceGetCloudOptimizedSourcePathArgs {
+	return &SourceServiceGetCloudOptimizedSourcePathArgs{}
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) InitDefault() {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) InitDefault() {
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) GetSourceKey() (v string) {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) GetSourceKey() (v string) {
 	return p.SourceKey
 }
-func (p *SourceServiceGetUnifiedSourcePathArgs) SetSourceKey(val string) {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) SetSourceKey(val string) {
 	p.SourceKey = val
 }
 
-var fieldIDToName_SourceServiceGetUnifiedSourcePathArgs = map[int16]string{
+var fieldIDToName_SourceServiceGetCloudOptimizedSourcePathArgs = map[int16]string{
 	1: "source_key",
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) Read(iprot thrift.TProtocol) (err error) {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
@@ -6947,7 +6947,7 @@ ReadStructBeginError:
 ReadFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceGetUnifiedSourcePathArgs[fieldId]), err)
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceGetCloudOptimizedSourcePathArgs[fieldId]), err)
 SkipFieldError:
 	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 
@@ -6957,7 +6957,7 @@ ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) ReadField1(iprot thrift.TProtocol) error {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) ReadField1(iprot thrift.TProtocol) error {
 
 	var _field string
 	if v, err := iprot.ReadString(); err != nil {
@@ -6969,9 +6969,9 @@ func (p *SourceServiceGetUnifiedSourcePathArgs) ReadField1(iprot thrift.TProtoco
 	return nil
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) Write(oprot thrift.TProtocol) (err error) {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
-	if err = oprot.WriteStructBegin("GetUnifiedSourcePath_args"); err != nil {
+	if err = oprot.WriteStructBegin("GetCloudOptimizedSourcePath_args"); err != nil {
 		goto WriteStructBeginError
 	}
 	if p != nil {
@@ -6997,7 +6997,7 @@ WriteStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) writeField1(oprot thrift.TProtocol) (err error) {
 	if err = oprot.WriteFieldBegin("source_key", thrift.STRING, 1); err != nil {
 		goto WriteFieldBeginError
 	}
@@ -7014,15 +7014,15 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) String() string {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("SourceServiceGetUnifiedSourcePathArgs(%+v)", *p)
+	return fmt.Sprintf("SourceServiceGetCloudOptimizedSourcePathArgs(%+v)", *p)
 
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) DeepEqual(ano *SourceServiceGetUnifiedSourcePathArgs) bool {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) DeepEqual(ano *SourceServiceGetCloudOptimizedSourcePathArgs) bool {
 	if p == ano {
 		return true
 	} else if p == nil || ano == nil {
@@ -7034,7 +7034,7 @@ func (p *SourceServiceGetUnifiedSourcePathArgs) DeepEqual(ano *SourceServiceGetU
 	return true
 }
 
-func (p *SourceServiceGetUnifiedSourcePathArgs) Field1DeepEqual(src string) bool {
+func (p *SourceServiceGetCloudOptimizedSourcePathArgs) Field1DeepEqual(src string) bool {
 
 	if strings.Compare(p.SourceKey, src) != 0 {
 		return false
@@ -7042,38 +7042,38 @@ func (p *SourceServiceGetUnifiedSourcePathArgs) Field1DeepEqual(src string) bool
 	return true
 }
 
-type SourceServiceGetUnifiedSourcePathResult struct {
-	Success *string `thrift:"success,0,optional" frugal:"0,optional,string" json:"success,omitempty"`
+type SourceServiceGetCloudOptimizedSourcePathResult struct {
+	Success []map[string]string `thrift:"success,0,optional" frugal:"0,optional,list<map<string:string>>" json:"success,omitempty"`
 }
 
-func NewSourceServiceGetUnifiedSourcePathResult() *SourceServiceGetUnifiedSourcePathResult {
-	return &SourceServiceGetUnifiedSourcePathResult{}
+func NewSourceServiceGetCloudOptimizedSourcePathResult() *SourceServiceGetCloudOptimizedSourcePathResult {
+	return &SourceServiceGetCloudOptimizedSourcePathResult{}
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) InitDefault() {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) InitDefault() {
 }
 
-var SourceServiceGetUnifiedSourcePathResult_Success_DEFAULT string
+var SourceServiceGetCloudOptimizedSourcePathResult_Success_DEFAULT []map[string]string
 
-func (p *SourceServiceGetUnifiedSourcePathResult) GetSuccess() (v string) {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) GetSuccess() (v []map[string]string) {
 	if !p.IsSetSuccess() {
-		return SourceServiceGetUnifiedSourcePathResult_Success_DEFAULT
+		return SourceServiceGetCloudOptimizedSourcePathResult_Success_DEFAULT
 	}
-	return *p.Success
+	return p.Success
 }
-func (p *SourceServiceGetUnifiedSourcePathResult) SetSuccess(x interface{}) {
-	p.Success = x.(*string)
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) SetSuccess(x interface{}) {
+	p.Success = x.([]map[string]string)
 }
 
-var fieldIDToName_SourceServiceGetUnifiedSourcePathResult = map[int16]string{
+var fieldIDToName_SourceServiceGetCloudOptimizedSourcePathResult = map[int16]string{
 	0: "success",
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) IsSetSuccess() bool {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) Read(iprot thrift.TProtocol) (err error) {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) Read(iprot thrift.TProtocol) (err error) {
 
 	var fieldTypeId thrift.TType
 	var fieldId int16
@@ -7093,7 +7093,7 @@ func (p *SourceServiceGetUnifiedSourcePathResult) Read(iprot thrift.TProtocol) (
 
 		switch fieldId {
 		case 0:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.LIST {
 				if err = p.ReadField0(iprot); err != nil {
 					goto ReadFieldError
 				}
@@ -7119,7 +7119,7 @@ ReadStructBeginError:
 ReadFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceGetUnifiedSourcePathResult[fieldId]), err)
+	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_SourceServiceGetCloudOptimizedSourcePathResult[fieldId]), err)
 SkipFieldError:
 	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 
@@ -7129,21 +7129,51 @@ ReadStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) ReadField0(iprot thrift.TProtocol) error {
-
-	var _field *string
-	if v, err := iprot.ReadString(); err != nil {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) ReadField0(iprot thrift.TProtocol) error {
+	_, size, err := iprot.ReadListBegin()
+	if err != nil {
 		return err
-	} else {
-		_field = &v
+	}
+	_field := make([]map[string]string, 0, size)
+	for i := 0; i < size; i++ {
+		_, _, size, err := iprot.ReadMapBegin()
+		if err != nil {
+			return err
+		}
+		_elem := make(map[string]string, size)
+		for i := 0; i < size; i++ {
+			var _key string
+			if v, err := iprot.ReadString(); err != nil {
+				return err
+			} else {
+				_key = v
+			}
+
+			var _val string
+			if v, err := iprot.ReadString(); err != nil {
+				return err
+			} else {
+				_val = v
+			}
+
+			_elem[_key] = _val
+		}
+		if err := iprot.ReadMapEnd(); err != nil {
+			return err
+		}
+
+		_field = append(_field, _elem)
+	}
+	if err := iprot.ReadListEnd(); err != nil {
+		return err
 	}
 	p.Success = _field
 	return nil
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) Write(oprot thrift.TProtocol) (err error) {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) Write(oprot thrift.TProtocol) (err error) {
 	var fieldId int16
-	if err = oprot.WriteStructBegin("GetUnifiedSourcePath_result"); err != nil {
+	if err = oprot.WriteStructBegin("GetCloudOptimizedSourcePath_result"); err != nil {
 		goto WriteStructBeginError
 	}
 	if p != nil {
@@ -7169,12 +7199,31 @@ WriteStructEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) writeField0(oprot thrift.TProtocol) (err error) {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) writeField0(oprot thrift.TProtocol) (err error) {
 	if p.IsSetSuccess() {
-		if err = oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
+		if err = oprot.WriteFieldBegin("success", thrift.LIST, 0); err != nil {
 			goto WriteFieldBeginError
 		}
-		if err := oprot.WriteString(*p.Success); err != nil {
+		if err := oprot.WriteListBegin(thrift.MAP, len(p.Success)); err != nil {
+			return err
+		}
+		for _, v := range p.Success {
+			if err := oprot.WriteMapBegin(thrift.STRING, thrift.STRING, len(v)); err != nil {
+				return err
+			}
+			for k, v := range v {
+				if err := oprot.WriteString(k); err != nil {
+					return err
+				}
+				if err := oprot.WriteString(v); err != nil {
+					return err
+				}
+			}
+			if err := oprot.WriteMapEnd(); err != nil {
+				return err
+			}
+		}
+		if err := oprot.WriteListEnd(); err != nil {
 			return err
 		}
 		if err = oprot.WriteFieldEnd(); err != nil {
@@ -7188,15 +7237,15 @@ WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 0 end error: ", p), err)
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) String() string {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) String() string {
 	if p == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("SourceServiceGetUnifiedSourcePathResult(%+v)", *p)
+	return fmt.Sprintf("SourceServiceGetCloudOptimizedSourcePathResult(%+v)", *p)
 
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) DeepEqual(ano *SourceServiceGetUnifiedSourcePathResult) bool {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) DeepEqual(ano *SourceServiceGetCloudOptimizedSourcePathResult) bool {
 	if p == ano {
 		return true
 	} else if p == nil || ano == nil {
@@ -7208,15 +7257,22 @@ func (p *SourceServiceGetUnifiedSourcePathResult) DeepEqual(ano *SourceServiceGe
 	return true
 }
 
-func (p *SourceServiceGetUnifiedSourcePathResult) Field0DeepEqual(src *string) bool {
+func (p *SourceServiceGetCloudOptimizedSourcePathResult) Field0DeepEqual(src []map[string]string) bool {
 
-	if p.Success == src {
-		return true
-	} else if p.Success == nil || src == nil {
+	if len(p.Success) != len(src) {
 		return false
 	}
-	if strings.Compare(*p.Success, *src) != 0 {
-		return false
+	for i, v := range p.Success {
+		_src := src[i]
+		if len(v) != len(_src) {
+			return false
+		}
+		for k, v := range v {
+			_src1 := _src[k]
+			if strings.Compare(v, _src1) != 0 {
+				return false
+			}
+		}
 	}
 	return true
 }

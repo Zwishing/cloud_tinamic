@@ -40,13 +40,20 @@ struct AddCollectionResponse {
 }
 
 struct PublishRequest {
-    1: source.SourceCategory source_category,
-    2: string source_key
-    3: ServiceCategory service_category
+    1: required source.SourceCategory source_category,
+    2: required string source_key,
+    3: required ServiceCategory service_category,
+    4: required string service_name
+    5: optional string description
+}
+
+struct PublishResponse{
+    1: required base.BaseResp base,
+    2: required list<string> service_keys,// 发布的服务的唯一key
 }
 
 service ServiceCollection{
     GetCollectionsResponse GetCollections(1:i64 pageSize, 2:i64 page)
     AddCollectionResponse AddCollection(1:string source_key, 2:string title)
-    void Publish(1:PublishRequest req)
+    PublishResponse Publish(1:PublishRequest req)
 }
