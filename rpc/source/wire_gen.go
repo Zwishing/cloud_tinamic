@@ -18,7 +18,7 @@ func InitSourceService() (*SourceServiceImpl, error) {
 	db := repo.NewDB()
 	storage := repo.NewMinio()
 	sourceRepo := repo.NewSourceRepoImpl(db, storage)
-	client, err := NewGeoServiceClient()
+	client, err := NewWorkflowClient()
 	if err != nil {
 		return nil, err
 	}

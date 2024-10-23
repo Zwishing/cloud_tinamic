@@ -8,8 +8,8 @@ use gdal_sys::{GDALVectorTranslate,GDALVectorTranslateOptions};
 use crate::programs::vector::vector_translate::{vector_translate,VectorTranslateOptions};
 use crate::config::get_settings;
 use crate::programs::destination::DatasetDestination;
-use geoarrow::io::{gdal::read_gdal,parquet::write_geoparquet_async};
-use geoarrow::io::parquet::GeoParquetWriterOptions;
+// use geoarrow::io::{gdal::read_gdal,parquet::write_geoparquet_async};
+// use geoarrow::io::parquet::GeoParquetWriterOptions;
 use minio::s3::types::FileHeaderInfo::NONE;
 use tokio::io::AsyncWrite;
 
@@ -193,7 +193,7 @@ mod tests {
         // gdal::config::set_config_option("AWS_ACCESS_KEY_ID", "ugNa8yDGzk4gESCATs06").unwrap();
         // gdal::config::set_config_option("AWS_HTTPS", "NO").unwrap();
        
-        let path = "/vsizip//vsis3/vector/city.zip";
+        let path = "/vsizip//vsis3/original-source/vector/city01.zip";
         to_geoparquet(path, Path::new("city.parquet")).expect("Failed to convert to GeoParquet");
     }
 

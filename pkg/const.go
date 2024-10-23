@@ -25,3 +25,12 @@ const (
 const (
 	GeometryFieldName = "geom"
 )
+
+const (
+	VectorProcessingTaskQueue = "vector-processing-pipeline"
+)
+
+const (
+	VectorThumbnailWidth  = 300
+	VectorThumbnailHeight = 300
+)

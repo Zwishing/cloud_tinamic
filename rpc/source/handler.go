@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"cloud_tinamic/kitex_gen/base"
 	source "cloud_tinamic/kitex_gen/data/source"
-	"cloud_tinamic/kitex_gen/data/storage"
-	"cloud_tinamic/kitex_gen/data/storage/storeservice"
 	"cloud_tinamic/pkg"
 	"cloud_tinamic/pkg/util"
 	"cloud_tinamic/rpc/source/pack"
 	"cloud_tinamic/rpc/source/repo"
+	"cloud_tinamic/rpc/workflow"
 	"context"
 	"fmt"
 	"github.com/cloudwego/kitex/pkg/klog"
+	"go.temporal.io/sdk/client"
 	"strings"
 	"sync"
 	"time"
@@ -21,14 +21,126 @@ import (
 // SourceServiceImpl implements the last service interface defined in the IDL.
 type SourceServiceImpl struct {
 	SourceRepo repo.SourceRepo
-	geoClient  storeservice.Client
+	//geoClient      storeservice.Client
+	WorkflowClient client.Client
 }
 
-func NewSourceServiceImpl(repo repo.SourceRepo, geoClient storeservice.Client) *SourceServiceImpl {
-	return &SourceServiceImpl{SourceRepo: repo, geoClient: geoClient}
+func NewSourceServiceImpl(repo repo.SourceRepo, workflowClient client.Client) *SourceServiceImpl {
+	return &SourceServiceImpl{SourceRepo: repo, WorkflowClient: workflowClient}
 }
 
 // Upload implements the SourceServiceImpl interface.
+//func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadRequest) (resp *source.UploadResponse, err error) {
+//	resp = &source.UploadResponse{
+//		Base: base.NewBaseResp(),
+//	}
+//
+//	// 处理key为空时，默认上传到根目录
+//	if req.Key == "" {
+//		req.Key, err = s.SourceRepo.GetHomeKeyBySourceCategory(req.SourceCategory)
+//	}
+//
+//	// 获取指定目录的路径,上传的目录的路径
+//	path, err := s.SourceRepo.GetPathByKey(req.Key)
+//	if err != nil {
+//		resp.Base.Code = base.Code_FAIL
+//		resp.Base.Msg = "获取路径失败"
+//		return resp, err
+//	}
+//	// 数据存储路径
+//	storePath := fmt.Sprintf("%s/%s", path, req.Name)
+//	// 上传的数据存储的唯一标识
+//	sourceKey := util.UuidV4()
+//
+//	errChan := make(chan error, 1) // 通道大小可以设置为1
+//	var wg sync.WaitGroup
+//	wg.Add(2)
+//	doneChan := make(chan struct{}) // 新增一个通道用于表示任务完成
+//
+//	// Goroutine 1: 上传文件到 Minio
+//	go func() {
+//		defer wg.Done()
+//		// 上传到minio
+//		err := s.SourceRepo.UploadToMinio(pkg.OriginalSourceBucketName, storePath, bytes.NewReader(req.FileData), req.Size)
+//		if err != nil {
+//			errChan <- err
+//			return
+//		}
+//
+//		go func() {
+//			// 将矢量数据规范统一化存储 矢量数据为：geo parquet格式
+//			cloudOptimizedKey := util.UuidV4() //归一化后数据存储的唯一key
+//			ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
+//			defer cancel()
+//
+//			// 返回存储的路径，这里生成时间文件夹存储
+//			//now := time.Now()
+//			parquetPath := fmt.Sprintf("%s/%s.parquet", path, cloudOptimizedKey)
+//			resp, err := s.geoClient.ToGeoParquetStorage(ctx, &storage.ToGeoParquetStorageRequest{
+//				SourceBucket: pkg.OriginalSourceBucketName,
+//				SourcePath:   storePath,
+//				DestBucket:   pkg.CloudOptimizedSourceBucketName,
+//				DestPath:     parquetPath,
+//			})
+//			if err != nil {
+//				klog.Error(err)
+//				errChan <- err
+//				return
+//			}
+//			if resp.Base.Code == base.Code_SUCCESS {
+//				s.SourceRepo.AddCloudOptimizedItem(req.SourceCategory, sourceKey, cloudOptimizedKey, parquetPath, resp.Size)
+//			}
+//		}()
+//	}()
+//
+//	// Goroutine 2: 添加文件元数据到数据库
+//	go func() {
+//		defer wg.Done()
+//		success, addItemErr := s.SourceRepo.AddItem(req.SourceCategory, req.Key, &source.Item{
+//			Name:         req.Name,
+//			ItemType:     source.ItemType_FILE,
+//			Key:          sourceKey,
+//			Size:         req.Size,
+//			ModifiedTime: time.Now().Unix(),
+//			Path:         storePath,
+//		})
+//		if addItemErr != nil || !success {
+//			errChan <- fmt.Errorf("添加到数据库失败: %v", addItemErr)
+//		}
+//	}()
+//
+//	// 启动一个 goroutine 来等待所有任务完成
+//	go func() {
+//		wg.Wait()       // 等待所有 goroutine 完成
+//		close(doneChan) // 完成后关闭 doneChan
+//	}()
+//
+//	// 处理 select 语句
+//	select {
+//	case err := <-errChan: // 任何错误会立即触发
+//		if strings.Contains(err.Error(), "添加到数据库失败") {
+//			//_ = s.SourceRepo.DeleteFromMinio(bucketName, storePath) // 保持一致性，删除已上传文件
+//			resp.Base.Code = base.Code_FAIL
+//			resp.Base.Msg = "添加到数据库失败"
+//		} else {
+//			resp.Base.Code = base.Code_FAIL
+//			resp.Base.Msg = "上传到 Minio 失败"
+//		}
+//		return resp, err
+//	case <-doneChan:
+//		// 如果所有 goroutine 都完成，没有错误，立即返回成功
+//		resp.Base.Code = base.Code_SUCCESS
+//		resp.Base.Msg = "数据上传成功"
+//		resp.Key = sourceKey
+//		return resp, nil
+//	case <-time.After(300 * time.Second): // 超时处理
+//		resp.Base.Code = base.Code_FAIL
+//		resp.Base.Msg = "上传超时"
+//		return resp, fmt.Errorf("上传超时")
+//	}
+//
+//}
+
 func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadRequest) (resp *source.UploadResponse, err error) {
 	resp = &source.UploadResponse{
 		Base: base.NewBaseResp(),
@@ -65,29 +177,23 @@ func (s *SourceServiceImpl) Upload(ctx context.Context, req *source.UploadReques
 			errChan <- err
 			return
 		}
+
 		go func() {
-			// 将矢量数据规范统一化存储 矢量数据为：geo parquet格式
+			// 将矢量数据规范统一化存储 矢量数据为：GeoParquet格式
 			cloudOptimizedKey := util.UuidV4() //归一化后数据存储的唯一key
-
-			ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
-			defer cancel()
-
 			// 返回存储的路径，这里生成时间文件夹存储
-			//now := time.Now()
 			parquetPath := fmt.Sprintf("%s/%s.parquet", path, cloudOptimizedKey)
-			resp, err := s.geoClient.ToGeoParquetStorage(ctx, &storage.ToGeoParquetStorageRequest{
-				SourceBucket: pkg.OriginalSourceBucketName,
-				SourcePath:   storePath,
-				DestBucket:   pkg.CloudOptimizedSourceBucketName,
-				DestPath:     parquetPath,
-			})
+
+			size, _, err := s.ExecuteVectorWorkflow(sourceKey, cloudOptimizedKey, storePath, parquetPath)
 			if err != nil {
-				klog.Error(err)
-				errChan <- err
 				return
 			}
-			if resp.Base.Code == base.Code_SUCCESS {
-				s.SourceRepo.AddCloudOptimizedItem(req.SourceCategory, sourceKey, cloudOptimizedKey, parquetPath, resp.Size)
+			isAdd, err := s.SourceRepo.AddCloudOptimizedItem(req.SourceCategory, sourceKey, cloudOptimizedKey, parquetPath, size)
+			if err != nil {
+				return
+			}
+			if !isAdd {
+				klog.Error("添加失败")
 			}
 		}()
 	}()
@@ -324,4 +430,22 @@ func (s *SourceServiceImpl) GetSourcePath(ctx context.Context, key string) (stri
 		return "", err
 	}
 	return path, nil
+}
+
+func (s *SourceServiceImpl) ExecuteVectorWorkflow(sourceKey, cloudOptimizedKey, srcPath, cloudOptimizedPath string) (size int64, thumbnail []byte, err error) {
+	workflowOptions := client.StartWorkflowOptions{
+		ID:        sourceKey,
+		TaskQueue: pkg.VectorProcessingTaskQueue,
+	}
+	we, err := s.WorkflowClient.ExecuteWorkflow(context.Background(), workflowOptions, workflow.VectorWorkflow, cloudOptimizedKey, srcPath, cloudOptimizedPath)
+	if err != nil {
+		klog.Fatalf("Unable to execute workflow: %v", err)
+	}
+	klog.Infof("WorkflowID:%s RunID:%s", we.GetID(), we.GetRunID())
+	err = we.Get(context.Background(), &thumbnail)
+	if err != nil {
+		return 0, nil, err
+	}
+	size = 0
+	return
 }

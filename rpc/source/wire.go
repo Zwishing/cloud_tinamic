@@ -30,7 +30,8 @@ var DataProviders = wire.NewSet(
 func InitSourceService() (*SourceServiceImpl, error) {
 	wire.Build(
 		DataProviders, // 复用数据库和 MinIO 的依赖
-		NewGeoServiceClient,
+		//NewGeoServiceClient,
+		NewWorkflowClient,
 		NewSourceServiceImpl, // 注入服务
 	)
 	return nil, nil
